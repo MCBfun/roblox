@@ -1,0 +1,100 @@
+--创建屏幕GUI
+本地ScreenGui=实例.新的(ScreenGui=实例.新的(
+ScreenGuiScreenGui.姓名="AutoFarmGUI"
+ScreenGuiScreenGui.父母=游戏。 本地玩家：WaitForChild(父母=游戏。 本地玩家：WaitForChild(
+
+-- 创建主窗口
+本地帧=实例.新的(“帧”)
+框架.大小=UDim2.新的(UDim2，0，200，大小=0.
+框架.位置=UDim2.新的(UDim2，新的(0.5，100，位置=UDim2.
+框架.锚定点=矢量2.新的(2.，0.5，0)
+框架.BackgroundColor3=Color3.fromRGB(BackgroundColor3，Color3.fromRGB(40，40，40)
+框架.BorderSizePixel=BorderSizePixel=0
+框架.父母=ScreenGui
+
+-- 添加标题
+本地标题=实例.新的("TextLabel")
+标题.大小=标题标题.新的(大小，UDim2.新的(1，0，大小=UDim2.
+标题.标题标题=Color3.fromRGB(BackgroundColor3，BackgroundColor3=Color3.fromRGB(30，30)
+标题.文本="自动农场控制"
+标题.标题标题=Color3.fromRGB(TextColor3，TextColor3=Color3.fromRGB(255，255)
+标题.父母=框架
+
+-- 添加开关按钮
+本地togglebutton=实例.新的(togglebutton=实例.新的(
+ToggleButtonToggleButton.大小=UDim2.新的(大小，UDim2.新的(0.8，0，
+ToggleButtonToggleButton.位置=UDim2.新的(位置，UDim2.0.4，0.1.新的(0，
+ToggleButtonToggleButton.BackgroundColor3=Color3.fromRGB(BackgroundColor3=Color3.fromRGB(200、60、60)
+ToggleButtonToggleButton.文本="关闭"
+ToggleButtonToggleButton.TextColor3=Color3.fromRGB(TextColor3=Color3.fromRGB(255，255，255)
+togglebutton.父母=框架
+
+-- 添加拖动功能
+本地UserInputService=游戏:GetService(UserInputService=游戏:GetService(
+局部拖动
+本地dragInput
+本地拖动启动
+本地startpos
+
+本地功能更新(输入)
+本地增量=输入。位置-拖动开始
+框架.位置=UDim2.新的(起始位置X.规模，起始位置X.抵消+三角洲.X，起始位置Y.规模，起始位置Y.抵消+三角洲.Y)
+结束
+
+标题.InputBegan:连接(函数(输入)
+如果输入.UserInputType==enum.UserInputType.MouseButton1，则
+拖动=真
+dragstart=输入.位置
+startpos=框架.位置
+        
+输入.改变:连接(函数()
+如果输入.UserInputState==enum.UserInputState.结束，则
+拖动=假的
+结束
+结束)
+结束
+结束)
+
+标题.InputChanged:连接(函数(输入)
+如果输入.UserInputType==enum.UserInputType.MouseMovement，则
+dragInput=输入
+结束
+结束)
+
+UserInputService.InputChanged:连接(函数(输入)
+如果输入==拖动输入并拖动，则
+更新(输入)
+结束
+结束)
+
+-- 脚本逻辑
+本地isrunning=假的
+本地连接
+
+togglebutton.鼠标按钮1单击:连接(功能()
+isrunning=不是isrunning
+    
+如果是 跑步，则
+ToggleButtonToggleButton.BackgroundColor3=Color3.fromRGB(BackgroundColor3=Color3.fromRGB(60、200、60)
+ToggleButtonToggleButton.文本=文本=文本
+        
+-- 启动循环
+连接=游戏：GetService(GetService)心跳：连接(函数()连接)心跳：连接(函数()
+本地参数={
+                37.43156792502258,
+                7
+}
+游戏:GetService(GetService).LocalPlayer(WaitForChild:LocalPlayer):WaitForChild:LocalPlayer):WaitForChild)："PlayerGui"):WaitForChild("GameUI"):WaitForChild(WaitForChild):FireServer)：打开包裹(args("效果")：WaitForChild(WaitForChild("RemoteEvent")：FireServer(解包(args))FireServer(打开包裹(args))
+等待(1)
+结束)
+其他
+togglebutton切换按钮。BackgroundColor3=Color3。来自RGB(200、60、60)BackgroundColor3=Color3.fromRGB(
+ToggleButtonToggleButton.文本="关闭"文本=
+        
+-- 停止循环
+如果连接，则
+连接：断开()
+连接=零
+结束
+结束
+结束)
