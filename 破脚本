@@ -1,100 +1,550 @@
--- 创建屏幕GUI
-local ScreenGui = Instance.new("ScreenGui")
-ScreenGui.Name = "AutoFarmGUI"
-ScreenGui.Parent = game.Players.LocalPlayer:WaitForChild("PlayerGui")
+-- 等待核心服务加载
+local success, errorMsg = pcall(function()
+    -- 获取服务
+    local Players = game:GetService("Players")
+    local RunService = game:GetService("RunService")
+    local UserInputService = game:GetService("UserInputService")
+    local SoundService = game:GetService("SoundService")
+    local Debris = game:GetService("Debris")
+    local TweenService = game:GetService("TweenService")
 
--- 创建主窗口
-local Frame = Instance.new("Frame")
-Frame.Size = UDim2.new(0, 200, 0, 100)
-Frame.Position = UDim2.new(0.5, -100, 0, 10)
-Frame.AnchorPoint = Vector2.new(0.5, 0)
-Frame.BackgroundColor3 = Color3.fromRGB(40, 40, 40)
-Frame.BorderSizePixel = 0
-Frame.Parent = ScreenGui
+    -- 安全获取本地玩家
+    local LocalPlayer = Players.LocalPlayer
+    if not LocalPlayer then
+        repeat wait(0.1) until Players.LocalPlayer
+        LocalPlayer = Players.LocalPlayer
+    end
 
--- 添加标题
-local Title = Instance.new("TextLabel")
-Title.Size = UDim2.new(1, 0, 0, 30)
-Title.BackgroundColor3 = Color3.fromRGB(30, 30, 30)
-Title.Text = "自动农场控制"
-Title.TextColor3 = Color3.fromRGB(255, 255, 255)
-Title.Parent = Frame
+    -- 安全获取PlayerGui
+    local PlayerGui = LocalPlayer:WaitForChild("PlayerGui", 10)
+    if not PlayerGui then
+        warn("无法加载：PlayerGui获取超时")
+        return
+    end
 
--- 添加开关按钮
-local ToggleButton = Instance.new("TextButton")
-ToggleButton.Size = UDim2.new(0.8, 0, 0, 40)
-ToggleButton.Position = UDim2.new(0.1, 0, 0.4, 0)
-ToggleButton.BackgroundColor3 = Color3.fromRGB(200, 60, 60)
-ToggleButton.Text = "关闭"
-ToggleButton.TextColor3 = Color3.fromRGB(255, 255, 255)
-ToggleButton.Parent = Frame
+    -- 1. 创建基础GUI容器
+本地ScreenGui=Instance.new("ScreenGui")
+ScreenGui.Name="多功能GUI_V2"
+ScreenGui.ResetOnSpawn=false
+ScreenGui.ZIndexBehavior=枚举.ZIndexBehavior.Sibling
+ScreenGui.Parent=PlayerGui
 
--- 添加拖动功能
-local UserInputService = game:GetService("UserInputService")
-local dragging
-local dragInput
-local dragStart
-local startPos
+-- 2. 创建主窗口
+本地MainFrame=Instance.new("Frame")
+MainFrame.Size=UDim2.new(0，200，0，250)
+MainFrame.Position=UDim2.new(0.5，-100，0.1，0)
+MainFrame.AnchorPoint=Vector2.new(0.5，0)
+MainFrame.BackgroundColor3=Color3.fromRGB(40，40，40)
+MainFrame.BorderSizePixel=0
+MainFrame.Parent=ScreenGui
 
-local function update(input)
-    local delta = input.Position - dragStart
-    Frame.Position = UDim2.new(startPos.X.Scale, startPos.X.Offset + delta.X, startPos.Y.Scale, startPos.Y.Offset + delta.Y)
-end
+-- 圆角
+本地MainCorner=Instance.new("UICorner")
+MainCorner.CornerRadius=UDim.new(0，1)
+MainCorner.Parent=MainFrame
 
-Title.InputBegan:Connect(function(input)
-    if input.UserInputType == Enum.UserInputType.MouseButton1 then
-        dragging = true
-        dragStart = input.Position
-        startPos = Frame.Position
+-- 3. 标题栏
+本地标题栏=Instance.new("Frame")
+TitleBar.Size=UDim2.new(1，0，0，30)
+TitleBar.BackgroundColor3=Color3.fromRGB(30，30，30)
+TitleBar.BorderSizePixel=0
+TitleBar.Parent=MainFrame
+
+-- 标题文字
+本地标题文本=Instance.new("TextLabel")
+    TitleText.Size = UDim2.new(0, 120, 1, 0)
+    TitleText.Position = UDim2.new(0, 10, 0, 0)
+    TitleText.BackgroundTransparency = 1
+    TitleText.Text = "功能面板 V2"
+    TitleText.TextColor3 = Color3.fromRGB(255, 255, 255)
+    TitleText.TextSize = 14
+    TitleText.Font = Enum.Font.SourceSansBold
+    TitleText.TextXAlignment = Enum.TextXAlignment.Left
+    TitleText.Parent = TitleBar
+
+    -- 控制按钮
+    local CloseBtn = Instance.new("TextButton")
+    CloseBtn.Size = UDim2.new(0, 25, 0, 25)
+    CloseBtn.Position = UDim2.new(1, -30, 0.5, -12)
+    CloseBtn.BackgroundColor3 = Color3.fromRGB(200, 60, 60)
+    CloseBtn.Text = "×"
+    CloseBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
+    CloseBtn.TextSize = 16
+    CloseBtn.Parent = TitleBar
+
+    local MinimizeBtn = Instance.new("TextButton")
+    MinimizeBtn.Size = UDim2.new(0, 25, 0, 25)
+    MinimizeBtn.Position = UDim2.new(1, -60, 0.5, -12)
+    MinimizeBtn.BackgroundColor3 = Color3.fromRGB(80, 80, 80)
+    MinimizeBtn.Text = "-"
+    MinimizeBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
+    MinimizeBtn.TextSize = 14
+    MinimizeBtn.Parent = TitleBar
+
+    -- 4. 按钮容器
+    local ButtonContainer = Instance.new("Frame")
+    ButtonContainer.Size = UDim2.new(1, -20, 1, -40)
+    ButtonContainer.Position = UDim2.new(0, 10, 0, 35)
+    ButtonContainer.BackgroundTransparency = 1
+    ButtonContainer.Parent = MainFrame
+
+    local ListLayout = Instance.new("UIListLayout")
+    ListLayout.Padding = UDim.new(0, 10)
+    ListLayout.HorizontalAlignment = Enum.HorizontalAlignment.Center
+    ListLayout.VerticalAlignment = Enum.VerticalAlignment.Center
+    ListLayout.Parent = ButtonContainer
+
+    -- 功能按钮
+    local buttons = {
+        {name = "FarmBtn", text = "启动刷取XP", color = Color3.fromRGB(200, 60, 60)},
+        {name = "JumpBtn", text = "开启飞行", color = Color3.fromRGB(200, 60, 60)},
+        {name = "NoclipBtn", text = "开启穿墙", color = Color3.fromRGB(200, 60, 60)},
+        {name = "EspBtn", text = "开启透视", color = Color3.fromRGB(200, 60, 60)}
+    }
+
+    local function createButton(info)
+        local btn = Instance.new("TextButton")
+        btn.Size = UDim2.new(0, 160, 0, 35)
+        btn.BackgroundColor3 = info.color
+        btn.Text = info.text
+        btn.TextColor3 = Color3.fromRGB(255, 255, 255)
+        btn.TextSize = 14
+        btn.Font = Enum.Font.SourceSansBold
+        btn.Name = info.name
+        btn.Parent = ButtonContainer
         
-        input.Changed:Connect(function()
-            if input.UserInputState == Enum.UserInputState.End then
-                dragging = false
-            end
-        end)
+        local corner = Instance.new("UICorner")
+        corner.CornerRadius = UDim.new(0, 6)
+        corner.Parent = btn
+        
+        return btn
     end
-end)
 
-Title.InputChanged:Connect(function(input)
-    if input.UserInputType == Enum.UserInputType.MouseMovement then
-        dragInput = input
-    end
-end)
+    local FarmBtn = createButton(buttons[1])
+    local JumpBtn = createButton(buttons[2])
+    local NoclipBtn = createButton(buttons[3])
+    local EspBtn = createButton(buttons[4])
 
-UserInputService.InputChanged:Connect(function(input)
-    if input == dragInput and dragging then
-        update(input)
-    end
-end)
-
--- 脚本逻辑
-local isRunning = false
-local connection
-
-ToggleButton.MouseButton1Click:Connect(function()
-    isRunning = not isRunning
+    -- 5. 迷你按钮
+    local MiniBtn = Instance.new("TextButton")
+    MiniBtn.Size = UDim2.new(0, 40, 0, 40)
+    MiniBtn.Position = UDim2.new(0, 10, 0, 10)
+    MiniBtn.BackgroundColor3 = Color3.fromRGB(0, 0, 0)
+    MiniBtn.Text = "😞"
+    MiniBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
+    MiniBtn.TextSize = 12
+    MiniBtn.Visible = false
+    MiniBtn.ZIndex = 10
+    MiniBtn.Parent = ScreenGui
     
-    if isRunning then
-        ToggleButton.BackgroundColor3 = Color3.fromRGB(60, 200, 60)
-        ToggleButton.Text = "开启"
-        
-        -- 启动循环
-        connection = game:GetService("RunService").Heartbeat:Connect(function()
-            local args = {
-                37.43156792502258,
-                7
-            }
-            game:GetService("Players").LocalPlayer:WaitForChild("PlayerGui"):WaitForChild("GameUI"):WaitForChild("chaseeffect"):WaitForChild("Effect"):WaitForChild("RemoteEvent"):FireServer(unpack(args))
-            wait(1)
+    local MiniCorner = Instance.new("UICorner")
+    MiniCorner.CornerRadius = UDim.new(0, 8)
+    MiniCorner.Parent = MiniBtn
+
+    -- 6. 状态变量
+    local isFarmOn = false
+    local isJumpOn = false
+    local isNoclipOn = false
+    local isEspOn = false
+    local isMinimized = false
+    local connections = {}
+    local espObjects = {} -- 存储透视对象
+
+    -- 7. 工具函数
+    local function playClickSound()
+        pcall(function()
+            local sound = Instance.new("Sound")
+            sound.SoundId = "rbxassetid://130785461"
+            sound.Volume = 0.2
+            sound.Parent = SoundService
+            sound:Play()
+            Debris:AddItem(sound, 2)
         end)
-    else
-        ToggleButton.BackgroundColor3 = Color3.fromRGB(200, 60, 60)
-        ToggleButton.Text = "关闭"
-        
-        -- 停止循环
-        if connection then
-            connection:Disconnect()
-            connection = nil
+    end
+
+    local function animateButton(btn)
+        if not btn then return end
+        local originalSize = btn.Size
+        local tween = TweenService:Create(btn, TweenInfo.new(0.1), {Size = originalSize - UDim2.new(0, 4, 0, 4)})
+        tween:Play()
+        wait(0.1)
+        if btn then
+            TweenService:Create(btn, TweenInfo.new(0.1), {Size = originalSize}):Play()
         end
     end
-end)
+
+    local function disconnectAll()
+        for _, conn in ipairs(connections) do
+            if conn and conn.Connected then
+                conn:Disconnect()
+            end
+        end
+        connections = {}
+    end
+
+    -- 8. 透视功能实现
+    local function getPlayerColor(player)
+        -- 尝试获取队伍颜色
+        if player.Team then
+            return player.Team.TeamColor.Color
+        end
+        
+        -- 尝试获取队伍颜色属性
+        local teamColor = player:GetAttribute("TeamColor")
+        if teamColor then
+            return teamColor
+        end
+        
+        -- 默认颜色（根据玩家ID生成唯一颜色）
+        local hue = (player.UserId % 360) / 360
+        return Color3.fromHSV(hue, 0.8, 0.9)
+    end
+
+    local function removeCharacterEsp(player)
+        if espObjects[player] then
+            -- 移除高光
+            for _, highlight in ipairs(espObjects[player].highlights or {}) do
+                if highlight and highlight.Parent then
+                    highlight:Destroy()
+                end
+            end
+            
+            -- 移除公告板
+            for _, billboard in ipairs(espObjects[player].billboards or {}) do
+                if billboard and billboard.Parent then
+                    billboard:Destroy()
+                end
+            end
+            
+            espObjects[player].highlights = {}
+            espObjects[player].billboards = {}
+        end
+    end
+
+    local function removePlayerEsp(player)
+        removeCharacterEsp(player)
+        espObjects[player] = nil
+    end
+
+    local function removeEsp()
+        for player, _ in pairs(espObjects) do
+            removePlayerEsp(player)
+        end
+        espObjects = {}
+    end
+
+    local function createCharacterEsp(player, character)
+        removeCharacterEsp(player) -- 先移除旧的
+        
+        -- 等待角色加载完成
+        local humanoidRootPart = character:FindFirstChild("HumanoidRootPart") or character:FindFirstChild("Torso") or character:FindFirstChildWhichIsA("BasePart")
+        local head = character:FindFirstChild("Head")
+        
+        if not humanoidRootPart then return end
+        
+        -- 使用高光效果
+        local highlight = Instance.new("Highlight")
+        highlight.Name = "ESP_Highlight"
+        highlight.Adornee = character
+        highlight.FillColor = getPlayerColor(player)
+        highlight.FillTransparency = 0.7
+        highlight.OutlineColor = Color3.fromRGB(255, 255, 255)
+        highlight.OutlineTransparency = 0.3
+        highlight.DepthMode = Enum.HighlightDepthMode.AlwaysOnTop
+        highlight.Parent = game:GetService("CoreGui")
+        
+        -- 创建名字标签
+        local billboard
+        if head then
+            billboard = Instance.new("BillboardGui")
+            billboard.Name = "ESP_Billboard"
+            billboard.Adornee = head
+            billboard.Size = UDim2.new(0, 200, 0, 50)
+            billboard.StudsOffset = Vector3.new(0, 3, 0)
+            billboard.AlwaysOnTop = true
+            billboard.MaxDistance = 150
+            billboard.Parent = game:GetService("CoreGui")
+            
+            local nameLabel = Instance.new("TextLabel")
+            nameLabel.Size = UDim2.new(1, 0, 0.6, 0)
+            nameLabel.BackgroundTransparency = 1
+            nameLabel.Text = player.Name
+            nameLabel.TextColor3 = getPlayerColor(player)
+            nameLabel.TextSize = 14
+            nameLabel.Font = Enum.Font.SourceSansBold
+            nameLabel.Parent = billboard
+            
+            local distanceLabel = Instance.new("TextLabel")
+            distanceLabel.Size = UDim2.new(1, 0, 0.4, 0)
+            distanceLabel.Position = UDim2.new(0, 0, 0.6, 0)
+            distanceLabel.BackgroundTransparency = 1
+            distanceLabel.Text = "计算中..."
+            distanceLabel.TextColor3 = Color3.fromRGB(200, 200, 200)
+            distanceLabel.TextSize = 12
+            distanceLabel.Font = Enum.Font.SourceSans
+            distanceLabel.Parent = billboard
+            
+            -- 更新距离信息
+            local distanceConn = RunService.Heartbeat:Connect(function()
+                if not character or not character.Parent or not LocalPlayer.Character then
+                    return
+                end
+                
+                local localChar = LocalPlayer.Character
+                local localRoot = localChar:FindFirstChild("HumanoidRootPart") or localChar:FindFirstChild("Torso") or localChar:FindFirstChildWhichIsA("BasePart")
+                local targetRoot = character:FindFirstChild("HumanoidRootPart") or character:FindFirstChild("Torso") or character:FindFirstChildWhichIsA("BasePart")
+                
+                if localRoot and targetRoot then
+                    local distance = (localRoot.Position - targetRoot.Position).Magnitude
+                    distanceLabel.Text = string.format("%.1fm", distance)
+                    
+                    -- 根据距离调整透明度
+                    local alpha = math.clamp(1 - (distance / 200), 0.2, 0.8)
+                    highlight.FillTransparency = 1 - alpha
+                    highlight.OutlineTransparency = 1 - alpha
+                    
+                    -- 根据距离调整颜色
+                    if distance < 20 then
+                        highlight.FillColor = Color3.fromRGB(255, 50, 50)
+                    elseif distance < 50 then
+                        highlight.FillColor = Color3.fromRGB(255, 150, 50)
+                    else
+                        highlight.FillColor = getPlayerColor(player)
+                    end
+                end
+            end)
+            table.insert(connections, distanceConn)
+        end
+        
+        -- 存储透视对象
+        espObjects[player] = espObjects[player] or {}
+        espObjects[player].highlights = {highlight}
+        if billboard then
+            espObjects[player].billboards = {billboard}
+        end
+    end
+
+    local function createPlayerEsp(player)
+        if espObjects[player] then return end
+        
+        espObjects[player] = {
+            highlights = {},
+            billboards = {},
+            player = player
+        }
+        
+        -- 监听角色变化
+        if player.Character then
+            createCharacterEsp(player, player.Character)
+        end
+        
+        local charAddedConn = player.CharacterAdded:Connect(function(character)
+            createCharacterEsp(player, character)
+        end)
+        table.insert(connections, charAddedConn)
+        
+        local charRemovingConn = player.CharacterRemoving:Connect(function()
+            removeCharacterEsp(player)
+        end)
+        table.insert(connections, charRemovingConn)
+    end
+
+    local function createEsp()
+        removeEsp() -- 先清除现有的
+        
+        -- 为所有玩家创建透视
+        for _, player in ipairs(Players:GetPlayers()) do
+            if player ~= LocalPlayer then
+                createPlayerEsp(player)
+            end
+        end
+        
+        -- 监听新玩家
+        local playerAddedConn = Players.PlayerAdded:Connect(function(player)
+            createPlayerEsp(player)
+        end)
+        table.insert(connections, playerAddedConn)
+        
+        -- 监听玩家离开
+        local playerRemovingConn = Players.PlayerRemoving:Connect(function(player)
+            removePlayerEsp(player)
+        end)
+        table.insert(connections, playerRemovingConn)
+    end
+
+    local function toggleEsp()
+        isEspOn = not isEspOn
+        
+        if isEspOn then
+            EspBtn.BackgroundColor3 = Color3.fromRGB(200, 100, 255)
+            EspBtn.Text = "透视已开"
+            createEsp()
+        else
+            EspBtn.BackgroundColor3 = Color3.fromRGB(150, 60, 200)
+            EspBtn.Text = "开启透视"
+            removeEsp()
+        end
+    end
+
+    -- 9. 其他功能实现
+    local function toggleFarm()
+        isFarmOn = not isFarmOn
+        FarmBtn.BackgroundColor3 = isFarmOn and Color3.fromRGB(60, 200, 60) or Color3.fromRGB(200, 60, 60)
+        FarmBtn.Text = isFarmOn and "农场运行中" or "启动农场"
+        
+        if isFarmOn then
+            local conn = RunService.Heartbeat:Connect(function()
+                pcall(function()
+                    -- 简化的农场逻辑
+                end)
+            end)
+            table.insert(connections, conn)
+        else
+            disconnectAll()
+        end
+    end
+
+    local function toggleJump()
+        isJumpOn = not isJumpOn
+        JumpBtn.BackgroundColor3 = isJumpOn and Color3.fromRGB(60, 200, 200) or Color3.fromRGB(60, 60, 200)
+        JumpBtn.Text = isJumpOn and "无限跳已开" or "开启无限跳"
+        
+        if isJumpOn then
+            local conn = UserInputService.JumpRequest:Connect(function()
+                pcall(function()
+                    local humanoid = LocalPlayer.Character and LocalPlayer.Character:FindFirstChildOfClass("Humanoid")
+                    if humanoid then
+                        humanoid:ChangeState(Enum.HumanoidStateType.Jumping)
+                    end
+                end)
+            end)
+            table.insert(connections, conn)
+        else
+            disconnectAll()
+        end
+    end
+
+    local function toggleNoclip()
+        isNoclipOn = not isNoclipOn
+        NoclipBtn.BackgroundColor3 = isNoclipOn and Color3.fromRGB(255, 200, 60) or Color3.fromRGB(200, 150, 60)
+        NoclipBtn.Text = isNoclipOn and "穿墙已开" or "开启穿墙"
+        
+        if isNoclipOn then
+            local conn = RunService.Stepped:Connect(function()
+                pcall(function()
+                    local character = LocalPlayer.Character
+                    if character then
+                        for _, part in ipairs(character:GetDescendants()) do
+                            if part:IsA("BasePart") then
+                                part.CanCollide = false
+                            end
+                        end
+                    end
+                end)
+            end)
+            table.insert(connections, conn)
+        else
+            disconnectAll()
+            pcall(function()
+                local character = LocalPlayer.Character
+                if character then
+                    for _, part in ipairs(character:GetDescendants()) do
+                        if part:IsA("BasePart") then
+                            part.CanCollide = true
+                        end
+                    end
+                end
+            end)
+        end
+    end
+
+    -- 10. 按钮事件
+    FarmBtn.MouseButton1Click:Connect(function()
+        playClickSound()
+        animateButton(FarmBtn)
+        toggleFarm()
+    end)
+
+    JumpBtn.MouseButton1Click:Connect(function()
+        playClickSound()
+        animateButton(JumpBtn)
+        toggleJump()
+    end)
+
+    NoclipBtn.MouseButton1Click:Connect(function()
+        playClickSound()
+        animateButton(NoclipBtn)
+        toggleNoclip()
+    end)
+
+    EspBtn.MouseButton1Click:Connect(function()
+        playClickSound()
+        animateButton(EspBtn)
+        toggleEsp()
+    end)
+
+    CloseBtn.MouseButton1Click:Connect(function()
+        playClickSound()
+        animateButton(CloseBtn)
+        disconnectAll()
+        removeEsp()
+        ScreenGui:Destroy()
+    end)
+
+    MinimizeBtn.MouseButton1Click:Connect(function()
+        playClickSound()
+        animateButton(MinimizeBtn)
+        isMinimized = not isMinimized
+        MainFrame.Visible = not isMinimized
+        MiniBtn.Visible = isMinimized
+        if isMinimized then
+            MiniBtn.Position = MainFrame.Position
+            MiniBtn.Text = "功能"
+        end
+    end)
+
+MiniBtn.MouseButton1单击：连接(函数()
+playClickSound()
+动画按钮(MiniBtn)
+isMinimized=false
+MainFrame.Visible=true
+MiniBtn.Visible=false
+结束)
+
+-- 11. 拖动功能
+本地拖动=假的
+本地dragstart，startpos
+
+本地函数startDrag(输入)
+如果input.UserInputType==枚举。UserInputType.鼠标按钮1，则
+拖动=真
+dragstart=输入.位置
+startpos=MainFrame.Position
+结束
+结束
+
+TitleBar.InputBegan：连接(startDrag)
+
+UserInputService.InputChanged：连接(函数(输入)
+如果拖动并输入。UserInputType==枚举。UserInputType。鼠标移动，则
+本地增量=输入。 位置-拖动开始
+MainFrame.Position=UDim2.new(
+startPos.X.Scale，startPos.X.Offset+delta.X，
+startPos.Y.Scale，startPos.Y.Offset+delta.Y
+)
+结束
+结束)
+
+UserInputService.InputEnded：连接(函数(输入)
+如果input.UserInputType==枚举。UserInputType.鼠标按钮1，则
+拖动=假的
+结束
+结束)
+
+-- 加载完成
+print("多功能面板V2加载成功！包含完整透视功能")
+结束)
+
+如果不成功那么
+warn("脚本加载失败："，errormsg)
+结束
