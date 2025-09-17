@@ -1,0 +1,308 @@
+-- 创建屏幕GUI
+local ScreenGui = Instance.new("ScreenGui")
+ScreenGui.Name = "AutoFarmGUI"
+ScreenGui.ResetOnSpawn = false
+ScreenGui.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
+ScreenGui.Parent = game.Players.LocalPlayer:WaitForChild("PlayerGui")
+
+-- 创建主窗口
+local MainFrame = Instance.new("Frame")
+MainFrame.Size = UDim2.new(0, 150, 0, 100)
+MainFrame.Position = UDim2.new(1, -550, 0, 20)
+MainFrame.AnchorPoint = Vector2.new(1, 0)
+MainFrame.BackgroundColor3 = Color3.fromRGB(45, 45, 45)
+MainFrame.BorderSizePixel = 0
+MainFrame.Parent = ScreenGui
+
+-- 添加圆角
+local MainCorner = Instance.new("UICorner")
+MainCorner.CornerRadius = UDim.new(0, 8)
+MainCorner.Parent = MainFrame
+
+-- 添加标题栏
+local TitleBar = Instance.new("Frame")
+TitleBar.Size = UDim2.new(1, 0, 0, 25)
+TitleBar.Position = UDim2.new(0, 0, 0, 0)
+TitleBar.BackgroundColor3 = Color3.fromRGB(35, 35, 35)
+TitleBar.BorderSizePixel = 0
+TitleBar.Parent = MainFrame
+
+local TitleCorner = Instance.new("UICorner")
+TitleCorner.CornerRadius = UDim.new(0, 8)
+TitleCorner.Parent = TitleBar
+
+-- 标题文字
+local TitleText = Instance.new("TextLabel")
+TitleText.Size = UDim2.new(0, 100, 1, 0)
+TitleText.Position = UDim2.new(0, 5, 0, 0)
+TitleText.BackgroundTransparency = 1
+TitleText.Text = "经验刷取面板V5"
+TitleText.TextColor3 = Color3.fromRGB(255, 255, 255)
+TitleText.TextSize = 12
+TitleText.Font = Enum.Font.SourceSansBold
+TitleText.TextXAlignment = Enum.TextXAlignment.Left
+TitleText.Parent = TitleBar
+
+-- 控制按钮容器
+local ControlButtons = Instance.new("Frame")
+ControlButtons.Size = UDim2.new(0, 40, 0, 25)
+ControlButtons.Position = UDim2.new(1, -45, 0, 0)
+ControlButtons.BackgroundTransparency = 1
+ControlButtons.Parent = TitleBar
+
+-- 最小化按钮
+local MinimizeBtn = Instance.new("TextButton")
+MinimizeBtn.Size = UDim2.new(0, 20, 0, 20)
+MinimizeBtn.Position = UDim2.new(0, 0, 0, 2)
+MinimizeBtn.BackgroundColor3 = Color3.fromRGB(80, 80, 80)
+MinimizeBtn.Text = "-"
+MinimizeBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
+MinimizeBtn.TextSize = 14
+MinimizeBtn.ZIndex = 2
+MinimizeBtn.Parent = ControlButtons
+
+local MinimizeCorner = Instance.new("UICorner")
+MinimizeCorner.CornerRadius = UDim.new(0, 4)
+MinimizeCorner.Parent = MinimizeBtn
+
+-- 关闭按钮
+local CloseBtn = Instance.new("TextButton")
+CloseBtn.Size = UDim2.new(0, 20, 0, 20)
+CloseBtn.Position = UDim2.new(0, 22, 0, 2)
+CloseBtn.BackgroundColor3 = Color3.fromRGB(200, 60, 60)
+CloseBtn.Text = "×"
+CloseBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
+CloseBtn.TextSize = 14
+CloseBtn.ZIndex = 2
+CloseBtn.Parent = ControlButtons
+
+local CloseCorner = Instance.new("UICorner")
+CloseCorner.CornerRadius = UDim.new(0, 4)
+CloseCorner.Parent = CloseBtn
+
+-- 修复：主控制按钮位置
+local ToggleBtn = Instance.new("TextButton")
+ToggleBtn.Size = UDim2.new(0, 140, 0, 40)
+ToggleBtn.Position = UDim2.new(0.1, 0, 0.5, -20) -- 修复位置，居中显示
+ToggleBtn.BackgroundColor3 = Color3.fromRGB(200, 60, 60)
+ToggleBtn.Text = "启动经验"
+ToggleBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
+ToggleBtn.TextSize = 14
+ToggleBtn.Font = Enum.Font.SourceSansBold
+ToggleBtn.ZIndex = 2
+ToggleBtn.Parent = MainFrame
+
+local ToggleCorner = Instance.new("UICorner")
+ToggleCorner.CornerRadius = UDim.new(0, 6)
+ToggleCorner.Parent = ToggleBtn
+
+-- 修复：使用UI布局确保按钮居中
+local UIListLayout = Instance.new("UIListLayout")
+UIListLayout.Padding = UDim.new(0, 10)
+UIListLayout.HorizontalAlignment = Enum.HorizontalAlignment.Center
+UIListLayout.VerticalAlignment = Enum.VerticalAlignment.Center
+UIListLayout.FillDirection = Enum.FillDirection.Vertical
+UIListLayout.Parent = MainFrame
+
+-- 确保按钮正确放置
+ToggleBtn.Position = UDim2.new(0.5, -70, 0.5, -20) -- 精确居中计算
+
+-- 迷你模式按钮
+local MiniButton = Instance.new("TextButton")
+MiniButton.Size = UDim2.new(0, 30, 0, 25)
+MiniButton.Position = UDim2.new(0, 10, 0, 10)
+MiniButton.BackgroundColor3 = Color3.fromRGB(60, 60, 60)
+MiniButton.Text = "经验"
+MiniButton.TextColor3 = Color3.fromRGB(255, 255, 255)
+MiniButton.TextSize = 12
+MiniButton.Visible = false
+MiniButton.ZIndex = 10
+MiniButton.Parent = ScreenGui
+
+local MiniCorner = Instance.new("UICorner")
+MiniCorner.CornerRadius = UDim.new(0, 6)
+MiniCorner.Parent = MiniButton
+
+-- 状态变量
+local isRunning = false
+local isMinimized = false
+local farmConnection = nil
+
+-- 点击音效
+local function playClickSound()
+    pcall(function()
+        local sound = Instance.new("Sound")
+        sound.SoundId = "rbxassetid://130785461"
+        sound.Volume = 0.3
+        sound.Parent = game:GetService("SoundService")
+        sound:Play()
+        game:GetService("Debris"):AddItem(sound, 2)
+    end)
+end
+
+-- 按钮点击动画
+local function animateButton(button)
+    local originalSize = button.Size
+    button.Size = originalSize - UDim2.new(0, 2, 0, 2)
+    wait(0.1)
+    button.Size = originalSize
+end
+
+-- 农场功能
+local function startFarming()
+    if isRunning then return end
+    
+    isRunning = true
+    ToggleBtn.BackgroundColor3 = Color3.fromRGB(60, 200, 60)
+    ToggleBtn.Text = "运行中..."
+    
+    farmConnection = game:GetService("RunService").Heartbeat:Connect(function()
+        local args = {37.43156792502258, 30}
+        pcall(function()
+            local player = game.Players.LocalPlayer
+            local playerGui = player:WaitForChild("PlayerGui")
+            local gameUI = playerGui:WaitForChild("GameUI")
+            local chaseEffect = gameUI:WaitForChild("chaseeffect")
+            local effect = chaseEffect:WaitForChild("Effect")
+            local remoteEvent = effect:WaitForChild("RemoteEvent")
+            remoteEvent:FireServer(unpack(args))
+        end)
+    end)
+end
+
+local function stopFarming()
+    if not isRunning then return end
+    
+    isRunning = false
+    ToggleBtn.BackgroundColor3 = Color3.fromRGB(200, 60, 60)
+    ToggleBtn.Text = "启动经验"
+    
+    if farmConnection then
+        farmConnection:Disconnect()
+        farmConnection = nil
+    end
+end
+
+-- 按钮点击处理
+MinimizeBtn.MouseButton1Click:Connect(function()
+    playClickSound()
+    animateButton(MinimizeBtn)
+    
+    isMinimized = not isMinimized
+    MainFrame.Visible = not isMinimized
+    MiniButton.Visible = isMinimized
+    
+    if isMinimized then
+        MiniButton.Position = MainFrame.Position
+        if isRunning then
+            MiniButton.BackgroundColor3 = Color3.fromRGB(60, 200, 60)
+            MiniButton.Text = "运行"
+        else
+            MiniButton.BackgroundColor3 = Color3.fromRGB(60, 60, 60)
+            MiniButton.Text = "经验"
+        end
+    end
+end)
+
+CloseBtn.MouseButton1Click:Connect(function()
+    playClickSound()
+    animateButton(CloseBtn)
+    stopFarming()
+    ScreenGui:Destroy()
+end)
+
+ToggleBtn.MouseButton1Click:Connect(function()
+    playClickSound()
+    animateButton(ToggleBtn)
+    
+    if isRunning then
+        stopFarming()
+    else
+        startFarming()
+    end
+end)
+
+MiniButton.MouseButton1Click:Connect(function()
+    playClickSound()
+    animateButton(MiniButton)
+    
+    isMinimized = false
+    MainFrame.Visible = true
+    MiniButton.Visible = false
+    MainFrame.Position = MiniButton.Position
+end)
+
+-- 拖动功能
+local UserInputService = game:GetService("UserInputService")
+local dragging = false
+local dragStart
+local startPos
+
+local function startDrag(input, frame)
+    if input.UserInputType == Enum.UserInputType.MouseButton1 then
+        dragging = true
+        dragStart = input.Position
+        startPos = frame.Position
+        
+        -- 确保在最前
+        local gui = frame:FindFirstAncestorOfClass("ScreenGui")
+        if gui then
+            gui.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
+        end
+    end
+end
+
+local function updateDrag(input, frame)
+    if dragging and input.UserInputType == Enum.UserInputType.MouseMovement then
+        local delta = input.Position - dragStart
+        frame.Position = UDim2.new(
+            startPos.X.Scale, 
+            startPos.X.Offset + delta.X,
+            startPos.Y.Scale, 
+            startPos.Y.Offset + delta.Y
+        )
+    end
+end
+
+TitleBar.InputBegan:Connect(function(input)
+    startDrag(input, MainFrame)
+end)
+
+MiniButton.InputBegan:Connect(function(input)
+    startDrag(input, MiniButton)
+end)
+
+TitleBar.InputChanged:Connect(function(input)
+    updateDrag(input, MainFrame)
+end)
+
+MiniButton.InputChanged:Connect(function(input)
+    updateDrag(input, MiniButton)
+end)
+
+UserInputService.InputEnded:Connect(function(input)
+    if input.UserInputType == Enum.UserInputType.MouseButton1 then
+        dragging = false
+    end
+end)
+
+-- 重生处理
+game.Players.LocalPlayer.CharacterAdded:Connect(function(character)
+    wait(2)
+    if not ScreenGui.Parent then
+        ScreenGui.Parent = game.Players.LocalPlayer:WaitForChild("PlayerGui")
+    end
+end)
+
+-- 状态同步
+game:GetService("RunService").Heartbeat:Connect(function()
+    if isMinimized and MiniButton.Visible then
+        if isRunning then
+            MiniButton.BackgroundColor3 = Color3.fromRGB(60, 200, 60)
+            MiniButton.Text = "运行"
+        else
+            MiniButton.BackgroundColor3 = Color3.fromRGB(60, 60, 60)
+            MiniButton.Text = "经验"
+        end
+    end
+end)
