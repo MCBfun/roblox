@@ -31,9 +31,9 @@ ScreenGui.Parent=PlayerGui
 
 -- 2. 创建主窗口
 本地MainFrame=Instance.new("Frame")
-MainFrame.Size=UDim2.new(0，200，0，250)
-MainFrame.Position=UDim2.new(0.5，-100，0.1，0)
-MainFrame.AnchorPoint=Vector2.new(0.5，0)
+MainFrame.Size=UDim2.new(0，240，0，120)
+MainFrame.Position=UDim2.new(1，-595，0，7)
+MainFrame.AnchorPoint=Vector2.new(1，0)
 MainFrame.BackgroundColor3=Color3.fromRGB(40，40，40)
 MainFrame.BorderSizePixel=0
 MainFrame.Parent=ScreenGui
