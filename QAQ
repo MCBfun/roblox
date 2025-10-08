@@ -7,8 +7,8 @@ ScreenGui.Parent = game.Players.LocalPlayer:WaitForChild("PlayerGui")
 
 -- 创建主窗口
 local MainFrame = Instance.new("Frame")
-MainFrame.Size = UDim2.new(0, 150, 0, 100)
-MainFrame.Position = UDim2.new(1, -550, 0, 20)
+MainFrame.Size = UDim2.new(0, 240, 0, 120)
+MainFrame.Position = UDim2.new(1, -595, 0, -7)
 MainFrame.AnchorPoint = Vector2.new(1, 0)
 MainFrame.BackgroundColor3 = Color3.fromRGB(45, 45, 45)
 MainFrame.BorderSizePixel = 0
