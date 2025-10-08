@@ -1,0 +1,576 @@
+-- 清除所有游戏自带脚本
+local Players = game:GetService("Players")
+local localPlayer = Players.LocalPlayer
+local PlayerGui = localPlayer:WaitForChild("PlayerGui")
+local UserInputService = game:GetService("UserInputService")
+
+-- 创建UI
+local ui = Instance.new("ScreenGui")
+ui.Name = "CleanerUI"
+ui.Parent = PlayerGui
+ui.IgnoreGuiInset = false
+ui.ResetOnSpawn = false
+
+-- 小窗模式按钮
+local miniButton = Instance.new("TextButton")
+miniButton.Size = UDim2.new(0, 40, 0, 40)
+miniButton.Position = UDim2.new(0, 10, 0, 10)
+miniButton.BackgroundColor3 = Color3.fromRGB(76, 175, 80)
+miniButton.Text = "⚙️"
+miniButton.TextColor3 = Color3.fromRGB(255, 255, 255)
+miniButton.TextSize = 18
+miniButton.Visible = false
+miniButton.Parent = ui
+
+-- 小窗按钮圆角
+local miniCorner = Instance.new("UICorner")
+miniCorner.CornerRadius = UDim.new(0, 20)
+miniCorner.Parent = miniButton
+
+-- 主面板
+local panel = Instance.new("Frame")
+panel.Size = UDim2.new(0, 240, 0, 200)
+panel.Position = UDim2.new(0.5, -120, 0.5, -100)
+panel.BackgroundColor3 = Color3.fromRGB(40, 40, 40)
+panel.BorderSizePixel = 0
+panel.Parent = ui
+
+-- 添加圆角效果
+local corner = Instance.new("UICorner")
+corner.CornerRadius = UDim.new(0, 8)
+corner.Parent = panel
+
+-- 添加阴影效果
+local shadow = Instance.new("UIStroke")
+shadow.Color = Color3.fromRGB(20, 20, 20)
+shadow.Thickness = 2
+shadow.Parent = panel
+
+-- 标题栏
+local titleBar = Instance.new("Frame")
+titleBar.Size = UDim2.new(1, 0, 0, 30)
+titleBar.BackgroundColor3 = Color3.fromRGB(30, 30, 30)
+titleBar.BorderSizePixel = 0
+titleBar.Parent = panel
+
+local titleCorner = Instance.new("UICorner")
+titleCorner.CornerRadius = UDim.new(0, 8)
+titleCorner.Parent = titleBar
+
+-- 标题文字
+local title = Instance.new("TextLabel")
+title.Size = UDim2.new(0.6, 0, 1, 0)
+title.Position = UDim2.new(0.05, 0, 0, 0)
+title.BackgroundTransparency = 1
+title.Text = "脚本清理器"
+title.TextColor3 = Color3.fromRGB(255, 255, 255)
+title.TextSize = 14
+title.Font = Enum.Font.Gotham
+title.TextXAlignment = Enum.TextXAlignment.Left
+title.Parent = titleBar
+
+-- 小窗切换按钮
+local toggleMiniBtn = Instance.new("TextButton")
+toggleMiniBtn.Size = UDim2.new(0, 22, 0, 22)
+toggleMiniBtn.Position = UDim2.new(0.75, 0, 0.13, 0)
+toggleMiniBtn.BackgroundColor3 = Color3.fromRGB(60, 60, 60)
+toggleMiniBtn.Text = "−"
+toggleMiniBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
+toggleMiniBtn.TextSize = 16
+toggleMiniBtn.Parent = titleBar
+
+local toggleCorner = Instance.new("UICorner")
+toggleCorner.CornerRadius = UDim.new(0, 4)
+toggleCorner.Parent = toggleMiniBtn
+
+-- 关闭按钮
+local closeBtn = Instance.new("TextButton")
+closeBtn.Size = UDim2.new(0, 22, 0, 22)
+closeBtn.Position = UDim2.new(0.88, 0, 0.13, 0)
+closeBtn.BackgroundColor3 = Color3.fromRGB(200, 60, 60)
+closeBtn.Text = "×"
+closeBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
+closeBtn.TextSize = 16
+closeBtn.Parent = titleBar
+
+local closeCorner = Instance.new("UICorner")
+closeCorner.CornerRadius = UDim.new(0, 4)
+closeCorner.Parent = closeBtn
+
+-- 状态显示
+local statusText = Instance.new("TextLabel")
+statusText.Size = UDim2.new(1, -20, 0, 50)
+statusText.Position = UDim2.new(0, 10, 0, 35)
+statusText.BackgroundTransparency = 1
+statusText.Text = "选择功能："
+statusText.TextColor3 = Color3.fromRGB(200, 200, 200)
+statusText.TextSize = 12
+statusText.Font = Enum.Font.Gotham
+statusText.TextWrapped = true
+statusText.Parent = panel
+
+-- 清理按钮
+local cleanBtn = Instance.new("TextButton")
+cleanBtn.Size = UDim2.new(0.8, 0, 0, 30)
+cleanBtn.Position = UDim2.new(0.1, 0, 0.45, 0)
+cleanBtn.BackgroundColor3 = Color3.fromRGB(76, 175, 80)
+cleanBtn.AutoButtonColor = false
+cleanBtn.Text = "清理脚本"
+cleanBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
+cleanBtn.TextSize = 13
+cleanBtn.Font = Enum.Font.GothamBold
+cleanBtn.Parent = panel
+
+-- 恢复脚本按钮
+local restoreBtn = Instance.new("TextButton")
+restoreBtn.Size = UDim2.new(0.8, 0, 0, 30)
+restoreBtn.Position = UDim2.new(0.1, 0, 0.7, 0)
+restoreBtn.BackgroundColor3 = Color3.fromRGB(52, 152, 219)
+restoreBtn.AutoButtonColor = false
+restoreBtn.Text = "恢复脚本"
+restoreBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
+restoreBtn.TextSize = 13
+restoreBtn.Font = Enum.Font.GothamBold
+restoreBtn.Parent = panel
+
+-- 按钮圆角
+local btnCorner = Instance.new("UICorner")
+btnCorner.CornerRadius = UDim.new(0, 6)
+btnCorner.Parent = cleanBtn
+btnCorner:Clone().Parent = restoreBtn
+
+-- 按钮悬停效果
+local function setupButtonHover(button, normalColor, hoverColor, clickColor)
+    button.MouseEnter:Connect(function()
+        button.BackgroundColor3 = hoverColor
+    end)
+    
+    button.MouseLeave:Connect(function()
+        button.BackgroundColor3 = normalColor
+    end)
+    
+    button.MouseButton1Down:Connect(function()
+        button.BackgroundColor3 = clickColor
+    end)
+    
+    button.MouseButton1Up:Connect(function()
+        button.BackgroundColor3 = hoverColor
+    end)
+end
+
+setupButtonHover(cleanBtn, 
+    Color3.fromRGB(76, 175, 80),
+    Color3.fromRGB(86, 185, 90),
+    Color3.fromRGB(66, 155, 70)
+)
+
+setupButtonHover(restoreBtn,
+    Color3.fromRGB(52, 152, 219),
+    Color3.fromRGB(72, 172, 239),
+    Color3.fromRGB(42, 132, 199)
+)
+
+setupButtonHover(toggleMiniBtn,
+    Color3.fromRGB(60, 60, 60),
+    Color3.fromRGB(80, 80, 80),
+    Color3.fromRGB(40, 40, 40)
+)
+
+setupButtonHover(closeBtn,
+    Color3.fromRGB(200, 60, 60),
+    Color3.fromRGB(220, 80, 80),
+    Color3.fromRGB(180, 40, 40)
+)
+
+setupButtonHover(miniButton,
+    Color3.fromRGB(76, 175, 80),
+    Color3.fromRGB(86, 185, 90),
+    Color3.fromRGB(66, 155, 70)
+)
+
+-- 拖动功能
+local dragging = false
+local dragInput, dragStart, startPos
+
+local function beginDrag(input)
+    if input.UserInputType == Enum.UserInputType.MouseButton1 then
+        dragging = true
+        dragStart = input.Position
+        startPos = panel.Position
+        
+        input.Changed:Connect(function()
+            if input.UserInputState == Enum.UserInputState.End then
+                dragging = false
+            end
+        end)
+    end
+end
+
+local function updateDrag(input)
+    if input == dragInput and dragging then
+        local delta = input.Position - dragStart
+        panel.Position = UDim2.new(startPos.X.Scale, startPos.X.Offset + delta.X, startPos.Y.Scale, startPos.Y.Offset + delta.Y)
+    end
+end
+
+titleBar.InputBegan:Connect(beginDrag)
+titleBar.InputChanged:Connect(function(input)
+    if input.UserInputType == Enum.UserInputType.MouseMovement then
+        dragInput = input
+    end
+end)
+
+UserInputService.InputChanged:Connect(updateDrag)
+
+-- 小窗切换功能
+local isMiniMode = false
+
+toggleMiniBtn.MouseButton1Click:Connect(function()
+    if isMiniMode then
+        panel.Size = UDim2.new(0, 240, 0, 200)
+        cleanBtn.Visible = true
+        restoreBtn.Visible = true
+        statusText.Visible = true
+        toggleMiniBtn.Text = "−"
+        miniButton.Visible = false
+        isMiniMode = false
+    else
+        panel.Size = UDim2.new(0, 240, 0, 30)
+        cleanBtn.Visible = false
+        restoreBtn.Visible = false
+        statusText.Visible = false
+        toggleMiniBtn.Text = "+"
+        isMiniMode = true
+    end
+end)
+
+-- 小窗按钮点击展开
+miniButton.MouseButton1Click:Connect(function()
+    panel.Visible = true
+    miniButton.Visible = false
+    isMiniMode = false
+    panel.Size = UDim2.new(0, 240, 0, 200)
+    cleanBtn.Visible = true
+    restoreBtn.Visible = true
+    statusText.Visible = true
+    toggleMiniBtn.Text = "−"
+end)
+
+-- 关闭按钮功能
+closeBtn.MouseButton1Click:Connect(function()
+    panel.Visible = false
+    miniButton.Visible = true
+end)
+
+-- ========== 优化的脚本备份和恢复功能 ==========
+local scriptBackups = {}
+
+-- 快速备份：避免卡顿
+local function fastBackupScripts(character)
+    if not character then 
+        print("备份失败：角色不存在")
+        return false 
+    end
+    
+    scriptBackups = {}
+    local backupCount = 0
+    local startTime = tick()
+    
+    -- 快速扫描所有后代
+    local allDescendants = character:GetDescendants()
+    local totalScripts = 0
+    
+    -- 先计数
+    for _, descendant in ipairs(allDescendants) do
+        if descendant:IsA("Script") or descendant:IsA("LocalScript") then
+            totalScripts = totalScripts + 1
+        end
+    end
+    
+    print("发现 " .. totalScripts .. " 个脚本需要备份")
+    
+    if totalScripts == 0 then
+        print("没有脚本需要备份")
+        return true
+    end
+    
+    -- 快速备份（不读取大文件源代码）
+    for i, descendant in ipairs(allDescendants) do
+        if descendant:IsA("Script") or descendant:IsA("LocalScript") then
+            -- 更新进度
+            if i % 10 == 0 then
+                statusText.Text = string.format("备份中... %d/%d", i, #allDescendants)
+            end
+            
+            local success = pcall(function()
+                -- 只备份基本信息，不读取可能很大的源代码
+                local backup = {
+                    Name = descendant.Name,
+                    ClassName = descendant.ClassName,
+                    Disabled = descendant.Disabled,
+                    Enabled = (descendant:IsA("Script") and descendant.Enabled) or nil
+                }
+                
+                -- 尝试读取源代码，但如果失败就跳过
+                local sourceSuccess, source = pcall(function()
+                    return descendant.Source
+                end)
+                
+                if sourceSuccess and source and #source < 10000 then -- 只备份小文件
+                    backup.Source = source
+                else
+                    backup.Source = "-- 脚本备份（源代码过大或无法读取）\nprint('恢复的脚本: " .. descendant.Name .. "')\n"
+                end
+                
+                table.insert(scriptBackups, backup)
+                backupCount = backupCount + 1
+            end)
+            
+            if not success then
+                -- 即使单个脚本备份失败也继续
+                print("跳过备份: " .. descendant.Name)
+            end
+            
+            -- 每处理10个脚本让出一次执行权，避免卡顿
+            if i % 10 == 0 then
+                task.wait()
+            end
+        end
+    end
+    
+    local endTime = tick()
+    print(string.format("备份完成: %d 个脚本 (耗时: %.2f秒)", backupCount, endTime - startTime))
+    return backupCount > 0
+end
+
+-- 快速恢复
+local function fastRestoreScripts(character)
+    if not character then
+        print("恢复失败：角色不存在")
+        return 0
+    end
+    
+    if #scriptBackups == 0 then
+        print("恢复失败：没有备份数据")
+        return 0
+    end
+    
+    local restoredCount = 0
+    local startTime = tick()
+    
+    print("开始快速恢复 " .. #scriptBackups .. " 个脚本...")
+    
+    for i, backup in ipairs(scriptBackups) do
+        -- 更新进度
+        statusText.Text = string.format("恢复中... %d/%d", i, #scriptBackups)
+        
+        local success = pcall(function()
+            -- 创建新脚本
+            local newScript
+            if backup.ClassName == "Script" then
+                newScript = Instance.new("Script")
+            else
+                newScript = Instance.new("LocalScript")
+            end
+            
+            newScript.Name = backup.Name
+            
+            -- 设置源代码
+            if backup.Source then
+                newScript.Source = backup.Source
+            else
+                newScript.Source = "print('恢复的脚本: " .. backup.Name .. "')\n"
+            end
+            
+            -- 设置状态
+            if backup.Disabled ~= nil then
+                newScript.Disabled = backup.Disabled
+            end
+            
+            if backup.Enabled ~= nil and newScript:IsA("Script") then
+                newScript.Enabled = backup.Enabled
+            end
+            
+            -- 直接放到角色根目录
+            newScript.Parent = character
+            restoredCount = restoredCount + 1
+        end)
+        
+        if not success then
+            print("恢复失败: " .. backup.Name)
+        end
+        
+        -- 每恢复5个脚本让出一次执行权
+        if i % 5 == 0 then
+            task.wait()
+        end
+    end
+    
+    local endTime = tick()
+    print(string.format("恢复完成: %d/%d 成功 (耗时: %.2f秒)", restoredCount, #scriptBackups, endTime - startTime))
+    return restoredCount
+end
+
+-- 清理角色脚本功能（带超时保护）
+cleanBtn.MouseButton1Click:Connect(function()
+    local character = localPlayer.Character
+    if not character then
+        statusText.Text = "错误：未找到角色"
+        statusText.TextColor3 = Color3.fromRGB(255, 100, 100)
+        return
+    end
+    
+    -- 禁用按钮防止重复点击
+    cleanBtn.Text = "处理中..."
+    cleanBtn.BackgroundColor3 = Color3.fromRGB(100, 100, 100)
+    
+    -- 设置超时保护
+    local timeout = 10 -- 10秒超时
+    local startTime = tick()
+    
+    -- 在新线程中执行以避免阻塞UI
+    coroutine.wrap(function()
+        local success, result = pcall(function()
+            -- 快速备份
+            statusText.Text = "正在快速备份脚本..."
+            statusText.TextColor3 = Color3.fromRGB(255, 255, 100)
+            
+            local backupSuccess = fastBackupScripts(character)
+            
+            if not backupSuccess then
+                return "备份失败"
+            end
+            
+            -- 检查超时
+            if tick() - startTime > timeout then
+                return "操作超时"
+            end
+            
+            -- 清理脚本
+            statusText.Text = "正在清理脚本..."
+            local removedCount = 0
+            local allDescendants = character:GetDescendants()
+            
+            for i, descendant in ipairs(allDescendants) do
+                if descendant:IsA("Script") or descendant:IsA("LocalScript") then
+                    descendant:Destroy()
+                    removedCount = removedCount + 1
+                end
+                
+                -- 每处理20个对象让出一次执行权
+                if i % 20 == 0 then
+                    task.wait()
+                end
+                
+                -- 检查超时
+                if tick() - startTime > timeout then
+                    return "清理超时"
+                end
+            end
+            
+            return removedCount
+        end)
+        
+        -- 恢复按钮状态
+        cleanBtn.Text = "清理脚本"
+        cleanBtn.BackgroundColor3 = Color3.fromRGB(76, 175, 80)
+        
+        if success then
+            if type(result) == "number" then
+                statusText.Text = string.format("✓ 完成！\n清理了 %d 个脚本\n备份了 %d 个脚本", result, #scriptBackups)
+                statusText.TextColor3 = Color3.fromRGB(100, 255, 100)
+            else
+                statusText.Text = "错误: " .. tostring(result)
+                statusText.TextColor3 = Color3.fromRGB(255, 100, 100)
+            end
+        else
+            statusText.Text = "操作失败: " .. tostring(result)
+            statusText.TextColor3 = Color3.fromRGB(255, 100, 100)
+        end
+        
+        task.wait(3)
+        statusText.Text = "选择功能："
+        statusText.TextColor3 = Color3.fromRGB(200, 200, 200)
+    end)()
+end)
+
+-- 恢复脚本功能（带超时保护）
+restoreBtn.MouseButton1Click:Connect(function()
+    local character = localPlayer.Character
+    if not character then
+        statusText.Text = "错误：未找到角色"
+        statusText.TextColor3 = Color3.fromRGB(255, 100, 100)
+        return
+    end
+    
+    if #scriptBackups == 0 then
+        statusText.Text = "错误：没有备份数据"
+        statusText.TextColor3 = Color3.fromRGB(255, 100, 100)
+        return
+    end
+    
+    -- 禁用按钮防止重复点击
+    restoreBtn.Text = "处理中..."
+    restoreBtn.BackgroundColor3 = Color3.fromRGB(100, 100, 100)
+    
+    -- 在新线程中执行
+    coroutine.wrap(function()
+        local restoredCount = fastRestoreScripts(character)
+        
+        -- 恢复按钮状态
+        restoreBtn.Text = "恢复脚本"
+        restoreBtn.BackgroundColor3 = Color3.fromRGB(52, 152, 219)
+        
+        if restoredCount > 0 then
+            statusText.Text = string.format("✓ 恢复完成！\n成功恢复了 %d/%d 个脚本", restoredCount, #scriptBackups)
+            statusText.TextColor3 = Color3.fromRGB(100, 255, 100)
+        else
+            statusText.Text = "恢复失败"
+            statusText.TextColor3 = Color3.fromRGB(255, 100, 100)
+        end
+        
+        task.wait(3)
+        statusText.Text = "选择功能："
+        statusText.TextColor3 = Color3.fromRGB(200, 200, 200)
+    end)()
+end)
+
+-- 调试按钮
+local debugBtn = Instance.new("TextButton")
+debugBtn.Size = UDim2.new(0.6, 0, 0, 20)
+debugBtn.Position = UDim2.new(0.2, 0, 0.9, 0)
+debugBtn.BackgroundColor3 = Color3.fromRGB(100, 100, 100)
+debugBtn.Text = "调试信息"
+debugBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
+debugBtn.TextSize = 10
+debugBtn.Visible = true
+debugBtn.Parent = panel
+
+debugBtn.MouseButton1Click:Connect(function()
+    local character = localPlayer.Character
+    if character then
+        local scriptCount = 0
+        for _, descendant in ipairs(character:GetDescendants()) do
+            if descendant:IsA("Script") or descendant:IsA("LocalScript") then
+                scriptCount = scriptCount + 1
+            end
+        end
+        
+        print("=== 调试信息 ===")
+        print("角色脚本数量: " .. scriptCount)
+        print("备份脚本数量: " .. #scriptBackups)
+        print("================")
+        
+        statusText.Text = "调试信息已输出到控制台"
+        statusText.TextColor3 = Color3.fromRGB(255, 255, 100)
+    else
+        statusText.Text = "错误：角色不存在"
+        statusText.TextColor3 = Color3.fromRGB(255, 100, 100)
+    end
+    
+    task.wait(2)
+    statusText.Text = "选择功能："
+    statusText.TextColor3 = Color3.fromRGB(200, 200, 200)
+end)
+
+print("脚本清理器UI已加载 - 优化版备份恢复功能")
