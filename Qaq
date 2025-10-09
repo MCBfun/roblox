@@ -36,7 +36,7 @@ local TitleText = Instance.new("TextLabel")
 TitleText.Size = UDim2.new(0, 100, 1, 0)
 TitleText.Position = UDim2.new(0, 5, 0, 0)
 TitleText.BackgroundTransparency = 1
-TitleText.Text = "B站渔炒鱼(抱歉,脚本出了些问题,已修复)"
+TitleText.Text = "B站渔炒鱼"
 TitleText.TextColor3 = Color3.fromRGB(255, 255, 255)
 TitleText.TextSize = 12
 TitleText.Font = Enum.Font.SourceSansBold
@@ -308,8 +308,15 @@ game:GetService("RunService").Heartbeat:Connect(function()
 end)
 game:GetService("StarterGui"):SetCore("SendNotification", {
     Title = "抱歉",
-    Text = "之前脚本出了一些问题,已修复",
+    Text = "之前脚本出了一些问题",
     Icon = "rbxassetid://15608505108", -- 可选：图标ID（这里用个示例笑脸图标）
     Duration = 5, -- 显示时长（秒）
+    Position = UDim2.new(0, 20, 1, -50) -- 定位到左下角
+})
+game:GetService("StarterGui"):SetCore("SendNotification", {
+    Title = "抱歉",
+    Text = "已修复",
+    Icon = "rbxassetid://15608505108", -- 可选：图标ID（这里用个示例笑脸图标）
+    Duration = 6, -- 显示时长（秒）
     Position = UDim2.new(0, 20, 1, -50) -- 定位到左下角
 })
