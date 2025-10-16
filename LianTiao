@@ -1,0 +1,247 @@
+local Players = game:GetService("Players")
+local RunService = game:GetService("RunService")
+local UserInputService = game:GetService("UserInputService")
+
+local player = Players.LocalPlayer
+
+-- 配置
+local config = {
+    enabled = false,
+    jumpHeight = 50,
+    detectionDistance = 4,
+    cooldown = 0.05,
+    raycastDistance = 10
+}
+
+-- 状态变量
+local lastJumpTime = 0
+local isJumping = false
+local character, humanoid, rootPart
+local screenGui
+
+-- 创建UI
+local function createUI()
+    -- 删除旧的UI
+    if screenGui then
+        screenGui:Destroy()
+    end
+    
+    -- 创建ScreenGui
+    screenGui = Instance.new("ScreenGui")
+    screenGui.Name = "AirJumpUI"
+    screenGui.ResetOnSpawn = false
+    screenGui.Parent = player:WaitForChild("PlayerGui")
+
+    -- 主圆形按钮
+    local circleButton = Instance.new("TextButton")
+    circleButton.Size = UDim2.new(0, 80, 0, 80)
+    circleButton.Position = UDim2.new(1, -100, 1, -100)
+    circleButton.BackgroundColor3 = Color3.fromRGB(255, 60, 60)
+    circleButton.Text = "按住\n跳跃"
+    circleButton.TextColor3 = Color3.fromRGB(255, 255, 255)
+    circleButton.TextSize = 12
+    circleButton.Font = Enum.Font.GothamBold
+    circleButton.TextWrapped = true
+    circleButton.Parent = screenGui
+
+    local circleCorner = Instance.new("UICorner")
+    circleCorner.CornerRadius = UDim.new(1, 0)
+    circleCorner.Parent = circleButton
+
+    local uiStroke = Instance.new("UIStroke")
+    uiStroke.Color = Color3.fromRGB(255, 255, 255)
+    uiStroke.Thickness = 2
+    uiStroke.Parent = circleButton
+
+    -- 关闭按钮
+    local closeButton = Instance.new("TextButton")
+    closeButton.Size = UDim2.new(0, 30, 0, 30)
+    closeButton.Position = UDim2.new(1, -40, 0, 10)
+    closeButton.BackgroundColor3 = Color3.fromRGB(200, 60, 60)
+    closeButton.Text = "X"
+    closeButton.TextColor3 = Color3.fromRGB(255, 255, 255)
+    closeButton.TextSize = 16
+    closeButton.Font = Enum.Font.GothamBold
+    closeButton.Parent = screenGui
+
+    local closeCorner = Instance.new("UICorner")
+    closeCorner.CornerRadius = UDim.new(0.5, 0)
+    closeCorner.Parent = closeButton
+
+    local closeStroke = Instance.new("UIStroke")
+    closeStroke.Color = Color3.fromRGB(255, 255, 255)
+    closeStroke.Thickness = 1.5
+    closeStroke.Parent = closeButton
+
+    -- 按钮事件
+    circleButton.MouseButton1Down:Connect(function()
+        config.enabled = true
+        circleButton.Text = "松开\n停止"
+        circleButton.BackgroundColor3 = Color3.fromRGB(0, 150, 255)
+        print("空气跳跃已启动")
+    end)
+
+    circleButton.MouseButton1Up:Connect(function()
+        config.enabled = false
+        circleButton.Text = "按住\n跳跃"
+        circleButton.BackgroundColor3 = Color3.fromRGB(255, 60, 60)
+        print("空气跳跃已停止")
+    end)
+
+    closeButton.MouseButton1Click:Connect(function()
+        config.enabled = false
+        screenGui:Destroy()
+        print("UI已关闭")
+    end)
+
+    print("✅ UI创建完成")
+    return screenGui
+end
+
+-- 获取角色部件
+local function getCharacterParts()
+    if player.Character then
+        character = player.Character
+        humanoid = character:FindFirstChildOfClass("Humanoid")
+        rootPart = character:FindFirstChild("HumanoidRootPart")
+        return humanoid ~= nil and rootPart ~= nil
+    end
+    return false
+end
+
+-- 检测地面距离
+local function getGroundDistance()
+    if not rootPart then return math.huge end
+    
+    local rayOrigin = rootPart.Position
+    local rayDirection = Vector3.new(0, -config.raycastDistance, 0)
+    
+    local raycastParams = RaycastParams.new()
+    raycastParams.FilterType = Enum.RaycastFilterType.Blacklist
+    if character then
+        raycastParams.FilterDescendantsInstances = {character}
+    end
+    
+    local raycastResult = workspace:Raycast(rayOrigin, rayDirection, raycastParams)
+    
+    if raycastResult then
+        local distance = (raycastResult.Position - rayOrigin).Magnitude
+        return distance
+    end
+    
+    return math.huge
+end
+
+-- 执行跳跃
+local function performJump()
+    if not config.enabled then return end
+    if tick() - lastJumpTime < config.cooldown then return end
+    
+    -- 确保角色部件存在
+    if not getCharacterParts() then return end
+    if not humanoid or humanoid.Health <= 0 then return end
+    
+    local groundDistance = getGroundDistance()
+    
+    -- 检查是否在跳跃范围内
+    if groundDistance <= config.detectionDistance and groundDistance > 0.5 then
+        -- 跳跃
+        humanoid:ChangeState(Enum.HumanoidStateType.Jumping)
+        
+        -- 计算跳跃速度
+        local jumpVelocity = math.sqrt(2 * workspace.Gravity * config.jumpHeight / 196.2)
+        local currentVelocity = rootPart.Velocity
+        rootPart.Velocity = Vector3.new(currentVelocity.X, jumpVelocity, currentVelocity.Z)
+        
+        lastJumpTime = tick()
+        
+        print(string.format("跳跃! 距离: %.2f米", groundDistance))
+    end
+end
+
+-- 键盘控制
+UserInputService.InputBegan:Connect(function(input)
+    if input.KeyCode == Enum.KeyCode.Space then
+        config.enabled = true
+        print("空格键按下 - 启动跳跃")
+    end
+end)
+
+UserInputService.InputEnded:Connect(function(input)
+    if input.KeyCode == Enum.KeyCode.Space then
+        config.enabled = false
+        print("空格键松开 - 停止跳跃")
+    end
+end)
+
+-- 主循环
+RunService.Heartbeat:Connect(function(deltaTime)
+    if config.enabled then
+        performJump()
+    end
+end)
+
+-- 角色重生处理
+player.CharacterAdded:Connect(function(newCharacter)
+    print("角色重生...")
+    
+    -- 等待角色加载完成
+    wait(1)
+    
+    -- 重新获取角色部件
+    getCharacterParts()
+    
+    -- 确保UI存在
+    if not screenGui or not screenGui.Parent then
+        createUI()
+    end
+    
+    -- 重置状态
+    config.enabled = false
+    lastJumpTime = 0
+    
+    print("角色重生完成")
+end)
+
+-- 初始化
+wait(2)
+
+-- 获取初始角色
+getCharacterParts()
+
+-- 创建UI
+createUI()
+
+print("🎯 空气跳跃系统已加载!")
+print("使用方法:")
+print("- 按住圆形按钮或空格键启动跳跃")
+print("- 松开停止")
+print("- 点击X关闭UI")
+game:GetService("StarterGui"):SetCore("SendNotification", {
+    Title = "公告",
+    Text = "手感脚本",
+    Icon = "rbxassetid://15608505108", -- 选：图标ID（这里用个示例笑脸图标）
+    Duration = 3, -- 显示时长（秒）
+    Position = UDim2.new(0, 20, 1, -50) -- 定位到左下角
+})
+game:GetService("StarterGui"):SetCore("SendNotification", {
+    Title = "公告",
+    Text = "请勿滥用",
+    Icon = "rbxassetid://15608505108", -- 选：图标ID（这里用个示例笑脸图标）
+    Duration = 5, -- 显示时长（秒）
+    Position = UDim2.new(0, 20, 1, -50) -- 定位到左下角
+})
+game:GetService("StarterGui"):SetCore("SendNotification", {
+    Title = "ronlox名",
+    Text = "MCBFUNAE",
+    Icon = "rbxassetid://15608505108", -- 选：图标ID（这里用个示例笑脸图标）
+    Duration = 8, -- 显示时长（秒）
+    Position = UDim2.new(0, 20, 1, -50) -- 定位到左下角
+})
+game:GetService("StarterGui"):SetCore("SendNotification", {
+    Title = "b站名",
+    Text = "渔炒鱼",
+    Icon = "rbxassetid://15608505108", -- 选：图标ID（这里用个示例笑脸图标）
+    Duration = 8, -- 显示时长（秒）
+    Position = UDim2.new(0, 20, 1, -50) -- 定位到左下角
+})
