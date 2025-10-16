@@ -6,6 +6,7 @@ local args = {
 game:GetService("Players").LocalPlayer:WaitForChild("PlayerGui"):WaitForChild("GameUI"):WaitForChild("chaseeffect"):WaitForChild("Effect"):WaitForChild("RemoteEvent"):FireServer(unpack(args))
 wait(0.1)
 end
+
 game:GetService("StarterGui"):SetCore("SendNotification", {
     Title = "抱歉",
     Text = "为确保刷经验功能\e完整性",
