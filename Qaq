@@ -1,15 +1,7 @@
-while true do
-local args = {
-	37.645815522052395,
-	30
-}
-game:GetService("Players").LocalPlayer:WaitForChild("PlayerGui"):WaitForChild("GameUI"):WaitForChild("chaseeffect"):WaitForChild("Effect"):WaitForChild("RemoteEvent"):FireServer(unpack(args))
-wait(0.1)
-end
 
 game:GetService("StarterGui"):SetCore("SendNotification", {
     Title = "抱歉",
-    Text = "为确保刷经验功能\e完整性",
+    Text = "为确保刷经验功能完整性",
     Icon = "rbxassetid://15608504752", -- 可选：图标ID（这里用个示例笑脸图标）
     Duration = 6, -- 显示时长（秒）
     Position = UDim2.new(0, 20, 1, -50) -- 定位到左下角
@@ -21,3 +13,11 @@ game:GetService("StarterGui"):SetCore("SendNotification", {
     Duration = 8, -- 显示时长（秒）
     Position = UDim2.new(0, 20, 1, -50) -- 定位到左下角
 })
+while true do
+local args = {
+	37.645815522052395,
+	30
+}
+game:GetService("Players").LocalPlayer:WaitForChild("PlayerGui"):WaitForChild("GameUI"):WaitForChild("chaseeffect"):WaitForChild("Effect"):WaitForChild("RemoteEvent"):FireServer(unpack(args))
+wait(0.1)
+end
