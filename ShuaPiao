@@ -1,14 +1,14 @@
 game:GetService("StarterGui"):SetCore("SendNotification", {
     Title = "公告",
     Text = "给个三连吧！",
-    Icon = "rbxassetid://8932000841", -- 可选：图标ID（这里用个示例笑脸图标）
+    Icon = "rbxassetid://139532409537387", -- 可选：图标ID（这里用个示例笑脸图标）
     Duration = 2, -- 显示时长（秒）
     Position = UDim2.new(0, 20, 1, -50) -- 定位到左下角
 })
 game:GetService("StarterGui"):SetCore("SendNotification", {
     Title = "公告",
     Text = "刷票脚本",
-    Icon = "rbxassetid://8932029118", -- 可选：图标ID（这里用个示例笑脸图标）
+    Icon = "rbxassetid://28872862", -- 可选：图标ID（这里用个示例笑脸图标）
     Duration = 3, -- 显示时长（秒）
     Position = UDim2.new(0, 20, 1, -50) -- 定位到左下角
 })
