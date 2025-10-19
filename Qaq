@@ -2,14 +2,14 @@
 game:GetService("StarterGui"):SetCore("SendNotification", {
     Title = "抱歉",
     Text = "为确保刷经验功能完整性",
-    Icon = "rbxassetid://18143239786", -- 可选：图标ID（这里用个示例笑脸图标）
+    Icon = "rbxassetid://8932031696", -- 可选：图标ID（这里用个示例笑脸图标）
     Duration = 6, -- 显示时长（秒）
     Position = UDim2.new(0, 20, 1, -50) -- 定位到左下角
 })
 game:GetService("StarterGui"):SetCore("SendNotification", {
     Title = "抱歉",
     Text = "以牺牲ui",
-    Icon = "rbxassetid://14550088217", -- 可选：图标ID（这里用个示例笑脸图标）
+    Icon = "rbxassetid://8932057311", -- 可选：图标ID（这里用个示例笑脸图标）
     Duration = 8, -- 显示时长（秒）
     Position = UDim2.new(0, 20, 1, -50) -- 定位到左下角
 })
