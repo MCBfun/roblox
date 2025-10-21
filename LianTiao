@@ -18,6 +18,46 @@ local lastJumpTime = 0
 local isJumping = false
 local character, humanoid, rootPart
 local screenGui
+local currentAnimation = nil
+local animationTrack = nil
+
+-- 创建动画
+local function createAnimation()
+    -- 创建一个简单的跳跃动画
+    local animation = Instance.new("Animation")
+    animation.AnimationId = "rbxassetid://17873485539" -- 使用您提供的动画ID
+    
+    return animation
+end
+
+-- 播放动画给所有人看
+local function playAnimationToAll()
+    if not character or not humanoid then return end
+    
+    -- 停止之前的动画
+    if animationTrack then
+        animationTrack:Stop()
+        animationTrack = nil
+    end
+    
+    -- 创建并播放动画
+    local animation = createAnimation()
+    animationTrack = humanoid:LoadAnimation(animation)
+    
+    if animationTrack then
+        animationTrack:Play()
+        print("🎭 播放跳跃动画")
+    end
+end
+
+-- 停止动画
+local function stopAnimation()
+    if animationTrack then
+        animationTrack:Stop()
+        animationTrack = nil
+        print("🎭 停止跳跃动画")
+    end
+end
 
 -- 创建UI
 local function createUI()
@@ -78,6 +118,10 @@ local function createUI()
         config.enabled = true
         circleButton.Text = "松开\n停止"
         circleButton.BackgroundColor3 = Color3.fromRGB(0, 150, 255)
+        
+        -- 播放动画给所有人看
+        playAnimationToAll()
+        
         print("空气跳跃已启动")
     end)
 
@@ -85,11 +129,16 @@ local function createUI()
         config.enabled = false
         circleButton.Text = "按住\n跳跃"
         circleButton.BackgroundColor3 = Color3.fromRGB(255, 60, 60)
+        
+        -- 停止动画
+        stopAnimation()
+        
         print("空气跳跃已停止")
     end)
 
     closeButton.MouseButton1Click:Connect(function()
         config.enabled = false
+        stopAnimation()
         screenGui:Destroy()
         print("UI已关闭")
     end)
@@ -163,6 +212,10 @@ end
 UserInputService.InputBegan:Connect(function(input)
     if input.KeyCode == Enum.KeyCode.Space then
         config.enabled = true
+        
+        -- 播放动画给所有人看
+        playAnimationToAll()
+        
         print("空格键按下 - 启动跳跃")
     end
 end)
@@ -170,6 +223,10 @@ end)
 UserInputService.InputEnded:Connect(function(input)
     if input.KeyCode == Enum.KeyCode.Space then
         config.enabled = false
+        
+        -- 停止动画
+        stopAnimation()
+        
         print("空格键松开 - 停止跳跃")
     end
 end)
@@ -199,6 +256,7 @@ player.CharacterAdded:Connect(function(newCharacter)
     -- 重置状态
     config.enabled = false
     lastJumpTime = 0
+    stopAnimation()
     
     print("角色重生完成")
 end)
@@ -217,24 +275,28 @@ print("使用方法:")
 print("- 按住圆形按钮或空格键启动跳跃")
 print("- 松开停止")
 print("- 点击X关闭UI")
+
+-- 发送通知
 game:GetService("StarterGui"):SetCore("SendNotification", {
     Title = "公告",
     Text = "手感脚本",
-    Icon = "rbxassetid://12832356728", -- 选：图标ID（这里用个示例笑脸图标）
-    Duration = 3, -- 显示时长（秒）
-    Position = UDim2.new(0, 20, 1, -50) -- 定位到左下角
+    Icon = "rbxassetid://12832356728",
+    Duration = 3,
+    Position = UDim2.new(0, 20, 1, -50)
 })
+
 game:GetService("StarterGui"):SetCore("SendNotification", {
     Title = "roblox名",
     Text = "MCBFUNAE",
-    Icon = "rbxassetid://18143239786", -- 选：图标ID（这里用个示例笑脸图标）
-    Duration = 8, -- 显示时长（秒）
-    Position = UDim2.new(0, 20, 1, -50) -- 定位到左下角
+    Icon = "rbxassetid://18143239786",
+    Duration = 8,
+    Position = UDim2.new(0, 20, 1, -50)
 })
+
 game:GetService("StarterGui"):SetCore("SendNotification", {
     Title = "bilibili名",
     Text = "渔炒鱼",
-    Icon = "rbxassetid://139532409537387", -- 选：图标ID（这里用个示例笑脸图标）
-    Duration = 8, -- 显示时长（秒）
-    Position = UDim2.new(0, 20, 1, -50) -- 定位到左下角
+    Icon = "rbxassetid://139532409537387",
+    Duration = 8,
+    Position = UDim2.new(0, 20, 1, -50)
 })
