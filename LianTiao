@@ -280,7 +280,7 @@ print("- 点击X关闭UI")
 game:GetService("StarterGui"):SetCore("SendNotification", {
     Title = "公告",
     Text = "手感脚本",
-    Icon = "rbxassetid://12832356728",
+    Icon = "rbxassetid://18143239786",
     Duration = 3,
     Position = UDim2.new(0, 20, 1, -50)
 })
@@ -303,7 +303,7 @@ game:GetService("StarterGui"):SetCore("SendNotification", {
 game:GetService("StarterGui"):SetCore("SendNotification", {
     Title = "重大更新!",
     Text = "更新跳跃时下坠动作",
-    Icon = "rbxassetid://139532409537387", -- 选：图标ID（这里用个示例笑脸图标）
+    Icon = "rbxassetid://6524375813", -- 选：图标ID（这里用个示例笑脸图标）
     Duration = 8, -- 显示时长（秒）
     Position = UDim2.new(0, 20, 1, -50) -- 定位到左下角
 })
