@@ -1,0 +1,636 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>MC动作指令编辑器 | 可视化动画制作工具</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link href="https://cdn.jsdelivr.net/npm/font-awesome@4.7.0/css/font-awesome.min.css" rel="stylesheet">
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.8/dist/chart.umd.min.js"></script>
+  
+  <!-- Tailwind 配置 -->
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            mc: {
+              grass: '#7CAA2F',
+              dirt: '#A67C52',
+              stone: '#9D9D9D',
+              wood: '#D49A6A',
+              dark: '#1E1E1E',
+              highlight: '#5E96FC',
+              success: '#4CAF50',
+              warning: '#FFC107',
+              danger: '#F44336'
+            }
+          },
+          fontFamily: {
+            minecraft: ['"Minecraftia"', 'monospace', 'sans-serif'],
+            inter: ['Inter', 'sans-serif']
+          }
+        }
+      }
+    }
+  </script>
+  
+  <style type="text/tailwindcss">
+    @layer utilities {
+      .content-auto {
+        content-visibility: auto;
+      }
+      .mc-border {
+        border-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='75' height='75'%3E%3Cg fill='none' stroke='%23333' stroke-width='2'%3E%3Cpath d='M1 1h73v73H1z'/%3E%3Cpath d='M8 8h59v59H8z'/%3E%3C/g%3E%3C/svg%3E") 25% repeat;
+        border-width: 4px;
+        border-style: solid;
+      }
+      .timeline-track {
+        height: 40px;
+        @apply bg-mc-dark/50 border-b border-gray-700;
+      }
+      .timeline-keyframe {
+        width: 12px;
+        height: 12px;
+        margin-top: 14px;
+        cursor: move;
+        @apply bg-mc-highlight rounded-full relative;
+      }
+      .timeline-keyframe::after {
+        content: '';
+        position: absolute;
+        top: -6px;
+        left: -6px;
+        right: -6px;
+        bottom: -6px;
+        @apply border-2 border-mc-highlight/50 rounded-full;
+      }
+      .parameter-slider {
+        -webkit-appearance: none;
+        height: 6px;
+        @apply bg-gray-700 rounded-full;
+      }
+      .parameter-slider::-webkit-slider-thumb {
+        -webkit-appearance: none;
+        width: 18px;
+        height: 18px;
+        @apply bg-mc-highlight rounded-full cursor-pointer;
+      }
+      .btn-mc {
+        @apply bg-gray-700 hover:bg-gray-600 text-white py-2 px-4 transition-all duration-200 active:scale-95 font-minecraft text-sm;
+      }
+      .panel-mc {
+        @apply bg-gray-800 border border-gray-700 rounded-sm;
+      }
+      .scrollbar-thin {
+        scrollbar-width: thin;
+      }
+      .scrollbar-thin::-webkit-scrollbar {
+        width: 6px;
+        height: 6px;
+      }
+      .scrollbar-thin::-webkit-scrollbar-thumb {
+        @apply bg-gray-600 rounded-full;
+      }
+      .scrollbar-thin::-webkit-scrollbar-track {
+        @apply bg-gray-800;
+      }
+    }
+  </style>
+  
+  <!-- 引入Minecraft风格字体 -->
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    @font-face {
+      font-family: 'Minecraftia';
+      src: url('https://cdn.jsdelivr.net/npm/minecraft-font@1.0.0/minecraftia.eot');
+      src: url('https://cdn.jsdelivr.net/npm/minecraft-font@1.0.0/minecraftia.eot?#iefix') format('embedded-opentype'),
+           url('https://cdn.jsdelivr.net/npm/minecraft-font@1.0.0/minecraftia.woff') format('woff'),
+           url('https://cdn.jsdelivr.net/npm/minecraft-font@1.0.0/minecraftia.ttf') format('truetype');
+      font-weight: normal;
+      font-style: normal;
+    }
+  </style>
+</head>
+
+<body class="bg-gray-900 text-gray-100 font-inter overflow-hidden h-screen flex flex-col">
+  <!-- 顶部导航栏 -->
+  <header class="bg-mc-dark border-b border-gray-700 py-2 px-4 flex items-center justify-between z-10">
+    <div class="flex items-center space-x-4">
+      <div class="text-2xl font-minecraft text-mc-grass flex items-center">
+        <i class="fa fa-cube mr-2"></i>
+        <span>MC动作指令编辑器</span>
+      </div>
+    </div>
+    
+    <div class="flex items-center space-x-3">
+      <button id="savePresetBtn" class="btn-mc">
+        <i class="fa fa-save mr-1"></i> 保存预设
+      </button>
+      <button id="exportCommandBtn" class="btn-mc bg-mc-success">
+        <i class="fa fa-code mr-1"></i> 导出指令
+      </button>
+      <button id="helpBtn" class="btn-mc">
+        <i class="fa fa-question-circle mr-1"></i> 帮助
+      </button>
+    </div>
+  </header>
+
+  <!-- 主内容区 -->
+  <main class="flex-1 flex overflow-hidden">
+    <!-- 左侧工具栏 -->
+    <aside class="w-64 bg-gray-800 border-r border-gray-700 flex flex-col h-full">
+      <div class="p-3 border-b border-gray-700">
+        <h3 class="font-minecraft text-mc-wood text-center">动作库</h3>
+      </div>
+      
+      <div class="flex-1 overflow-y-auto scrollbar-thin p-2">
+        <div class="grid grid-cols-1 gap-2">
+          <!-- 基础动作 -->
+          <div class="panel-mc p-2 hover:border-mc-highlight cursor-pointer transition-colors">
+            <h4 class="font-minecraft text-sm mb-1">基础动作</h4>
+            <div class="grid grid-cols-3 gap-1 text-xs">
+              <div class="bg-gray-700 p-1 text-center hover:bg-gray-600 rounded-sm action-item" data-action="jump">跳跃</div>
+              <div class="bg-gray-700 p-1 text-center hover:bg-gray-600 rounded-sm action-item" data-action="sneak">潜行</div>
+              <div class="bg-gray-700 p-1 text-center hover:bg-gray-600 rounded-sm action-item" data-action="sprint"> sprint</div>
+              <div class="bg-gray-700 p-1 text-center hover:bg-gray-600 rounded-sm action-item" data-action="attack">攻击</div>
+              <div class="bg-gray-700 p-1 text-center hover:bg-gray-600 rounded-sm action-item" data-action="use">使用</div>
+              <div class="bg-gray-700 p-1 text-center hover:bg-gray-600 rounded-sm action-item" data-action="look">转头</div>
+            </div>
+          </div>
+          
+          <!-- 表情动作 -->
+          <div class="panel-mc p-2 hover:border-mc-highlight cursor-pointer transition-colors">
+            <h4 class="font-minecraft text-sm mb-1">表情动作</h4>
+            <div class="grid grid-cols-3 gap-1 text-xs">
+              <div class="bg-gray-700 p-1 text-center hover:bg-gray-600 rounded-sm action-item" data-action="happy">开心</div>
+              <div class="bg-gray-700 p-1 text-center hover:bg-gray-600 rounded-sm action-item" data-action="sad">难过</div>
+              <div class="bg-gray-700 p-1 text-center hover:bg-gray-600 rounded-sm action-item" data-action="angry">生气</div>
+              <div class="bg-gray-700 p-1 text-center hover:bg-gray-600 rounded-sm action-item" data-action="surprise">惊讶</div>
+              <div class="bg-gray-700 p-1 text-center hover:bg-gray-600 rounded-sm action-item" data-action="sleep">睡觉</div>
+              <div class="bg-gray-700 p-1 text-center hover:bg-gray-600 rounded-sm action-item" data-action="wave">挥手</div>
+            </div>
+          </div>
+          
+          <!-- 移动动作 -->
+          <div class="panel-mc p-2 hover:border-mc-highlight cursor-pointer transition-colors">
+            <h4 class="font-minecraft text-sm mb-1">移动动作</h4>
+            <div class="grid grid-cols-3 gap-1 text-xs">
+              <div class="bg-gray-700 p-1 text-center hover:bg-gray-600 rounded-sm action-item" data-action="walk">行走</div>
+              <div class="bg-gray-700 p-1 text-center hover:bg-gray-600 rounded-sm action-item" data-action="run">奔跑</div>
+              <div class="bg-gray-700 p-1 text-center hover:bg-gray-600 rounded-sm action-item" data-action="crawl">爬行</div>
+              <div class="bg-gray-700 p-1 text-center hover:bg-gray-600 rounded-sm action-item" data-action="swim">游泳</div>
+              <div class="bg-gray-700 p-1 text-center hover:bg-gray-600 rounded-sm action-item" data-action="fly">飞行</div>
+              <div class="bg-gray-700 p-1 text-center hover:bg-gray-600 rounded-sm action-item" data-action="fall">下落</div>
+            </div>
+          </div>
+          
+          <!-- 预设动画 -->
+          <div class="panel-mc p-2 mt-4">
+            <h4 class="font-minecraft text-sm mb-2">预设动画</h4>
+            <select id="presetSelect" class="w-full bg-gray-700 border border-gray-600 rounded-sm p-1 text-sm">
+              <option value="">-- 选择预设 --</option>
+              <option value="dance1">舞蹈动作 1</option>
+              <option value="dance2">舞蹈动作 2</option>
+              <option value="greet">问候动作</option>
+              <option value="celebrate">庆祝动作</option>
+              <option value="death">死亡动画</option>
+            </select>
+          </div>
+        </div>
+      </div>
+      
+      <!-- 实体选择 -->
+      <div class="p-3 border-t border-gray-700">
+        <h3 class="font-minecraft text-sm text-mc-wood mb-2">选择实体</h3>
+        <div class="grid grid-cols-2 gap-2">
+          <select id="entityType" class="bg-gray-700 border border-gray-600 rounded-sm p-1 text-sm">
+            <option value="player">玩家</option>
+            <option value="zombie">僵尸</option>
+            <option value="skeleton">骷髅</option>
+            <option value="creeper">爬行者</option>
+            <option value="villager">村民</option>
+          </select>
+          <input type="text" id="entityTarget" placeholder="@p 或名称" value="@p" 
+                 class="bg-gray-700 border border-gray-600 rounded-sm p-1 text-sm">
+        </div>
+      </div>
+    </aside>
+    
+    <!-- 中间预览和时间轴 -->
+    <div class="flex-1 flex flex-col h-full overflow-hidden">
+      <!-- 预览区域 -->
+      <div class="h-1/2 border-b border-gray-700 relative">
+        <div class="p-2 bg-gray-800 border-b border-gray-700 flex justify-between items-center">
+          <h3 class="font-minecraft text-mc-stone">动画预览</h3>
+          <div class="flex space-x-2">
+            <button id="playPreviewBtn" class="btn-mc text-xs py-1 px-2">
+              <i class="fa fa-play mr-1"></i> 播放
+            </button>
+            <button id="stopPreviewBtn" class="btn-mc text-xs py-1 px-2">
+              <i class="fa fa-stop mr-1"></i> 停止
+            </button>
+            <button id="clearTimelineBtn" class="btn-mc text-xs py-1 px-2 bg-mc-danger">
+              <i class="fa fa-trash mr-1"></i> 清空
+            </button>
+          </div>
+        </div>
+        
+        <!-- 预览画布 -->
+        <div id="previewContainer" class="h-[calc(100%-40px)] bg-mc-dark relative overflow-hidden">
+          <div class="absolute inset-0 flex items-center justify-center">
+            <div id="previewModel" class="w-24 h-32 relative">
+              <!-- 简单的MC风格模型 -->
+              <div class="absolute w-16 h-16 bg-mc-wood rounded-sm left-1/2 top-0 transform -translate-x-1/2"></div>
+              <div class="absolute w-24 h-16 bg-mc-dirt rounded-sm left-1/2 top-12 transform -translate-x-1/2"></div>
+              <div class="absolute w-8 h-16 bg-mc-wood rounded-sm left-[15%] top-28"></div>
+              <div class="absolute w-8 h-16 bg-mc-wood rounded-sm right-[15%] top-28"></div>
+            </div>
+          </div>
+          
+          <!-- 时间指示器 -->
+          <div id="previewTime" class="absolute bottom-4 right-4 bg-gray-800/80 px-2 py-1 text-sm font-minecraft">
+            0.0s / 10.0s
+          </div>
+        </div>
+      </div>
+      
+      <!-- 时间轴控制 -->
+      <div class="h-1/2 flex flex-col overflow-hidden">
+        <div class="p-2 bg-gray-800 border-b border-gray-700">
+          <h3 class="font-minecraft text-mc-stone">时间轴</h3>
+        </div>
+        
+        <!-- 时间刻度 -->
+        <div class="h-8 bg-gray-800 border-b border-gray-700 relative">
+          <div class="absolute top-0 left-0 right-0 h-full flex">
+            <div class="w-[10%] border-r border-gray-700 relative">
+              <span class="absolute -bottom-6 text-xs left-0">0s</span>
+            </div>
+            <div class="w-[10%] border-r border-gray-700 relative">
+              <span class="absolute -bottom-6 text-xs left-0">1s</span>
+            </div>
+            <div class="w-[10%] border-r border-gray-700 relative">
+              <span class="absolute -bottom-6 text-xs left-0">2s</span>
+            </div>
+            <div class="w-[10%] border-r border-gray-700 relative">
+              <span class="absolute -bottom-6 text-xs left-0">3s</span>
+            </div>
+            <div class="w-[10%] border-r border-gray-700 relative">
+              <span class="absolute -bottom-6 text-xs left-0">4s</span>
+            </div>
+            <div class="w-[10%] border-r border-gray-700 relative">
+              <span class="absolute -bottom-6 text-xs left-0">5s</span>
+            </div>
+            <div class="w-[10%] border-r border-gray-700 relative">
+              <span class="absolute -bottom-6 text-xs left-0">6s</span>
+            </div>
+            <div class="w-[10%] border-r border-gray-700 relative">
+              <span class="absolute -bottom-6 text-xs left-0">7s</span>
+            </div>
+            <div class="w-[10%] border-r border-gray-700 relative">
+              <span class="absolute -bottom-6 text-xs left-0">8s</span>
+            </div>
+            <div class="w-[10%] relative">
+              <span class="absolute -bottom-6 text-xs left-0">9s</span>
+            </div>
+          </div>
+          
+          <!-- 播放头 -->
+          <div id="playhead" class="absolute top-0 bottom-0 w-1 bg-mc-danger z-10" style="left: 0%"></div>
+        </div>
+        
+        <!-- 时间轴轨道区域 -->
+        <div id="timelineTracks" class="flex-1 overflow-y-auto scrollbar-thin">
+          <!-- 动作轨道 -->
+          <div class="timeline-track relative">
+            <div class="absolute left-0 top-0 bottom-0 w-40 border-r border-gray-700 flex items-center px-2">
+              <span class="text-xs font-minecraft">动作</span>
+            </div>
+            <div id="actionTrack" class="absolute left-40 top-0 bottom-0 right-0 flex">
+              <!-- 关键帧会动态添加到这里 -->
+            </div>
+          </div>
+          
+          <!-- 旋转轨道 -->
+          <div class="timeline-track relative">
+            <div class="absolute left-0 top-0 bottom-0 w-40 border-r border-gray-700 flex items-center px-2">
+              <span class="text-xs font-minecraft">旋转 (Y)</span>
+            </div>
+            <div id="rotationTrack" class="absolute left-40 top-0 bottom-0 right-0 flex">
+              <!-- 关键帧会动态添加到这里 -->
+            </div>
+          </div>
+          
+          <!-- 位置X轨道 -->
+          <div class="timeline-track relative">
+            <div class="absolute left-0 top-0 bottom-0 w-40 border-r border-gray-700 flex items-center px-2">
+              <span class="text-xs font-minecraft">位置 X</span>
+            </div>
+            <div id="positionXTrack" class="absolute left-40 top-0 bottom-0 right-0 flex">
+              <!-- 关键帧会动态添加到这里 -->
+            </div>
+          </div>
+          
+          <!-- 位置Y轨道 -->
+          <div class="timeline-track relative">
+            <div class="absolute left-0 top-0 bottom-0 w-40 border-r border-gray-700 flex items-center px-2">
+              <span class="text-xs font-minecraft">位置 Y</span>
+            </div>
+            <div id="positionYTrack" class="absolute left-40 top-0 bottom-0 right-0 flex">
+              <!-- 关键帧会动态添加到这里 -->
+            </div>
+          </div>
+          
+          <!-- 速度轨道 -->
+          <div class="timeline-track relative">
+            <div class="absolute left-0 top-0 bottom-0 w-40 border-r border-gray-700 flex items-center px-2">
+              <span class="text-xs font-minecraft">速度</span>
+            </div>
+            <div id="speedTrack" class="absolute left-40 top-0 bottom-0 right-0 flex">
+              <!-- 关键帧会动态添加到这里 -->
+            </div>
+          </div>
+        </div>
+        
+        <!-- 时间轴控制 -->
+        <div class="h-10 bg-gray-800 border-t border-gray-700 flex items-center justify-between px-4">
+          <div class="flex items-center space-x-2">
+            <button id="addKeyframeBtn" class="btn-mc text-xs py-1 px-2">
+              <i class="fa fa-plus mr-1"></i> 添加关键帧
+            </button>
+            <button id="deleteKeyframeBtn" class="btn-mc text-xs py-1 px-2 bg-mc-danger">
+              <i class="fa fa-minus mr-1"></i> 删除关键帧
+            </button>
+          </div>
+          
+          <div class="flex items-center space-x-4">
+            <div class="text-xs">
+              <label for="animationDuration">时长: </label>
+              <input type="number" id="animationDuration" value="10" min="1" max="60" class="w-16 bg-gray-700 border border-gray-600 rounded-sm p-1 text-center text-xs">
+              <span>秒</span>
+            </div>
+            
+            <div class="text-xs">
+              <label for="animationSpeed">速度: </label>
+              <input type="number" id="animationSpeed" value="1" min="0.1" max="5" step="0.1" class="w-16 bg-gray-700 border border-gray-600 rounded-sm p-1 text-center text-xs">
+              <span>x</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    
+    <!-- 右侧参数面板 -->
+    <aside class="w-72 bg-gray-800 border-l border-gray-700 flex flex-col h-full">
+      <div class="p-3 border-b border-gray-700">
+        <h3 class="font-minecraft text-mc-wood text-center">参数调整</h3>
+      </div>
+      
+      <div id="keyframeParams" class="flex-1 overflow-y-auto scrollbar-thin p-4 hidden">
+        <h4 id="currentKeyframeType" class="font-minecraft text-sm text-mc-highlight mb-3">动作参数</h4>
+        
+        <div class="space-y-4">
+          <!-- 时间参数 -->
+          <div>
+            <label class="block text-xs mb-1">时间位置</label>
+            <input type="range" id="keyframeTime" min="0" max="10" step="0.1" value="0" class="parameter-slider w-full">
+            <div class="flex justify-between text-xs text-gray-400">
+              <span>0s</span>
+              <span id="keyframeTimeValue">0.0s</span>
+              <span>10s</span>
+            </div>
+          </div>
+          
+          <!-- 动作参数 -->
+          <div id="actionParameters" class="space-y-3">
+            <div>
+              <label class="block text-xs mb-1">动作类型</label>
+              <select id="actionType" class="w-full bg-gray-700 border border-gray-600 rounded-sm p-1 text-sm">
+                <option value="jump">跳跃</option>
+                <option value="sneak">潜行</option>
+                <option value="sprint">疾跑</option>
+                <option value="attack">攻击</option>
+                <option value="use">使用</option>
+                <option value="look">转头</option>
+                <option value="happy">开心</option>
+                <option value="sad">难过</option>
+                <option value="angry">生气</option>
+                <option value="surprise">惊讶</option>
+                <option value="sleep">睡觉</option>
+                <option value="wave">挥手</option>
+                <option value="walk">行走</option>
+                <option value="run">奔跑</option>
+                <option value="crawl">爬行</option>
+                <option value="swim">游泳</option>
+                <option value="fly">飞行</option>
+                <option value="fall">下落</option>
+              </select>
+            </div>
+            
+            <div>
+              <label class="block text-xs mb-1">动作强度</label>
+              <input type="range" id="actionStrength" min="0" max="100" step="1" value="100" class="parameter-slider w-full">
+              <div class="flex justify-between text-xs text-gray-400">
+                <span>弱</span>
+                <span id="actionStrengthValue">100%</span>
+                <span>强</span>
+              </div>
+            </div>
+            
+            <div>
+              <label class="block text-xs mb-1">动作持续时间</label>
+              <input type="range" id="actionDuration" min="0.1" max="5" step="0.1" value="1" class="parameter-slider w-full">
+              <div class="flex justify-between text-xs text-gray-400">
+                <span>0.1s</span>
+                <span id="actionDurationValue">1.0s</span>
+                <span>5s</span>
+              </div>
+            </div>
+          </div>
+          
+          <!-- 旋转参数 -->
+          <div id="rotationParameters" class="space-y-3 hidden">
+            <div>
+              <label class="block text-xs mb-1">Y轴旋转角度</label>
+              <input type="range" id="rotationY" min="0" max="360" step="1" value="0" class="parameter-slider w-full">
+              <div class="flex justify-between text-xs text-gray-400">
+                <span>0°</span>
+                <span id="rotationYValue">0°</span>
+                <span>360°</span>
+              </div>
+            </div>
+            
+            <div>
+              <label class="block text-xs mb-1">X轴旋转角度</label>
+              <input type="range" id="rotationX" min=-90 max="90" step="1" value="0" class="parameter-slider w-full">
+              <div class="flex justify-between text-xs text-gray-400">
+                <span>-90°</span>
+                <span id="rotationXValue">0°</span>
+                <span>90°</span>
+              </div>
+            </div>
+            
+            <div>
+              <label class="block text-xs mb-1">旋转速度</label>
+              <input type="range" id="rotationSpeed" min="0" max="10" step="0.1" value="1" class="parameter-slider w-full">
+              <div class="flex justify-between text-xs text-gray-400">
+                <span>慢</span>
+                <span id="rotationSpeedValue">1.0x</span>
+                <span>快</span>
+              </div>
+            </div>
+          </div>
+          
+          <!-- 位置参数 -->
+          <div id="positionParameters" class="space-y-3 hidden">
+            <div>
+              <label class="block text-xs mb-1">X坐标</label>
+              <input type="range" id="positionX" min=-10 block max="10" step="0.1" value="0" class="parameter-slider w-full">
+              <div class="flex justify-between text-xs text-gray-400">
+                <span>-10</span>
+                <span id="positionXValue">0.0</span>
+                <span>10</span>
+              </div>
+            </div>
+            
+            <div>
+              <label class="block text-xs mb-1">Y坐标</label>
+              <input type="range" id="positionY" min=0 block max="10" step="0.1" value="0" class="parameter-slider w-full">
+              <div class="flex justify-between text-xs text-gray-400">
+                <span>0</span>
+                <span id="positionYValue">0.0</span>
+                <span>10</span>
+              </div>
+            </div>
+            
+            <div>
+              <label class="block text-xs mb-1">Z坐标</label>
+              <input type="range" id="positionZ" min=-10 block max="10" step="0.1" value="0" class="parameter-slider w-full">
+              <div class="flex justify-between text-xs text-gray-400">
+                <span>-10</span>
+                <span id="positionZValue">0.0</span>
+                <span>10</span>
+              </div>
+            </div>
+          </div>
+          
+          <!-- 速度参数 -->
+          <div id="speedParameters" class="space-y-3 hidden">
+            <div>
+              <label class="block text-xs mb-1">移动速度</label>
+              <input type="range" id="movementSpeed" min="0" max="10" step="0.1" value="1" class="parameter-slider w-full">
+              <div class="flex justify-between text-xs text-gray-400">
+                <span>0</span>
+                <span id="movementSpeedValue">1.0</span>
+                <span>10</span>
+              </div>
+            </div>
+            
+            <div>
+              <label class="block text-xs mb-1">加速模式</label>
+              <select id="accelerationMode" class="w-full bg-gray-700 border border-gray-600 rounded-sm p-1 text-sm">
+                <option value="constant">匀速</option>
+                <option value="easeIn">缓入</option>
+                <option value="easeOut">缓出</option>
+                <option value="easeInOut">缓入缓出</option>
+              </select>
+            </div>
+          </div>
+        </div>
+      </div>
+      
+      <div id="noKeyframeSelected" class="flex-1 flex items-center justify-center text-gray-500 text-sm">
+        请在时间轴上选择一个关键帧来编辑参数
+      </div>
+      
+      <!-- 指令预览 -->
+      <div class="p-3 border-t border-gray-700">
+        <h3 class="font-minecraft text-sm text-mc-wood mb-2">指令预览</h3>
+        <div class="bg-gray-900 p-2 rounded-sm text-xs font-mono overflow-x-auto scrollbar-thin max-h-32">
+          <pre id="commandPreview">/function animation:default</pre>
+        </div>
+      </div>
+    </aside>
+  </main>
+  
+  <!-- 导出指令模态框 -->
+  <div id="exportModal" class="fixed inset-0 bg-black/70 z-50 hidden items-center justify-center">
+    <div class="w-1/2 max-w-lg panel-mc p-4">
+      <div class="flex justify-between items-center mb-4">
+        <h3 class="font-minecraft text-mc-highlight">导出MC指令</h3>
+        <button id="closeExportModal" class="text-gray-400 hover:text-white">
+          <i class="fa fa-times"></i>
+        </button>
+      </div>
+      
+      <div class="mb-4">
+        <label class="block text-sm mb-2">选择指令格式</label>
+        <select id="commandFormat" class="w-full bg-gray-700 border border-gray-600 rounded-sm p-2">
+          <option value="function">函数文件 (.mcfunction)</option>
+          <option value="summon"> summon 指令</option>
+          <option value="execute">execute 指令</option>
+          <option value="json">动画JSON</option>
+        </select>
+      </div>
+      
+      <div>
+        <label class="block text-sm mb-2">指令代码</label>
+        <textarea id="commandOutput" class="w-full bg-gray-900 border border-gray-700 rounded-sm p-2 text-xs font-mono h-40 scrollbar-thin"></textarea>
+      </div>
+      
+      <div class="flex justify-end space-x-2 mt-4">
+        <button id="copyCommandBtn" class="btn-mc">
+          <i class="fa fa-copy mr-1"></i> 复制
+        </button>
+        <button id="downloadCommandBtn" class="btn-mc bg-mc-success">
+          <i class="fa fa-download mr-1"></i> 下载
+        </button>
+      </div>
+    </div>
+  </div>
+  
+  <!-- 帮助模态框 -->
+  <div id="helpModal" class="fixed inset-0 bg-black/70 z-50 hidden items-center justify-center">
+    <div class="w-3/4 max-w-2xl panel-mc p-4 max-h-[80vh] overflow-y-auto scrollbar-thin">
+      <div class="flex justify-between items-center mb-4">
+        <h3 class="font-minecraft text-mc-highlight">使用帮助</h3>
+        <button id="closeHelpModal" class="text-gray-400 hover:text-white">
+          <i class="fa fa-times"></i>
+        </button>
+      </div>
+      
+      <div class="space-y-4 text-sm">
+        <div>
+          <h4 class="font-minecraft text-mc-wood mb-2">基本操作</h4>
+          <ul class="list-disc pl-5 space-y-1">
+            <li>从左侧动作库选择动作添加到时间轴</li>
+            <li>在时间轴上点击关键帧进行参数调整</li>
+            <li>拖动关键帧可以调整时间位置</li>
+            <li>使用播放按钮预览动画效果</li>
+            <li>完成后导出指令到Minecraft中使用</li>
+          </ul>
+        </div>
+        
+        <div>
+          <h4 class="font-minecraft text-mc-wood mb-2">时间轴操作</h4>
+          <ul class="list-disc pl-5 space-y-1">
+            <li>点击"添加关键帧"按钮在当前时间添加关键帧</li>
+            <li>选择关键帧后点击"删除关键帧"按钮移除</li>
+            <li>可以调整动画总时长和播放速度</li>
+            <li>不同轨道控制不同的动画参数</li>
+          </ul>
+        </div>
+        
+        <div>
+          <h4 class="font-minecraft text-mc-wood mb-2">导出与使用</h4>
+          <ul class="list-disc pl-5 space-y-1">
+            <li>函数文件格式适合放入datapack的functions文件夹</li>
+            <li> summon 和 execute 指令可以直接在游戏中使用</li>
+            <li>动画JSON适合用于自定义实体模型</li>
+            <li>使用时确保目标实体选择正确</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </div>
