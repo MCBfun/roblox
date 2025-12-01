@@ -15,8 +15,8 @@ game:GetService("StarterGui"):SetCore("SendNotification", {
 while true do
 local args = {
 	37.645815522052395,
-	9
+	30
 }
 game:GetService("Players").LocalPlayer:WaitForChild("PlayerGui"):WaitForChild("GameUI"):WaitForChild("chaseeffect"):WaitForChild("Effect"):WaitForChild("RemoteEvent"):FireServer(unpack(args))
-wait(60)
+wait(0.5)
 end
