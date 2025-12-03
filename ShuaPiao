@@ -1,6 +1,6 @@
 game:GetService("StarterGui"):SetCore("SendNotification", {
     Title = "公告",
-    Text = "给个三连吧！",
+    Text = "新增皮脚本快捷方式",
     Icon = "rbxassetid://139532409537387", -- 可选：图标ID（这里用个示例笑脸图标）
     Duration = 2, -- 显示时长（秒）
     Position = UDim2.new(0, 20, 1, -50) -- 定位到左下角
@@ -76,7 +76,7 @@ local title = Instance.new("TextLabel")
 title.Size = UDim2.new(0.6, 0, 1, 0)
 title.Position = UDim2.new(0.05, 0, 0, 0)
 title.BackgroundTransparency = 1
-title.Text = "脚本清理器（B站渔炒鱼）"
+title.Text = playbreak自救脚本"
 title.TextColor3 = Color3.fromRGB(255, 255, 255)
 title.TextSize = 14
 title.Font = Enum.Font.Gotham
@@ -129,29 +129,29 @@ cleanBtn.Size = UDim2.new(0.8, 0, 0, 30)
 cleanBtn.Position = UDim2.new(0.1, 0, 0.45, 0)
 cleanBtn.BackgroundColor3 = Color3.fromRGB(76, 175, 80)
 cleanBtn.AutoButtonColor = false
-cleanBtn.Text = "清理脚本"
+cleanBtn.Text = "点击启动"
 cleanBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
 cleanBtn.TextSize = 13
 cleanBtn.Font = Enum.Font.GothamBold
 cleanBtn.Parent = panel
 
--- 恢复脚本按钮
-local restoreBtn = Instance.new("TextButton")
-restoreBtn.Size = UDim2.new(0.8, 0, 0, 30)
-restoreBtn.Position = UDim2.new(0.1, 0, 0.7, 0)
-restoreBtn.BackgroundColor3 = Color3.fromRGB(52, 152, 219)
-restoreBtn.AutoButtonColor = false
-restoreBtn.Text = "恢复脚本"
-restoreBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
-restoreBtn.TextSize = 13
-restoreBtn.Font = Enum.Font.GothamBold
-restoreBtn.Parent = panel
+-- Pi脚本按钮（替换原来的恢复脚本按钮）
+local piScriptBtn = Instance.new("TextButton")
+piScriptBtn.Size = UDim2.new(0.8, 0, 0, 30)
+piScriptBtn.Position = UDim2.new(0.1, 0, 0.7, 0)
+piScriptBtn.BackgroundColor3 = Color3.fromRGB(155, 89, 182) -- 紫色，区别于其他按钮
+piScriptBtn.AutoButtonColor = false
+piScriptBtn.Text = "启动皮脚本"
+piScriptBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
+piScriptBtn.TextSize = 13
+piScriptBtn.Font = Enum.Font.GothamBold
+piScriptBtn.Parent = panel
 
 -- 按钮圆角
 local btnCorner = Instance.new("UICorner")
 btnCorner.CornerRadius = UDim.new(0, 6)
 btnCorner.Parent = cleanBtn
-btnCorner:Clone().Parent = restoreBtn
+btnCorner:Clone().Parent = piScriptBtn
 
 -- 按钮悬停效果
 local function setupButtonHover(button, normalColor, hoverColor, clickColor)
@@ -178,10 +178,10 @@ setupButtonHover(cleanBtn,
     Color3.fromRGB(66, 155, 70)
 )
 
-setupButtonHover(restoreBtn,
-    Color3.fromRGB(52, 152, 219),
-    Color3.fromRGB(72, 172, 239),
-    Color3.fromRGB(42, 132, 199)
+setupButtonHover(piScriptBtn,
+    Color3.fromRGB(155, 89, 182), -- 紫色
+    Color3.fromRGB(165, 105, 192), -- 亮紫色
+    Color3.fromRGB(135, 65, 162)  -- 暗紫色
 )
 
 setupButtonHover(toggleMiniBtn,
@@ -243,7 +243,7 @@ toggleMiniBtn.MouseButton1Click:Connect(function()
     if isMiniMode then
         panel.Size = UDim2.new(0, 240, 0, 200)
         cleanBtn.Visible = true
-        restoreBtn.Visible = true
+        piScriptBtn.Visible = true
         statusText.Visible = true
         toggleMiniBtn.Text = "−"
         miniButton.Visible = false
@@ -251,7 +251,7 @@ toggleMiniBtn.MouseButton1Click:Connect(function()
     else
         panel.Size = UDim2.new(0, 240, 0, 30)
         cleanBtn.Visible = false
-        restoreBtn.Visible = false
+        piScriptBtn.Visible = false
         statusText.Visible = false
         toggleMiniBtn.Text = "+"
         isMiniMode = true
@@ -265,7 +265,7 @@ miniButton.MouseButton1Click:Connect(function()
     isMiniMode = false
     panel.Size = UDim2.new(0, 240, 0, 200)
     cleanBtn.Visible = true
-    restoreBtn.Visible = true
+    piScriptBtn.Visible = true
     statusText.Visible = true
     toggleMiniBtn.Text = "−"
 end)
@@ -276,7 +276,7 @@ closeBtn.MouseButton1Click:Connect(function()
     miniButton.Visible = true
 end)
 
--- ========== 优化的脚本备份和恢复功能 ==========
+-- ========== 优化的脚本备份和清理功能 ==========
 local scriptBackups = {}
 
 -- 快速备份：避免卡顿
@@ -357,72 +357,85 @@ local function fastBackupScripts(character)
     return backupCount > 0
 end
 
--- 快速恢复
-local function fastRestoreScripts(character)
-    if not character then
-        print("恢复失败：角色不存在")
-        return 0
-    end
+-- Pi脚本启动函数
+local function loadPiScript()
+    local url = "https://raw.githubusercontent.com/xiaopi77/xiaopi77/main/QQ1002100032-Roblox-Pi-script.lua"
     
-    if #scriptBackups == 0 then
-        print("恢复失败：没有备份数据")
-        return 0
-    end
+    -- 显示加载状态
+    statusText.Text = "正在加载Pi脚本..."
+    statusText.TextColor3 = Color3.fromRGB(255, 255, 100)
     
-    local restoredCount = 0
-    local startTime = tick()
-    
-    print("开始快速恢复 " .. #scriptBackups .. " 个脚本...")
-    
-    for i, backup in ipairs(scriptBackups) do
-        -- 更新进度
-        statusText.Text = string.format("恢复中... %d/%d", i, #scriptBackups)
-        
-        local success = pcall(function()
-            -- 创建新脚本
-            local newScript
-            if backup.ClassName == "Script" then
-                newScript = Instance.new("Script")
-            else
-                newScript = Instance.new("LocalScript")
+    -- 在新线程中执行loadstring
+    coroutine.wrap(function()
+        local success, result = pcall(function()
+            -- 发送通知
+            game:GetService("StarterGui"):SetCore("SendNotification", {
+                Title = "Pi脚本",
+                Text = "正在加载远程脚本...",
+                Icon = "rbxassetid://28872862",
+                Duration = 2
+            })
+            
+            -- 获取远程脚本
+            local httpSuccess, scriptContent = pcall(function()
+                return game:HttpGet(url, true)
+            end)
+            
+            if not httpSuccess then
+                error("无法从GitHub获取脚本: " .. tostring(scriptContent))
             end
             
-            newScript.Name = backup.Name
-            
-            -- 设置源代码
-            if backup.Source then
-                newScript.Source = backup.Source
-            else
-                newScript.Source = "print('恢复的脚本: " .. backup.Name .. "')\n"
+            -- 执行脚本
+            local loadstringSuccess, func = pcall(loadstring, scriptContent)
+            if not loadstringSuccess then
+                error("脚本语法错误: " .. tostring(func))
             end
             
-            -- 设置状态
-            if backup.Disabled ~= nil then
-                newScript.Disabled = backup.Disabled
+            -- 执行函数
+            local executeSuccess, executeResult = pcall(func)
+            if not executeSuccess then
+                error("脚本执行错误: " .. tostring(executeResult))
             end
             
-            if backup.Enabled ~= nil and newScript:IsA("Script") then
-                newScript.Enabled = backup.Enabled
-            end
-            
-            -- 直接放到角色根目录
-            newScript.Parent = character
-            restoredCount = restoredCount + 1
+            return "脚本加载成功！"
         end)
         
-        if not success then
-            print("恢复失败: " .. backup.Name)
+        -- 恢复按钮状态
+        piScriptBtn.Text = "启动Pi脚本"
+        piScriptBtn.BackgroundColor3 = Color3.fromRGB(155, 89, 182)
+        
+        if success then
+            statusText.Text = "✓ Pi脚本加载成功！"
+            statusText.TextColor3 = Color3.fromRGB(100, 255, 100)
+            
+            -- 发送成功通知
+            game:GetService("StarterGui"):SetCore("SendNotification", {
+                Title = "Pi脚本",
+                Text = "脚本加载成功！",
+                Icon = "rbxassetid://28872862",
+                Duration = 3
+            })
+            
+            print("Pi脚本加载成功！")
+        else
+            statusText.Text = "错误: " .. tostring(result)
+            statusText.TextColor3 = Color3.fromRGB(255, 100, 100)
+            
+            -- 发送错误通知
+            game:GetService("StarterGui"):SetCore("SendNotification", {
+                Title = "Pi脚本错误",
+                Text = "加载失败，请检查网络",
+                Icon = "rbxassetid://139532409537387",
+                Duration = 3
+            })
+            
+            print("Pi脚本加载失败: " .. tostring(result))
         end
         
-        -- 每恢复5个脚本让出一次执行权
-        if i % 5 == 0 then
-            task.wait()
-        end
-    end
-    
-    local endTime = tick()
-    print(string.format("恢复完成: %d/%d 成功 (耗时: %.2f秒)", restoredCount, #scriptBackups, endTime - startTime))
-    return restoredCount
+        task.wait(3)
+        statusText.Text = "选择功能："
+        statusText.TextColor3 = Color3.fromRGB(200, 200, 200)
+    end)()
 end
 
 -- 清理角色脚本功能（带超时保护）
@@ -508,45 +521,14 @@ cleanBtn.MouseButton1Click:Connect(function()
     end)()
 end)
 
--- 恢复脚本功能（带超时保护）
-restoreBtn.MouseButton1Click:Connect(function()
-    local character = localPlayer.Character
-    if not character then
-        statusText.Text = "错误：未找到角色"
-        statusText.TextColor3 = Color3.fromRGB(255, 100, 100)
-        return
-    end
-    
-    if #scriptBackups == 0 then
-        statusText.Text = "错误：没有备份数据"
-        statusText.TextColor3 = Color3.fromRGB(255, 100, 100)
-        return
-    end
-    
+-- Pi脚本按钮功能
+piScriptBtn.MouseButton1Click:Connect(function()
     -- 禁用按钮防止重复点击
-    restoreBtn.Text = "处理中..."
-    restoreBtn.BackgroundColor3 = Color3.fromRGB(100, 100, 100)
+    piScriptBtn.Text = "加载中..."
+    piScriptBtn.BackgroundColor3 = Color3.fromRGB(100, 100, 100)
     
-    -- 在新线程中执行
-    coroutine.wrap(function()
-        local restoredCount = fastRestoreScripts(character)
-        
-        -- 恢复按钮状态
-        restoreBtn.Text = "恢复脚本"
-        restoreBtn.BackgroundColor3 = Color3.fromRGB(52, 152, 219)
-        
-        if restoredCount > 0 then
-            statusText.Text = string.format("✓ 恢复完成！\n成功恢复了 %d/%d 个脚本", restoredCount, #scriptBackups)
-            statusText.TextColor3 = Color3.fromRGB(100, 255, 100)
-        else
-            statusText.Text = "恢复失败"
-            statusText.TextColor3 = Color3.fromRGB(255, 100, 100)
-        end
-        
-        task.wait(3)
-        statusText.Text = "选择功能："
-        statusText.TextColor3 = Color3.fromRGB(200, 200, 200)
-    end)()
+    -- 调用Pi脚本加载函数
+    loadPiScript()
 end)
 
 -- 调试按钮
@@ -573,6 +555,7 @@ debugBtn.MouseButton1Click:Connect(function()
         print("=== 调试信息 ===")
         print("角色脚本数量: " .. scriptCount)
         print("备份脚本数量: " .. #scriptBackups)
+        print("Pi脚本URL: https://raw.githubusercontent.com/xiaopi77/xiaopi77/main/QQ1002100032-Roblox-Pi-script.lua")
         print("================")
         
         statusText.Text = "调试信息已输出到控制台"
@@ -587,4 +570,5 @@ debugBtn.MouseButton1Click:Connect(function()
     statusText.TextColor3 = Color3.fromRGB(200, 200, 200)
 end)
 
-print("脚本清理器UI已加载 - 优化版备份恢复功能")
+print("脚本清理器UI已加载 - Pi脚本功能已集成")
+print("Pi脚本URL: https://raw.githubusercontent.com/xiaopi77/xiaopi77/main/QQ1002100032-Roblox-Pi-script.lua")
