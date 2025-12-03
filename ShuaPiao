@@ -362,7 +362,7 @@ local function loadPiScript()
     local url = "https://raw.githubusercontent.com/xiaopi77/xiaopi77/main/QQ1002100032-Roblox-Pi-script.lua"
     
     -- 显示加载状态
-    statusText.Text = "正在加载Pi脚本..."
+    statusText.Text = "正在加载皮脚本..."
     statusText.TextColor3 = Color3.fromRGB(255, 255, 100)
     
     -- 在新线程中执行loadstring
@@ -370,7 +370,7 @@ local function loadPiScript()
         local success, result = pcall(function()
             -- 发送通知
             game:GetService("StarterGui"):SetCore("SendNotification", {
-                Title = "Pi脚本",
+                Title = "皮脚本",
                 Text = "正在加载远程脚本...",
                 Icon = "rbxassetid://28872862",
                 Duration = 2
@@ -401,35 +401,35 @@ local function loadPiScript()
         end)
         
         -- 恢复按钮状态
-        piScriptBtn.Text = "启动Pi脚本"
+        piScriptBtn.Text = "启动皮脚本"
         piScriptBtn.BackgroundColor3 = Color3.fromRGB(155, 89, 182)
         
         if success then
-            statusText.Text = "✓ Pi脚本加载成功！"
+            statusText.Text = "✓ 皮脚本加载成功！"
             statusText.TextColor3 = Color3.fromRGB(100, 255, 100)
             
             -- 发送成功通知
             game:GetService("StarterGui"):SetCore("SendNotification", {
-                Title = "Pi脚本",
+                Title = "皮脚本",
                 Text = "脚本加载成功！",
                 Icon = "rbxassetid://28872862",
                 Duration = 3
             })
             
-            print("Pi脚本加载成功！")
+            print("皮脚本加载成功！")
         else
             statusText.Text = "错误: " .. tostring(result)
             statusText.TextColor3 = Color3.fromRGB(255, 100, 100)
             
             -- 发送错误通知
             game:GetService("StarterGui"):SetCore("SendNotification", {
-                Title = "Pi脚本错误",
+                Title = "皮脚本错误",
                 Text = "加载失败，请检查网络",
                 Icon = "rbxassetid://139532409537387",
                 Duration = 3
             })
             
-            print("Pi脚本加载失败: " .. tostring(result))
+            print("皮脚本加载失败: " .. tostring(result))
         end
         
         task.wait(3)
@@ -555,7 +555,7 @@ debugBtn.MouseButton1Click:Connect(function()
         print("=== 调试信息 ===")
         print("角色脚本数量: " .. scriptCount)
         print("备份脚本数量: " .. #scriptBackups)
-        print("Pi脚本URL: https://raw.githubusercontent.com/xiaopi77/xiaopi77/main/QQ1002100032-Roblox-Pi-script.lua")
+        print(皮脚本URL: https://raw.githubusercontent.com/xiaopi77/xiaopi77/main/QQ1002100032-Roblox-Pi-script.lua")
         print("================")
         
         statusText.Text = "调试信息已输出到控制台"
