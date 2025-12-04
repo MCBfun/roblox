@@ -1,74 +1,102 @@
 game:GetService("StarterGui"):SetCore("SendNotification", {
     Title = "公告",
-    Text = "新增皮脚本快捷方式",
-    Icon = "rbxassetid://139532409537387", -- 可选：图标ID（这里用个示例笑脸图标）
-    Duration = 2, -- 显示时长（秒）
-    Position = UDim2.new(0, 20, 1, -50) -- 定位到左下角
+    Text = "给个三连吧！",
+    Icon = "rbxassetid://139532409537387",
+    Duration = 2,
+    Position = UDim2.new(0, 20, 1, -50)
 })
 game:GetService("StarterGui"):SetCore("SendNotification", {
     Title = "公告",
-    Text = "刷票脚本",
-    Icon = "rbxassetid://28872862", -- 可选：图标ID（这里用个示例笑脸图标）
-    Duration = 3, -- 显示时长（秒）
-    Position = UDim2.new(0, 20, 1, -50) -- 定位到左下角
+    Text = "脚本工具箱",
+    Icon = "rbxassetid://28872862",
+    Duration = 3,
+    Position = UDim2.new(0, 20, 1, -50)
 })
--- 清除所有游戏自带脚本
+
+-- 检查本地玩家
 local Players = game:GetService("Players")
-local localPlayer = Players.LocalPlayer
-local PlayerGui = localPlayer:WaitForChild("PlayerGui")
+local localPlayer
+local success, err = pcall(function()
+    localPlayer = Players.LocalPlayer
+end)
+
+if not success then
+    game:GetService("StarterGui"):SetCore("SendNotification", {
+        Title = "错误",
+        Text = "无法获取本地玩家",
+        Duration = 5
+    })
+    return
+end
+
+-- 等待PlayerGui
+local PlayerGui
+local success2, err2 = pcall(function()
+    PlayerGui = localPlayer:WaitForChild("PlayerGui", 10)
+end)
+
+if not success2 then
+    game:GetService("StarterGui"):SetCore("SendNotification", {
+        Title = "错误",
+        Text = "无法加载玩家界面",
+        Duration = 5
+    })
+    return
+end
+
 local UserInputService = game:GetService("UserInputService")
 
 -- 创建UI
 local ui = Instance.new("ScreenGui")
-ui.Name = "CleanerUI"
+ui.Name = "ToolboxUI"
 ui.Parent = PlayerGui
 ui.IgnoreGuiInset = false
 ui.ResetOnSpawn = false
 
--- 小窗模式按钮
-local miniButton = Instance.new("TextButton")
-miniButton.Size = UDim2.new(0, 40, 0, 40)
-miniButton.Position = UDim2.new(0, 10, 0, 10)
-miniButton.BackgroundColor3 = Color3.fromRGB(76, 175, 80)
-miniButton.Text = "⚙️"
-miniButton.TextColor3 = Color3.fromRGB(255, 255, 255)
-miniButton.TextSize = 18
-miniButton.Visible = false
-miniButton.Parent = ui
+-- 浮动按钮（用于重新打开UI）
+local floatButton = Instance.new("TextButton")
+floatButton.Size = UDim2.new(0, 50, 0, 50)
+floatButton.Position = UDim2.new(0, 10, 0.8, 0)
+floatButton.BackgroundColor3 = Color3.fromRGB(76, 175, 80)
+floatButton.Text = "⚙️"
+floatButton.TextColor3 = Color3.fromRGB(255, 255, 255)
+floatButton.TextSize = 24
+floatButton.Visible = true
+floatButton.Parent = ui
 
--- 小窗按钮圆角
-local miniCorner = Instance.new("UICorner")
-miniCorner.CornerRadius = UDim.new(0, 20)
-miniCorner.Parent = miniButton
+-- 浮动按钮圆角
+local floatCorner = Instance.new("UICorner")
+floatCorner.CornerRadius = UDim.new(1, 0)
+floatCorner.Parent = floatButton
 
 -- 主面板
 local panel = Instance.new("Frame")
-panel.Size = UDim2.new(0, 240, 0, 200)
-panel.Position = UDim2.new(0.5, -120, 0.5, -100)
-panel.BackgroundColor3 = Color3.fromRGB(40, 40, 40)
+panel.Size = UDim2.new(0, 280, 0, 220)
+panel.Position = UDim2.new(0.5, -140, 0.5, -110)
+panel.BackgroundColor3 = Color3.fromRGB(35, 35, 40)
 panel.BorderSizePixel = 0
 panel.Parent = ui
 
 -- 添加圆角效果
 local corner = Instance.new("UICorner")
-corner.CornerRadius = UDim.new(0, 8)
+corner.CornerRadius = UDim.new(0, 12)
 corner.Parent = panel
 
 -- 添加阴影效果
 local shadow = Instance.new("UIStroke")
-shadow.Color = Color3.fromRGB(20, 20, 20)
+shadow.Color = Color3.fromRGB(0, 150, 255)
 shadow.Thickness = 2
 shadow.Parent = panel
 
 -- 标题栏
 local titleBar = Instance.new("Frame")
-titleBar.Size = UDim2.new(1, 0, 0, 30)
-titleBar.BackgroundColor3 = Color3.fromRGB(30, 30, 30)
+titleBar.Size = UDim2.new(1, 0, 0, 40)
+titleBar.BackgroundColor3 = Color3.fromRGB(45, 45, 50)
 titleBar.BorderSizePixel = 0
 titleBar.Parent = panel
 
 local titleCorner = Instance.new("UICorner")
-titleCorner.CornerRadius = UDim.new(0, 8)
+titleCorner.CornerRadius = UDim.new(0, 12)
 titleCorner.Parent = titleBar
 
 -- 标题文字
@@ -76,85 +104,97 @@ local title = Instance.new("TextLabel")
 title.Size = UDim2.new(0.6, 0, 1, 0)
 title.Position = UDim2.new(0.05, 0, 0, 0)
 title.BackgroundTransparency = 1
-title.Text = "playbreak自救脚本"
+title.Text = "⚡ 脚本工具箱"
 title.TextColor3 = Color3.fromRGB(255, 255, 255)
-title.TextSize = 14
-title.Font = Enum.Font.Gotham
+title.TextSize = 16
+title.Font = Enum.Font.GothamBold
 title.TextXAlignment = Enum.TextXAlignment.Left
 title.Parent = titleBar
 
--- 小窗切换按钮
-local toggleMiniBtn = Instance.new("TextButton")
-toggleMiniBtn.Size = UDim2.new(0, 22, 0, 22)
-toggleMiniBtn.Position = UDim2.new(0.75, 0, 0.13, 0)
-toggleMiniBtn.BackgroundColor3 = Color3.fromRGB(60, 60, 60)
-toggleMiniBtn.Text = "−"
-toggleMiniBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
-toggleMiniBtn.TextSize = 16
-toggleMiniBtn.Parent = titleBar
-
-local toggleCorner = Instance.new("UICorner")
-toggleCorner.CornerRadius = UDim.new(0, 4)
-toggleCorner.Parent = toggleMiniBtn
-
 -- 关闭按钮
 local closeBtn = Instance.new("TextButton")
-closeBtn.Size = UDim2.new(0, 22, 0, 22)
-closeBtn.Position = UDim2.new(0.88, 0, 0.13, 0)
-closeBtn.BackgroundColor3 = Color3.fromRGB(200, 60, 60)
+closeBtn.Size = UDim2.new(0, 30, 0, 30)
+closeBtn.Position = UDim2.new(0.9, 0, 0.15, 0)
+closeBtn.BackgroundColor3 = Color3.fromRGB(255, 60, 60)
 closeBtn.Text = "×"
 closeBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
-closeBtn.TextSize = 16
+closeBtn.TextSize = 20
+closeBtn.Font = Enum.Font.GothamBold
 closeBtn.Parent = titleBar
 
 local closeCorner = Instance.new("UICorner")
-closeCorner.CornerRadius = UDim.new(0, 4)
+closeCorner.CornerRadius = UDim.new(1, 0)
 closeCorner.Parent = closeBtn
 
 -- 状态显示
 local statusText = Instance.new("TextLabel")
-statusText.Size = UDim2.new(1, -20, 0, 50)
-statusText.Position = UDim2.new(0, 10, 0, 35)
+statusText.Size = UDim2.new(1, -20, 0, 40)
+statusText.Position = UDim2.new(0, 10, 0, 45)
 statusText.BackgroundTransparency = 1
 statusText.Text = "选择功能："
 statusText.TextColor3 = Color3.fromRGB(200, 200, 200)
-statusText.TextSize = 12
+statusText.TextSize = 14
 statusText.Font = Enum.Font.Gotham
 statusText.TextWrapped = true
 statusText.Parent = panel
 
+-- 按钮容器
+local buttonContainer = Instance.new("Frame")
+buttonContainer.Size = UDim2.new(1, -20, 0, 110)
+buttonContainer.Position = UDim2.new(0, 10, 0, 90)
+buttonContainer.BackgroundTransparency = 1
+buttonContainer.Parent = panel
+
 -- 清理按钮
 local cleanBtn = Instance.new("TextButton")
-cleanBtn.Size = UDim2.new(0.8, 0, 0, 30)
-cleanBtn.Position = UDim2.new(0.1, 0, 0.45, 0)
+cleanBtn.Size = UDim2.new(0.45, 0, 0, 45)
+cleanBtn.Position = UDim2.new(0, 0, 0, 0)
 cleanBtn.BackgroundColor3 = Color3.fromRGB(76, 175, 80)
 cleanBtn.AutoButtonColor = false
-cleanBtn.Text = "点击启动"
+cleanBtn.Text = "🧹 清理脚本"
 cleanBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
-cleanBtn.TextSize = 13
+cleanBtn.TextSize = 14
 cleanBtn.Font = Enum.Font.GothamBold
-cleanBtn.Parent = panel
+cleanBtn.Parent = buttonContainer
 
--- Pi脚本按钮（替换原来的恢复脚本按钮）
-local piScriptBtn = Instance.new("TextButton")
-piScriptBtn.Size = UDim2.new(0.8, 0, 0, 30)
-piScriptBtn.Position = UDim2.new(0.1, 0, 0.7, 0)
-piScriptBtn.BackgroundColor3 = Color3.fromRGB(155, 89, 182) -- 紫色，区别于其他按钮
-piScriptBtn.AutoButtonColor = false
-piScriptBtn.Text = "启动皮脚本"
-piScriptBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
-piScriptBtn.TextSize = 13
-piScriptBtn.Font = Enum.Font.GothamBold
-piScriptBtn.Parent = panel
+local cleanCorner = Instance.new("UICorner")
+cleanCorner.CornerRadius = UDim.new(0, 8)
+cleanCorner.Parent = cleanBtn
 
--- 按钮圆角
-local btnCorner = Instance.new("UICorner")
-btnCorner.CornerRadius = UDim.new(0, 6)
-btnCorner.Parent = cleanBtn
-btnCorner:Clone().Parent = piScriptBtn
+-- 皮脚本按钮
+local skinScriptBtn = Instance.new("TextButton")
+skinScriptBtn.Size = UDim2.new(0.45, 0, 0, 45)
+skinScriptBtn.Position = UDim2.new(0.55, 0, 0, 0)
+skinScriptBtn.BackgroundColor3 = Color3.fromRGB(255, 152, 0)
+skinScriptBtn.AutoButtonColor = false
+skinScriptBtn.Text = "🚀 皮脚本"
+skinScriptBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
+skinScriptBtn.TextSize = 14
+skinScriptBtn.Font = Enum.Font.GothamBold
+skinScriptBtn.Parent = buttonContainer
+
+local skinCorner = Instance.new("UICorner")
+skinCorner.CornerRadius = UDim.new(0, 8)
+skinCorner.Parent = skinScriptBtn
+
+-- 关闭UI按钮
+local closeUIBtn = Instance.new("TextButton")
+closeUIBtn.Size = UDim2.new(1, 0, 0, 45)
+closeUIBtn.Position = UDim2.new(0, 0, 0, 55)
+closeUIBtn.BackgroundColor3 = Color3.fromRGB(150, 150, 150)
+closeUIBtn.AutoButtonColor = false
+closeUIBtn.Text = "❌ 关闭工具箱"
+closeUIBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
+closeUIBtn.TextSize = 14
+closeUIBtn.Font = Enum.Font.GothamBold
+closeUIBtn.Parent = buttonContainer
+
+local closeUICorner = Instance.new("UICorner")
+closeUICorner.CornerRadius = UDim.new(0, 8)
+closeUICorner.Parent = closeUIBtn
 
 -- 按钮悬停效果
-local function setupButtonHover(button, normalColor, hoverColor, clickColor)
+local function setupButtonHover(button, normalColor, hoverColor)
     button.MouseEnter:Connect(function()
         button.BackgroundColor3 = hoverColor
     end)
@@ -162,51 +202,39 @@ local function setupButtonHover(button, normalColor, hoverColor, clickColor)
     button.MouseLeave:Connect(function()
         button.BackgroundColor3 = normalColor
     end)
-    
-    button.MouseButton1Down:Connect(function()
-        button.BackgroundColor3 = clickColor
-    end)
-    
-    button.MouseButton1Up:Connect(function()
-        button.BackgroundColor3 = hoverColor
-    end)
 end
 
+-- 应用悬停效果
 setupButtonHover(cleanBtn, 
     Color3.fromRGB(76, 175, 80),
-    Color3.fromRGB(86, 185, 90),
-    Color3.fromRGB(66, 155, 70)
+    Color3.fromRGB(86, 185, 90)
 )
 
-setupButtonHover(piScriptBtn,
-    Color3.fromRGB(155, 89, 182), -- 紫色
-    Color3.fromRGB(165, 105, 192), -- 亮紫色
-    Color3.fromRGB(135, 65, 162)  -- 暗紫色
+setupButtonHover(skinScriptBtn,
+    Color3.fromRGB(255, 152, 0),
+    Color3.fromRGB(255, 172, 20)
 )
 
-setupButtonHover(toggleMiniBtn,
-    Color3.fromRGB(60, 60, 60),
-    Color3.fromRGB(80, 80, 80),
-    Color3.fromRGB(40, 40, 40)
+setupButtonHover(closeUIBtn,
+    Color3.fromRGB(150, 150, 150),
+    Color3.fromRGB(170, 170, 170)
 )
 
 setupButtonHover(closeBtn,
-    Color3.fromRGB(200, 60, 60),
-    Color3.fromRGB(220, 80, 80),
-    Color3.fromRGB(180, 40, 40)
+    Color3.fromRGB(255, 60, 60),
+    Color3.fromRGB(255, 80, 80)
 )
 
-setupButtonHover(miniButton,
+setupButtonHover(floatButton,
     Color3.fromRGB(76, 175, 80),
-    Color3.fromRGB(86, 185, 90),
-    Color3.fromRGB(66, 155, 70)
+    Color3.fromRGB(86, 185, 90)
 )
 
 -- 拖动功能
 local dragging = false
-local dragInput, dragStart, startPos
+local dragStart, startPos
 
-local function beginDrag(input)
+titleBar.InputBegan:Connect(function(input)
     if input.UserInputType == Enum.UserInputType.MouseButton1 then
         dragging = true
         dragStart = input.Position
@@ -218,231 +246,56 @@ local function beginDrag(input)
             end
         end)
     end
-end
+end)
 
-local function updateDrag(input)
-    if input == dragInput and dragging then
+UserInputService.InputChanged:Connect(function(input)
+    if dragging and input.UserInputType == Enum.UserInputType.MouseMovement then
         local delta = input.Position - dragStart
         panel.Position = UDim2.new(startPos.X.Scale, startPos.X.Offset + delta.X, startPos.Y.Scale, startPos.Y.Offset + delta.Y)
     end
-end
-
-titleBar.InputBegan:Connect(beginDrag)
-titleBar.InputChanged:Connect(function(input)
-    if input.UserInputType == Enum.UserInputType.MouseMovement then
-        dragInput = input
-    end
 end)
 
-UserInputService.InputChanged:Connect(updateDrag)
-
--- 小窗切换功能
-local isMiniMode = false
-
-toggleMiniBtn.MouseButton1Click:Connect(function()
-    if isMiniMode then
-        panel.Size = UDim2.new(0, 240, 0, 200)
-        cleanBtn.Visible = true
-        piScriptBtn.Visible = true
-        statusText.Visible = true
-        toggleMiniBtn.Text = "−"
-        miniButton.Visible = false
-        isMiniMode = false
-    else
-        panel.Size = UDim2.new(0, 240, 0, 30)
-        cleanBtn.Visible = false
-        piScriptBtn.Visible = false
-        statusText.Visible = false
-        toggleMiniBtn.Text = "+"
-        isMiniMode = true
-    end
-end)
-
--- 小窗按钮点击展开
-miniButton.MouseButton1Click:Connect(function()
+-- 浮动按钮点击展开面板
+floatButton.MouseButton1Click:Connect(function()
     panel.Visible = true
-    miniButton.Visible = false
-    isMiniMode = false
-    panel.Size = UDim2.new(0, 240, 0, 200)
-    cleanBtn.Visible = true
-    piScriptBtn.Visible = true
-    statusText.Visible = true
-    toggleMiniBtn.Text = "−"
+    floatButton.Visible = false
 end)
 
--- 关闭按钮功能
+-- 关闭按钮功能（关闭面板，显示浮动按钮）
 closeBtn.MouseButton1Click:Connect(function()
     panel.Visible = false
-    miniButton.Visible = true
+    floatButton.Visible = true
 end)
 
--- ========== 优化的脚本备份和清理功能 ==========
+-- 关闭UI按钮功能（完全关闭整个UI）
+closeUIBtn.MouseButton1Click:Connect(function()
+    statusText.Text = "正在关闭工具箱..."
+    statusText.TextColor3 = Color3.fromRGB(255, 200, 100)
+    
+    -- 等待0.5秒后关闭
+    wait(0.5)
+    
+    -- 完全销毁UI
+    ui:Destroy()
+    
+    -- 发送通知
+    game:GetService("StarterGui"):SetCore("SendNotification", {
+        Title = "工具箱",
+        Text = "工具箱已关闭",
+        Duration = 2
+    })
+    
+    print("脚本工具箱已关闭")
+end)
+
+-- 脚本备份变量
 local scriptBackups = {}
 
--- 快速备份：避免卡顿
-local function fastBackupScripts(character)
-    if not character then 
-        print("备份失败：角色不存在")
-        return false 
-    end
-    
-    scriptBackups = {}
-    local backupCount = 0
-    local startTime = tick()
-    
-    -- 快速扫描所有后代
-    local allDescendants = character:GetDescendants()
-    local totalScripts = 0
-    
-    -- 先计数
-    for _, descendant in ipairs(allDescendants) do
-        if descendant:IsA("Script") or descendant:IsA("LocalScript") then
-            totalScripts = totalScripts + 1
-        end
-    end
-    
-    print("发现 " .. totalScripts .. " 个脚本需要备份")
-    
-    if totalScripts == 0 then
-        print("没有脚本需要备份")
-        return true
-    end
-    
-    -- 快速备份（不读取大文件源代码）
-    for i, descendant in ipairs(allDescendants) do
-        if descendant:IsA("Script") or descendant:IsA("LocalScript") then
-            -- 更新进度
-            if i % 10 == 0 then
-                statusText.Text = string.format("备份中... %d/%d", i, #allDescendants)
-            end
-            
-            local success = pcall(function()
-                -- 只备份基本信息，不读取可能很大的源代码
-                local backup = {
-                    Name = descendant.Name,
-                    ClassName = descendant.ClassName,
-                    Disabled = descendant.Disabled,
-                    Enabled = (descendant:IsA("Script") and descendant.Enabled) or nil
-                }
-                
-                -- 尝试读取源代码，但如果失败就跳过
-                local sourceSuccess, source = pcall(function()
-                    return descendant.Source
-                end)
-                
-                if sourceSuccess and source and #source < 10000 then -- 只备份小文件
-                    backup.Source = source
-                else
-                    backup.Source = "-- 脚本备份（源代码过大或无法读取）\nprint('恢复的脚本: " .. descendant.Name .. "')\n"
-                end
-                
-                table.insert(scriptBackups, backup)
-                backupCount = backupCount + 1
-            end)
-            
-            if not success then
-                -- 即使单个脚本备份失败也继续
-                print("跳过备份: " .. descendant.Name)
-            end
-            
-            -- 每处理10个脚本让出一次执行权，避免卡顿
-            if i % 10 == 0 then
-                task.wait()
-            end
-        end
-    end
-    
-    local endTime = tick()
-    print(string.format("备份完成: %d 个脚本 (耗时: %.2f秒)", backupCount, endTime - startTime))
-    return backupCount > 0
-end
-
--- Pi脚本启动函数
-local function loadPiScript()
-    local url = "https://raw.githubusercontent.com/xiaopi77/xiaopi77/main/QQ1002100032-Roblox-Pi-script.lua"
-    
-    -- 显示加载状态
-    statusText.Text = "正在加载皮脚本..."
-    statusText.TextColor3 = Color3.fromRGB(255, 255, 100)
-    
-    -- 在新线程中执行loadstring
-    coroutine.wrap(function()
-        local success, result = pcall(function()
-            -- 发送通知
-            game:GetService("StarterGui"):SetCore("SendNotification", {
-                Title = "皮脚本",
-                Text = "正在加载远程脚本...",
-                Icon = "rbxassetid://28872862",
-                Duration = 2
-            })
-            
-            -- 获取远程脚本
-            local httpSuccess, scriptContent = pcall(function()
-                return game:HttpGet(url, true)
-            end)
-            
-            if not httpSuccess then
-                error("无法从GitHub获取脚本: " .. tostring(scriptContent))
-            end
-            
-            -- 执行脚本
-            local loadstringSuccess, func = pcall(loadstring, scriptContent)
-            if not loadstringSuccess then
-                error("脚本语法错误: " .. tostring(func))
-            end
-            
-            -- 执行函数
-            local executeSuccess, executeResult = pcall(func)
-            if not executeSuccess then
-                error("脚本执行错误: " .. tostring(executeResult))
-            end
-            
-            return "脚本加载成功！"
-        end)
-        
-        -- 恢复按钮状态
-        piScriptBtn.Text = "启动皮脚本"
-        piScriptBtn.BackgroundColor3 = Color3.fromRGB(155, 89, 182)
-        
-        if success then
-            statusText.Text = "✓ 皮脚本加载成功！"
-            statusText.TextColor3 = Color3.fromRGB(100, 255, 100)
-            
-            -- 发送成功通知
-            game:GetService("StarterGui"):SetCore("SendNotification", {
-                Title = "皮脚本",
-                Text = "脚本加载成功！",
-                Icon = "rbxassetid://28872862",
-                Duration = 3
-            })
-            
-            print("皮脚本加载成功！")
-        else
-            statusText.Text = "错误: " .. tostring(result)
-            statusText.TextColor3 = Color3.fromRGB(255, 100, 100)
-            
-            -- 发送错误通知
-            game:GetService("StarterGui"):SetCore("SendNotification", {
-                Title = "皮脚本错误",
-                Text = "加载失败，请检查网络",
-                Icon = "rbxassetid://139532409537387",
-                Duration = 3
-            })
-            
-            print("皮脚本加载失败: " .. tostring(result))
-        end
-        
-        task.wait(3)
-        statusText.Text = "选择功能："
-        statusText.TextColor3 = Color3.fromRGB(200, 200, 200)
-    end)()
-end
-
--- 清理角色脚本功能（带超时保护）
+-- 清理脚本功能
 cleanBtn.MouseButton1Click:Connect(function()
     local character = localPlayer.Character
     if not character then
-        statusText.Text = "错误：未找到角色"
+        statusText.Text = "❌ 错误：未找到角色"
         statusText.TextColor3 = Color3.fromRGB(255, 100, 100)
         return
     end
@@ -451,30 +304,13 @@ cleanBtn.MouseButton1Click:Connect(function()
     cleanBtn.Text = "处理中..."
     cleanBtn.BackgroundColor3 = Color3.fromRGB(100, 100, 100)
     
-    -- 设置超时保护
-    local timeout = 10 -- 10秒超时
-    local startTime = tick()
-    
-    -- 在新线程中执行以避免阻塞UI
+    -- 在新线程中执行
     coroutine.wrap(function()
         local success, result = pcall(function()
-            -- 快速备份
-            statusText.Text = "正在快速备份脚本..."
-            statusText.TextColor3 = Color3.fromRGB(255, 255, 100)
-            
-            local backupSuccess = fastBackupScripts(character)
-            
-            if not backupSuccess then
-                return "备份失败"
-            end
-            
-            -- 检查超时
-            if tick() - startTime > timeout then
-                return "操作超时"
-            end
-            
             -- 清理脚本
             statusText.Text = "正在清理脚本..."
+            statusText.TextColor3 = Color3.fromRGB(255, 255, 100)
+            
             local removedCount = 0
             local allDescendants = character:GetDescendants()
             
@@ -484,14 +320,9 @@ cleanBtn.MouseButton1Click:Connect(function()
                     removedCount = removedCount + 1
                 end
                 
-                -- 每处理20个对象让出一次执行权
+                -- 避免卡顿
                 if i % 20 == 0 then
                     task.wait()
-                end
-                
-                -- 检查超时
-                if tick() - startTime > timeout then
-                    return "清理超时"
                 end
             end
             
@@ -499,19 +330,19 @@ cleanBtn.MouseButton1Click:Connect(function()
         end)
         
         -- 恢复按钮状态
-        cleanBtn.Text = "清理脚本"
+        cleanBtn.Text = "🧹 清理脚本"
         cleanBtn.BackgroundColor3 = Color3.fromRGB(76, 175, 80)
         
         if success then
             if type(result) == "number" then
-                statusText.Text = string.format("✓ 完成！\n清理了 %d 个脚本\n备份了 %d 个脚本", result, #scriptBackups)
+                statusText.Text = string.format("✅ 清理完成！\n移除了 %d 个脚本", result)
                 statusText.TextColor3 = Color3.fromRGB(100, 255, 100)
             else
-                statusText.Text = "错误: " .. tostring(result)
+                statusText.Text = "❌ 错误: " .. tostring(result)
                 statusText.TextColor3 = Color3.fromRGB(255, 100, 100)
             end
         else
-            statusText.Text = "操作失败: " .. tostring(result)
+            statusText.Text = "❌ 操作失败: " .. tostring(result)
             statusText.TextColor3 = Color3.fromRGB(255, 100, 100)
         end
         
@@ -521,54 +352,74 @@ cleanBtn.MouseButton1Click:Connect(function()
     end)()
 end)
 
--- Pi脚本按钮功能
-piScriptBtn.MouseButton1Click:Connect(function()
+-- 皮脚本按钮功能
+skinScriptBtn.MouseButton1Click:Connect(function()
     -- 禁用按钮防止重复点击
-    piScriptBtn.Text = "加载中..."
-    piScriptBtn.BackgroundColor3 = Color3.fromRGB(100, 100, 100)
+    skinScriptBtn.Text = "加载中..."
+    skinScriptBtn.BackgroundColor3 = Color3.fromRGB(100, 100, 100)
     
-    -- 调用Pi脚本加载函数
-    loadPiScript()
-end)
-
--- 调试按钮
-local debugBtn = Instance.new("TextButton")
-debugBtn.Size = UDim2.new(0.6, 0, 0, 20)
-debugBtn.Position = UDim2.new(0.2, 0, 0.9, 0)
-debugBtn.BackgroundColor3 = Color3.fromRGB(100, 100, 100)
-debugBtn.Text = "调试信息"
-debugBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
-debugBtn.TextSize = 10
-debugBtn.Visible = true
-debugBtn.Parent = panel
-
-debugBtn.MouseButton1Click:Connect(function()
-    local character = localPlayer.Character
-    if character then
-        local scriptCount = 0
-        for _, descendant in ipairs(character:GetDescendants()) do
-            if descendant:IsA("Script") or descendant:IsA("LocalScript") then
-                scriptCount = scriptCount + 1
+    -- 在新线程中执行
+    coroutine.wrap(function()
+        local success, err = pcall(function()
+            statusText.Text = "正在加载皮脚本..."
+            statusText.TextColor3 = Color3.fromRGB(255, 255, 100)
+            
+            -- 发送通知
+            game:GetService("StarterGui"):SetCore("SendNotification", {
+                Title = "皮脚本",
+                Text = "正在加载...",
+                Icon = "rbxassetid://28872862",
+                Duration = 2
+            })
+            
+            -- 加载皮脚本
+            local scriptUrl = "https://raw.githubusercontent.com/xiaopi77/xiaopi77/main/QQ1002100032-Roblox-Pi-script.lua"
+            local scriptContent = game:HttpGet(scriptUrl)
+            local func = loadstring(scriptContent)
+            
+            if func then
+                func()
+                return true
+            else
+                return false
             end
+        end)
+        
+        -- 恢复按钮状态
+        skinScriptBtn.Text = "🚀 皮脚本"
+        skinScriptBtn.BackgroundColor3 = Color3.fromRGB(255, 152, 0)
+        
+        if success then
+            statusText.Text = "✅ 皮脚本加载成功！"
+            statusText.TextColor3 = Color3.fromRGB(100, 255, 100)
+            
+            game:GetService("StarterGui"):SetCore("SendNotification", {
+                Title = "皮脚本",
+                Text = "加载成功！",
+                Icon = "rbxassetid://28872862",
+                Duration = 3
+            })
+        else
+            statusText.Text = "❌ 加载失败: " .. tostring(err)
+            statusText.TextColor3 = Color3.fromRGB(255, 100, 100)
+            
+            game:GetService("StarterGui"):SetCore("SendNotification", {
+                Title = "皮脚本错误",
+                Text = "加载失败",
+                Icon = "rbxassetid://139532409537387",
+                Duration = 3
+            })
         end
         
-        print("=== 调试信息 ===")
-        print("角色脚本数量: " .. scriptCount)
-        print("备份脚本数量: " .. #scriptBackups)
-        print(皮脚本URL: https://raw.githubusercontent.com/xiaopi77/xiaopi77/main/QQ1002100032-Roblox-Pi-script.lua")
-        print("================")
-        
-        statusText.Text = "调试信息已输出到控制台"
-        statusText.TextColor3 = Color3.fromRGB(255, 255, 100)
-    else
-        statusText.Text = "错误：角色不存在"
-        statusText.TextColor3 = Color3.fromRGB(255, 100, 100)
-    end
-    
-    task.wait(2)
-    statusText.Text = "选择功能："
-    statusText.TextColor3 = Color3.fromRGB(200, 200, 200)
+        task.wait(3)
+        statusText.Text = "选择功能："
+        statusText.TextColor3 = Color3.fromRGB(200, 200, 200)
+    end)()
 end)
 
-print("脚本清理器UI已加载 - Pi脚本功能已集成")
-print("Pi脚本URL: https://raw.githubusercontent.com/xiaopi77/xiaopi77/main/QQ1002100032-Roblox-Pi-script.lua")
+print("✅ 脚本工具箱已加载")
+print("📱 点击左下角⚙️按钮打开工具箱")
+print("功能：")
+print("1. 🧹 清理脚本 - 清理角色所有脚本")
+print("2. 🚀 皮脚本 - 加载远程脚本")
+print("3. ❌ 关闭工具箱 - 完全关闭UI")
