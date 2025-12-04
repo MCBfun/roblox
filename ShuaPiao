@@ -7,7 +7,7 @@ game:GetService("StarterGui"):SetCore("SendNotification", {
 })
 game:GetService("StarterGui"):SetCore("SendNotification", {
     Title = "公告",
-    Text = "脚本工具箱",
+    Text = "渔炒鱼",
     Icon = "rbxassetid://28872862",
     Duration = 3,
     Position = UDim2.new(0, 20, 1, -50)
@@ -58,7 +58,7 @@ local floatButton = Instance.new("TextButton")
 floatButton.Size = UDim2.new(0, 50, 0, 50)
 floatButton.Position = UDim2.new(0, 10, 0.8, 0)
 floatButton.BackgroundColor3 = Color3.fromRGB(76, 175, 80)
-floatButton.Text = "⚙️"
+floatButton.Text = "➕️"
 floatButton.TextColor3 = Color3.fromRGB(255, 255, 255)
 floatButton.TextSize = 24
 floatButton.Visible = true
@@ -104,7 +104,7 @@ local title = Instance.new("TextLabel")
 title.Size = UDim2.new(0.6, 0, 1, 0)
 title.Position = UDim2.new(0.05, 0, 0, 0)
 title.BackgroundTransparency = 1
-title.Text = "⚡ 脚本工具箱"
+title.Text = "⚡playbreak刷票⚡"
 title.TextColor3 = Color3.fromRGB(255, 255, 255)
 title.TextSize = 16
 title.Font = Enum.Font.GothamBold
@@ -151,7 +151,7 @@ cleanBtn.Size = UDim2.new(0.45, 0, 0, 45)
 cleanBtn.Position = UDim2.new(0, 0, 0, 0)
 cleanBtn.BackgroundColor3 = Color3.fromRGB(76, 175, 80)
 cleanBtn.AutoButtonColor = false
-cleanBtn.Text = "🧹 清理脚本"
+cleanBtn.Text = "开始执行"
 cleanBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
 cleanBtn.TextSize = 14
 cleanBtn.Font = Enum.Font.GothamBold
@@ -167,7 +167,7 @@ skinScriptBtn.Size = UDim2.new(0.45, 0, 0, 45)
 skinScriptBtn.Position = UDim2.new(0.55, 0, 0, 0)
 skinScriptBtn.BackgroundColor3 = Color3.fromRGB(255, 152, 0)
 skinScriptBtn.AutoButtonColor = false
-skinScriptBtn.Text = "🚀 皮脚本"
+skinScriptBtn.Text = "皮脚本快捷方式"
 skinScriptBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
 skinScriptBtn.TextSize = 14
 skinScriptBtn.Font = Enum.Font.GothamBold
@@ -183,7 +183,7 @@ closeUIBtn.Size = UDim2.new(1, 0, 0, 45)
 closeUIBtn.Position = UDim2.new(0, 0, 0, 55)
 closeUIBtn.BackgroundColor3 = Color3.fromRGB(150, 150, 150)
 closeUIBtn.AutoButtonColor = false
-closeUIBtn.Text = "❌ 关闭工具箱"
+closeUIBtn.Text = "永久关闭界面"
 closeUIBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
 closeUIBtn.TextSize = 14
 closeUIBtn.Font = Enum.Font.GothamBold
@@ -269,7 +269,7 @@ end)
 
 -- 关闭UI按钮功能（完全关闭整个UI）
 closeUIBtn.MouseButton1Click:Connect(function()
-    statusText.Text = "正在关闭工具箱..."
+    statusText.Text = "正在关闭...😢"
     statusText.TextColor3 = Color3.fromRGB(255, 200, 100)
     
     -- 等待0.5秒后关闭
@@ -280,12 +280,12 @@ closeUIBtn.MouseButton1Click:Connect(function()
     
     -- 发送通知
     game:GetService("StarterGui"):SetCore("SendNotification", {
-        Title = "工具箱",
-        Text = "工具箱已关闭",
+        Title = "提示",
+        Text = "已关闭😪",
         Duration = 2
     })
     
-    print("脚本工具箱已关闭")
+    print("已关闭")
 end)
 
 -- 脚本备份变量
@@ -308,7 +308,7 @@ cleanBtn.MouseButton1Click:Connect(function()
     coroutine.wrap(function()
         local success, result = pcall(function()
             -- 清理脚本
-            statusText.Text = "正在清理脚本..."
+            statusText.Text = "处理进度..."
             statusText.TextColor3 = Color3.fromRGB(255, 255, 100)
             
             local removedCount = 0
@@ -330,12 +330,12 @@ cleanBtn.MouseButton1Click:Connect(function()
         end)
         
         -- 恢复按钮状态
-        cleanBtn.Text = "🧹 清理脚本"
+        cleanBtn.Text = "开始执行"
         cleanBtn.BackgroundColor3 = Color3.fromRGB(76, 175, 80)
         
         if success then
             if type(result) == "number" then
-                statusText.Text = string.format("✅ 清理完成！\n移除了 %d 个脚本", result)
+                statusText.Text = string.format("完成！\n移除了 %d 个阻碍", result)
                 statusText.TextColor3 = Color3.fromRGB(100, 255, 100)
             else
                 statusText.Text = "❌ 错误: " .. tostring(result)
@@ -386,7 +386,7 @@ skinScriptBtn.MouseButton1Click:Connect(function()
         end)
         
         -- 恢复按钮状态
-        skinScriptBtn.Text = "🚀 皮脚本"
+        skinScriptBtn.Text = "皮脚本"
         skinScriptBtn.BackgroundColor3 = Color3.fromRGB(255, 152, 0)
         
         if success then
@@ -406,7 +406,7 @@ skinScriptBtn.MouseButton1Click:Connect(function()
             game:GetService("StarterGui"):SetCore("SendNotification", {
                 Title = "皮脚本错误",
                 Text = "加载失败",
-                Icon = "rbxassetid://139532409537387",
+                Icon = "rbxassetid://14550088217",
                 Duration = 3
             })
         end
@@ -418,7 +418,7 @@ skinScriptBtn.MouseButton1Click:Connect(function()
 end)
 
 print("✅ 脚本工具箱已加载")
-print("📱 点击左下角⚙️按钮打开工具箱")
+print("📱 点击左下角按钮打开工具箱")
 print("功能：")
 print("1. 🧹 清理脚本 - 清理角色所有脚本")
 print("2. 🚀 皮脚本 - 加载远程脚本")
