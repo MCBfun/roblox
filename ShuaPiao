@@ -576,7 +576,7 @@ local function enableInstantInteraction()
         return
     end
     
-    statusText.Text = "🔄 启用中..."
+    statusText.Text = "🔄 正在启用中..."
     statusText.TextColor3 = Color3.fromRGB(100, 200, 255)
     
     spawn(function()
