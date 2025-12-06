@@ -1,119 +1,174 @@
--- 直接下载并汉化原脚本
-local function getModifiedR15Script()
+-- R15动作脚本汉化修复版
+local function loadAndTranslateR15AnimationScript()
     local scriptUrl = "https://raw.githubusercontent.com/Boxten-Keyes/music/refs/heads/main/music%23%5Bscripts%5D/music%23%5Bmiscellaneous%5D/music%23%5Bfe%20r15%20animation%20player%5D.lua"
     
-    -- 获取原始脚本
-    local originalScript = game:HttpGet(scriptUrl)
+    print("正在加载R15动作脚本...")
     
-    -- 在脚本中直接替换所有英文文本
-    local translations = {
-        ['"FE R15 Animation Player"'] = '"FE R15动作播放器"',
-        ['"Stop All - X"'] = '"停止所有 - X"',
-        ['"Stop All"'] = '"停止所有"',
-        ['"Search for Animations..."'] = '"搜索动作..."',
-        ['"Search"'] = '"搜索"',
-        ['"Animation"'] = '"动作"',
-        ['"Player"'] = '"播放器"',
-        ['"Play"'] = '"播放"',
-        ['"Stop"'] = '"停止"',
-        ['"Pause"'] = '"暂停"',
-        ['"Loop"'] = '"循环"',
-        ['"Speed"'] = '"速度"',
-        ['"Volume"'] = '"音量"',
+    -- 先加载原始脚本
+    local success, err = pcall(function()
+        loadstring(game:HttpGet(scriptUrl))()
+    end)
+    
+    if success then
+        print("R15动作脚本加载成功")
         
-        -- 动画名称
-        ['"Jackhammer"'] = '"钻头"',
-        ['"Monster Mash"'] = '"？？？猎奇"',
-        ['"Fumo Plush"'] = '"坐下转圈圈"',
-        ['"Rizz Backflip"'] = '"帅气后空翻"',
-        ['"Float"'] = '"漂浮"',
-        ['"Hi"'] = '"你好"',
-        ['"Possessed"'] = '"被附身"',
-        ['"Fuck you!"'] = '"发克油***"',
-        ['"Silver Surfer"'] = '"冲浪"',
-        ['"Tall Thing Idk"'] = '"超级拆解"',
-        ['"Cat Sit"'] = '"猫咪坐"',
-        ['"Black Flash"'] = '"闪电侠"',
-        ['"California Girls"'] = '"加州！！！"',
-        ['"Helicopter"'] = '"直升机"',
-        ['"Helicopter 2"'] = '"直升机2"',
-        ['"Helicopter 3"'] = '"直升机3"',
-        ['"Da Hood Dance"'] = '"帮派舞"',
-        ['"Da Hood Stomp"'] = '"帮派踩踏"',
-        ['"Flopping Fish"'] = '"渔炒鱼"',
-        ['"Gangnam Style"'] = '"江南Style"',
-        ['"Caramelldanse n"'] = '"嘲讽"',
-        ['"Air Circle"'] = '"原地边飞边转"',
-        ['"Heart Left"'] = '"向左比心"',
-        ['"Heart Right"'] = '"向右比心"',
-        ['"Dog"'] = '"狗狗"',
-        ['"MM2 Zen"'] = '"修仙大法"',
-        ['"Default Dance"'] = '"舞蹈"',
-        ['"Sit"'] = '"坐下"',
-        ['"Kazotsky Kick Fight Stance"'] = '"无法使用"',
-        ['"Oh Who Is You"'] = '"哦，你是谁"',
-        ['"Sway Sit"'] = '"可爱摇摆坐"',
-        ['"Sway Sit 2"'] = '"可爱摇摆坐2"',
-        ['"Peter Griffin"'] = '"彼得·格里芬"',
-        ['"The Worm"'] = '"鲤鱼打挺"',
-        ['"Snake"'] = '"蛇"',
-        ['"Death"'] = '"假死"',
-        ['"Slickback"'] = '"顺滑后退"',
-        ['"Car"'] = '"汽车"',
-        ['"Beat Da Koto Nai"'] = '"打败他舞"',
-        ['"Tank"'] = '"坦克"',
-        ['"Classic Walk"'] = '"经典行走"',
-        ['"Weird Creature"'] = '"奇怪猎奇生物"',
-        ['"Skibidi Toilet"'] = '"马桶人"',
-        ['"Rolling Crybaby"'] = '"玩不起,撒娇"',
-        ['"Thinking"'] = '"思考"',
-        ['"Fake Death"'] = '"假死"',
-        ['"Laced"'] = '"精神小伙摇头"',
-        ['"Fit Check"'] = '"穿搭检查"',
-        ['"Surrender"'] = '"投降"',
-        ['"Assumptions"'] = '"左右横跳舞"',
-        ['"Griddy"'] = '"Griddy舞"',
-        ['"Take The L"'] = '"接受失败舞"',
-        ['"Basketball Head Spin"'] = '"篮球头转"',
-        ['"Parrot Dance"'] = '"mc鹦鹉舞"',
-        ['"Shot"'] = '"被射击"',
-        ['"Ragdoll"'] = '"布娃娃倒地"',
-        ['"Sad Sit"'] = '"悲伤坐"',
-        ['"Soda Pop"'] = '"喝口汽水"',
-        ['"Billy Bounce"'] = '"抖腿舞"',
-        ['"Ballin"'] = '"篮球"',
-        ['"Walter Scene"'] = '"被捆绑"',
-        ['"Cute Stomach Lay"'] = '"可爱趴"',
-        ['"Shadow Dio Pose"'] = '"暗影迪奥姿势"',
-        ['"Jotaro Pose"'] = '"承太郎姿势"',
-        ['"Jojo Pose"'] = '"Jojo姿势"',
-        ['"Float Lay"'] = '"漂浮躺"',
-        ['"Biblically Accurate"'] = '"烈焰人"',
-        ['"Headless"'] = '"富人"',
-        ['"ME!ME!ME!"'] = '"可爱摇摆"',
-        ['"Plane"'] = '"飞机"',
-        ['"XavierSoBased"'] = '"Xavier舞蹈"',
-        ['"Chinese Dance"'] = '"科目五"',
-    }
-    
-    -- 替换所有翻译
-    for eng, chi in pairs(translations) do
-        originalScript = originalScript:gsub(eng, chi)
+        -- 等待脚本完全初始化
+        wait(3)
+        
+        -- 直接汉化函数 - 更直接的方法
+        local function translateTextObjects()
+            local translationMap = {
+                -- 主界面和按钮文本
+                ["FE R15 Animation Player"] = "FE R15动作播放器",
+                ["Stop All - X"] = "停止所有 - X",
+                ["Stop All"] = "停止所有",
+                ["Search for Animations..."] = "搜索动作...",
+                ["Search"] = "搜索",
+                ["Animation"] = "动作",
+                ["Player"] = "播放器",
+                ["Play"] = "播放",
+                ["Stop"] = "停止",
+                ["Pause"] = "暂停",
+                ["Loop"] = "循环",
+                ["Speed"] = "速度",
+                ["Volume"] = "音量",
+                ["Close"] = "关闭",
+                ["Settings"] = "设置",
+                ["Reset"] = "重置",
+                ["Default"] = "默认",
+                
+                -- 动画名称
+                ["Jackhammer"] = "钻头",
+                ["Monster Mash"] = "？？？猎奇",
+                ["Fumo Plush"] = "坐下转圈圈",
+                ["Rizz Backflip"] = "帅气后空翻",
+                ["Float"] = "漂浮",
+                ["Hi"] = "你好",
+                ["Possessed"] = "被附身",
+                ["Fuck you!"] = "发克油***",
+                ["Silver Surfer"] = "冲浪",
+                ["Tall Thing Idk"] = "超级拆解",
+                ["Cat Sit"] = "猫咪坐",
+                ["Black Flash"] = "闪电侠",
+                ["California Girls"] = "加州！！！",
+                ["Helicopter"] = "直升机",
+                ["Helicopter 2"] = "直升机2",
+                ["Helicopter 3"] = "直升机3",
+                ["Da Hood Dance"] = "帮派舞",
+                ["Da Hood Stomp"] = "帮派踩踏",
+                ["Flopping Fish"] = "渔炒鱼",
+                ["Gangnam Style"] = "江南Style",
+                ["Caramelldanse n"] = "嘲讽",
+                ["Air Circle"] = "原地边飞边转",
+                ["Heart Left"] = "向左比心",
+                ["Heart Right"] = "向右比心",
+                ["Dog"] = "狗狗",
+                ["MM2 Zen"] = "修仙大法",
+                ["Default Dance"] = "舞蹈",
+                ["Sit"] = "坐下",
+                ["Kazotsky Kick Fight Stance"] = "无法使用",
+                ["Oh Who Is You"] = "哦，你是谁",
+                ["Sway Sit"] = "可爱摇摆坐",
+                ["Sway Sit 2"] = "可爱摇摆坐2",
+                ["Peter Griffin"] = "彼得·格里芬",
+                ["The Worm"] = "鲤鱼打挺",
+                ["Snake"] = "蛇",
+                ["Death"] = "假死",
+                ["Slickback"] = "顺滑后退",
+                ["Car"] = "汽车",
+                ["Beat Da Koto Nai"] = "打败他舞",
+                ["Tank"] = "坦克",
+                ["Classic Walk"] = "经典行走",
+                ["Weird Creature"] = "奇怪猎奇生物",
+                ["Skibidi Toilet"] = "马桶人",
+                ["Rolling Crybaby"] = "玩不起,撒娇",
+                ["Thinking"] = "思考",
+                ["Fake Death"] = "假死",
+                ["Laced"] = "精神小伙摇头",
+                ["Fit Check"] = "穿搭检查",
+                ["Surrender"] = "投降",
+                ["Assumptions"] = "左右横跳舞",
+                ["Griddy"] = "Griddy舞",
+                ["Take The L"] = "接受失败舞",
+                ["Basketball Head Spin"] = "篮球头转",
+                ["Parrot Dance"] = "mc鹦鹉舞",
+                ["Shot"] = "被射击",
+                ["Ragdoll"] = "布娃娃倒地",
+                ["Sad Sit"] = "悲伤坐",
+                ["Soda Pop"] = "喝口汽水",
+                ["Billy Bounce"] = "抖腿舞",
+                ["Ballin"] = "篮球",
+                ["Walter Scene"] = "被捆绑",
+                ["Cute Stomach Lay"] = "可爱趴",
+                ["Shadow Dio Pose"] = "暗影迪奥姿势",
+                ["Jotaro Pose"] = "承太郎姿势",
+                ["Jojo Pose"] = "Jojo姿势",
+                ["Float Lay"] = "漂浮躺",
+                ["Biblically Accurate"] = "烈焰人",
+                ["Headless"] = "富人",
+                ["ME!ME!ME!"] = "可爱摇摆",
+                ["Plane"] = "飞机",
+                ["XavierSoBased"] = "Xavier舞蹈",
+                ["Chinese Dance"] = "科目五",
+            }
+            
+            -- 获取所有GUI
+            local player = game.Players.LocalPlayer
+            local coreGui = game:GetService("CoreGui")
+            local playerGui = player:WaitForChild("PlayerGui")
+            
+            -- 遍历所有文本对象
+            local function searchAndTranslate(parent)
+                for _, obj in pairs(parent:GetDescendants()) do
+                    if obj:IsA("TextLabel") or obj:IsA("TextButton") or obj:IsA("TextBox") then
+                        local originalText = obj.Text
+                        
+                        if originalText and originalText ~= "" then
+                            -- 直接匹配完整文本
+                            for eng, chi in pairs(translationMap) do
+                                if originalText == eng then
+                                    obj.Text = chi
+                                    break
+                                elseif originalText:find(eng) then
+                                    obj.Text = originalText:gsub(eng, chi)
+                                    break
+                                end
+                            end
+                        end
+                    end
+                end
+            end
+            
+            -- 在所有GUI中搜索
+            searchAndTranslate(coreGui)
+            searchAndTranslate(playerGui)
+        end
+        
+        -- 执行汉化
+        print("正在汉化界面...")
+        translateTextObjects()
+        
+        -- 延迟再次汉化，确保覆盖所有动态生成的文本
+        wait(1)
+        translateTextObjects()
+        
+        -- 监听UI变化，当有新UI生成时进行汉化
+        local RunService = game:GetService("RunService")
+        local lastCheck = tick()
+        
+        RunService.RenderStepped:Connect(function()
+            -- 每2秒检查一次，避免性能问题
+            if tick() - lastCheck > 2 then
+                lastCheck = tick()
+                translateTextObjects()
+            end
+        end)
+        
+        print("R15动作脚本汉化完成")
+    else
+        print("R15动作脚本加载失败:", err)
     end
-    
-    return originalScript
 end
 
--- 执行汉化后的脚本
-local success, err = pcall(function()
-    local modifiedScript = getModifiedR15Script()
-    loadstring(modifiedScript)()
-end)
-
-if success then
-    print("汉化版R15动作脚本加载成功")
-else
-    print("加载失败:", err)
-    -- 如果汉化失败，回退到原脚本
-    loadstring(game:HttpGet("https://raw.githubusercontent.com/Boxten-Keyes/music/refs/heads/main/music%23%5Bscripts%5D/music%23%5Bmiscellaneous%5D/music%23%5Bfe%20r15%20animation%20player%5D.lua"))()
-end
+-- 启动加载和汉化
+spawn(loadAndTranslateR15AnimationScript)
