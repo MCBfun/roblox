@@ -1,14 +1,14 @@
 game:GetService("StarterGui"):SetCore("SendNotification", {
     Title = "公告",
     Text = "给个三连吧！",
-    Icon = "rbxassetid://139532409537387",
+    Icon = "rbxassetid://75412502671766",
     Duration = 2,
     Position = UDim2.new(0, 20, 1, -50)
 })
 game:GetService("StarterGui"):SetCore("SendNotification", {
     Title = "公告",
     Text = "渔炒鱼",
-    Icon = "rbxassetid://28872862",
+    Icon = "rbxassetid://98446998103932",
     Duration = 3,
     Position = UDim2.new(0, 20, 1, -50)
 })
