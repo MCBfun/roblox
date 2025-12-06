@@ -58,8 +58,7 @@ local floatButton = Instance.new("ImageButton")
 floatButton.Size = UDim2.new(0, 45, 0, 45)  -- 进一步缩小到45x45
 floatButton.Position = UDim2.new(0, 10, 0.9, 0)  -- 贴近右下角
 floatButton.BackgroundColor3 = Color3.fromRGB(30, 136, 229)
-floatButton.Image = "rbxassetid://
-18143239786"
+floatButton.Image = "rbxassetid://3926305904"
 floatButton.ImageRectOffset = Vector2.new(884, 4)
 floatButton.ImageRectSize = Vector2.new(36, 36)
 floatButton.Visible = true
@@ -114,7 +113,7 @@ local title = Instance.new("TextLabel")
 title.Size = UDim2.new(0.65, 0, 1, 0)  -- 从0.7缩小到0.65
 title.Position = UDim2.new(0.05, 0, 0, 0)
 title.BackgroundTransparency = 1
-title.Text = "PLAYBREAK 刷票"
+title.Text = "⚡ PLAYBREAK"
 title.TextColor3 = Color3.fromRGB(255, 255, 255)
 title.TextSize = 14  -- 从16缩小到14
 title.Font = Enum.Font.GothamBold
@@ -137,7 +136,7 @@ versionLabel.Parent = titleBar
 local closeBtn = Instance.new("TextButton")  -- 改用TextButton简化
 closeBtn.Size = UDim2.new(0, 24, 0, 24)  -- 从28缩小到24
 closeBtn.Position = UDim2.new(0.93, 0, 0.2, 0)
-closeBtn.BackgroundColor3 = Color3.fromRGB(240, 60, 60)
+closeBtn.BackgroundColor3 = Color3.fromRGB(255, 60, 60)
 closeBtn.Text = "×"
 closeBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
 closeBtn.TextSize = 16  -- 从20缩小到16
@@ -279,13 +278,13 @@ local function createStyledButton(name, icon, color, position, size)
 end
 
 -- 创建按钮 - 再次缩小
-local cleanBtn = createStyledButton("开始执行", "▶️", Color3.fromRGB(76, 175, 80),
+local cleanBtn = createStyledButton("开始执行", "🔧", Color3.fromRGB(76, 175, 80),
     UDim2.new(0, 0, 0, 0), UDim2.new(1, 0, 0, 45))  -- 从50缩小到45
 
-local instantBtn = createStyledButton("秒互动", "⏩️", Color3.fromRGB(0, 150, 255),
+local instantBtn = createStyledButton("秒互动", "⚡", Color3.fromRGB(0, 150, 255),
     UDim2.new(0, 0, 0, 50), UDim2.new(1, 0, 0, 45))  -- 间距从55缩小到50
 
-local autoInteractBtn = createStyledButton("自动互动", "⏸️", Color3.fromRGB(156, 39, 176),
+local autoInteractBtn = createStyledButton("自动互动", "🤖", Color3.fromRGB(156, 39, 176),
     UDim2.new(0, 0, 0, 100), UDim2.new(1, 0, 0, 45))  -- 间距从110缩小到100
 
 local closeUIBtn = createStyledButton("关闭界面", "❌", Color3.fromRGB(200, 50, 50),
@@ -307,7 +306,7 @@ footerCorner.Parent = footer
 local footerText = Instance.new("TextLabel")
 footerText.Size = UDim2.new(1, 0, 1, 0)
 footerText.BackgroundTransparency = 1
-footerText.Text = "✨ 渔炒鱼 | 刷票"
+footerText.Text = "✨ 渔炒鱼 | F1-F4"
 footerText.TextColor3 = Color3.fromRGB(180, 180, 200)
 footerText.TextSize = 10  -- 从11缩小到10
 footerText.Font = Enum.Font.Gotham
@@ -365,12 +364,12 @@ end)
 cleanBtn.MouseButton1Click:Connect(function()
     local character = localPlayer.Character
     if not character then
-        statusText.Text = "错误：未找到角色"
+        statusText.Text = "🔴 错误：未找到角色"
         statusText.TextColor3 = Color3.fromRGB(255, 100, 100)
         return
     end
     
-    statusText.Text = "扫描中..."
+    statusText.Text = "🔄 扫描中..."
     statusText.TextColor3 = Color3.fromRGB(255, 200, 100)
     
     -- 在新线程中执行
@@ -388,7 +387,7 @@ cleanBtn.MouseButton1Click:Connect(function()
                 end
             end
             
-            statusText.Text = string.format(" 📊 %d 个脚本\n清理中...", totalScripts)
+            statusText.Text = string.format("📊 %d 个脚本\n清理中...", totalScripts)
             
             -- 开始清理
             for i, descendant in ipairs(allDescendants) do
@@ -413,7 +412,7 @@ cleanBtn.MouseButton1Click:Connect(function()
         
         if success then
             if type(result) == "number" then
-                statusText.Text = string.format(" 完成！\n移除 %d 个", result)
+                statusText.Text = string.format("✅ 完成！\n移除 %d 个", result)
                 statusText.TextColor3 = Color3.fromRGB(100, 255, 100)
                 
                 -- 发送通知
@@ -424,11 +423,11 @@ cleanBtn.MouseButton1Click:Connect(function()
                     Icon = "rbxassetid://139532409537387"
                 })
             else
-                statusText.Text = "错误"
+                statusText.Text = "❌ 错误"
                 statusText.TextColor3 = Color3.fromRGB(255, 100, 100)
             end
         else
-            statusText.Text = "操作失败"
+            statusText.Text = "❌ 操作失败"
             statusText.TextColor3 = Color3.fromRGB(255, 100, 100)
         end
         
