@@ -8,7 +8,7 @@ game:GetService("StarterGui"):SetCore("SendNotification", {
 game:GetService("StarterGui"):SetCore("SendNotification", {
     Title = "公告",
     Text = "渔炒鱼",
-    Icon = "rbxassetid://98446998103932",
+    Icon = "rbxassetid://111333374680640",
     Duration = 3,
     Position = UDim2.new(0, 20, 1, -50)
 })
