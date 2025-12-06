@@ -280,15 +280,15 @@ print("- 点击X关闭UI")
 game:GetService("StarterGui"):SetCore("SendNotification", {
     Title = "公告",
     Text = "手感脚本",
-    Icon = "rbxassetid://18143239786",
+    Icon = "rbxassetid://111253731477608",
     Duration = 3,
     Position = UDim2.new(0, 20, 1, -50)
 })
 
 game:GetService("StarterGui"):SetCore("SendNotification", {
     Title = "roblox名",
-    Text = "MCBFUNAE",
-    Icon = "rbxassetid://18143239786",
+    Text = "MCBFUNAE(不服打我",
+    Icon = "rbxassetid://84628952225457",
     Duration = 8,
     Position = UDim2.new(0, 20, 1, -50)
 })
@@ -296,7 +296,7 @@ game:GetService("StarterGui"):SetCore("SendNotification", {
 game:GetService("StarterGui"):SetCore("SendNotification", {
     Title = "bilibili名",
     Text = "渔炒鱼",
-    Icon = "rbxassetid://139532409537387",
+    Icon = "rbxassetid://111333374680640",
     Duration = 8,
     Position = UDim2.new(0, 20, 1, -50)
 })
