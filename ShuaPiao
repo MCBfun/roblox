@@ -53,12 +53,12 @@ ui.Parent = PlayerGui
 ui.IgnoreGuiInset = false
 ui.ResetOnSpawn = false
 
--- 浮动按钮（用于重新打开UI）
+-- 浮动按钮（用于重新打开UI）- 缩小尺寸
 local floatButton = Instance.new("ImageButton")
-floatButton.Size = UDim2.new(0, 60, 0, 60)
-floatButton.Position = UDim2.new(0, 15, 0.85, 0)
+floatButton.Size = UDim2.new(0, 50, 0, 50)  -- 从60缩小到50
+floatButton.Position = UDim2.new(0, 15, 0.9, 0)  -- 移到更下方，留出空间
 floatButton.BackgroundColor3 = Color3.fromRGB(30, 136, 229)
-floatButton.Image = "rbxassetid://18143239786"
+floatButton.Image = "rbxassetid://3926305904"
 floatButton.ImageRectOffset = Vector2.new(884, 4)
 floatButton.ImageRectSize = Vector2.new(36, 36)
 floatButton.Visible = true
@@ -68,18 +68,6 @@ floatButton.Parent = ui
 local floatCorner = Instance.new("UICorner")
 floatCorner.CornerRadius = UDim.new(1, 0)
 floatCorner.Parent = floatButton
-
--- 浮动按钮阴影
-local floatShadow = Instance.new("ImageLabel")
-floatShadow.Size = UDim2.new(1, 12, 1, 12)
-floatShadow.Position = UDim2.new(0, -6, 0, -6)
-floatShadow.BackgroundTransparency = 1
-floatShadow.Image = "rbxassetid://5554236805"
-floatShadow.ImageColor3 = Color3.fromRGB(0, 0, 0)
-floatShadow.ImageTransparency = 0.8
-floatShadow.ScaleType = Enum.ScaleType.Slice
-floatShadow.SliceScale = 0.02
-floatShadow.Parent = floatButton
 
 -- 浮动按钮发光效果
 local floatGlow = Instance.new("Frame")
@@ -93,7 +81,7 @@ local floatGlowCorner = Instance.new("UICorner")
 floatGlowCorner.CornerRadius = UDim.new(1, 0)
 floatGlowCorner.Parent = floatGlow
 
--- 浮动按钮动画
+-- 浮动按钮悬停动画
 local floatHoverAnimation = game:GetService("TweenService"):Create(floatGlow, 
     TweenInfo.new(0.3, Enum.EasingStyle.Quad, Enum.EasingDirection.Out),
     {BackgroundTransparency = 0.6}
@@ -103,54 +91,34 @@ local floatNormalAnimation = game:GetService("TweenService"):Create(floatGlow,
     {BackgroundTransparency = 0.8}
 )
 
--- 主面板
+-- 主面板 - 缩小尺寸
 local panel = Instance.new("Frame")
-panel.Size = UDim2.new(0, 350, 0, 400)
-panel.Position = UDim2.new(0.5, -175, 0.5, -200)
+panel.Size = UDim2.new(0, 250, 0, 320)  -- 从350x400缩小到300x360
+panel.Position = UDim2.new(0.5, -150, 0.5, -180)
 panel.BackgroundColor3 = Color3.fromRGB(25, 25, 30)
 panel.BorderSizePixel = 0
 panel.Parent = ui
 
--- 面板背景模糊
-local panelBlur = Instance.new("Frame")
-panelBlur.Size = UDim2.new(1, 20, 1, 20)
-panelBlur.Position = UDim2.new(0, -10, 0, -10)
-panelBlur.BackgroundColor3 = Color3.fromRGB(0, 0, 0)
-panelBlur.BackgroundTransparency = 0.3
-panelBlur.BorderSizePixel = 0
-panelBlur.Parent = panel
-
-local panelBlurCorner = Instance.new("UICorner")
-panelBlurCorner.CornerRadius = UDim.new(0, 16)
-panelBlurCorner.Parent = panelBlur
-
 -- 添加圆角效果
 local corner = Instance.new("UICorner")
-corner.CornerRadius = UDim.new(0, 12)
+corner.CornerRadius = UDim.new(0, 10)
 corner.Parent = panel
 
--- 添加高级阴影效果
-local shadow = Instance.new("ImageLabel")
-shadow.Size = UDim2.new(1, 20, 1, 20)
-shadow.Position = UDim2.new(0, -10, 0, -10)
-shadow.BackgroundTransparency = 1
-shadow.Image = "rbxassetid://5554236805"
-shadow.ImageColor3 = Color3.fromRGB(0, 0, 0)
-shadow.ImageTransparency = 0.4
-shadow.ScaleType = Enum.ScaleType.Slice
-shadow.SliceCenter = Rect.new(23, 23, 277, 277)
-shadow.SliceScale = 0.02
+-- 添加阴影效果
+local shadow = Instance.new("UIStroke")
+shadow.Color = Color3.fromRGB(0, 150, 255)
+shadow.Thickness = 2
 shadow.Parent = panel
 
--- 标题栏
+-- 标题栏 - 缩小高度
 local titleBar = Instance.new("Frame")
-titleBar.Size = UDim2.new(1, 0, 0, 50)
+titleBar.Size = UDim2.new(1, 0, 0, 45)  -- 从50缩小到45
 titleBar.BackgroundColor3 = Color3.fromRGB(30, 30, 40)
 titleBar.BorderSizePixel = 0
 titleBar.Parent = panel
 
 local titleCorner = Instance.new("UICorner")
-titleCorner.CornerRadius = UDim.new(0, 12)
+titleCorner.CornerRadius = UDim.new(0, 10)
 titleCorner.Parent = titleBar
 
 -- 标题栏渐变效果
@@ -163,34 +131,34 @@ titleGradient.Color = ColorSequence.new({
 titleGradient.Rotation = 90
 titleGradient.Parent = titleBar
 
--- 标题文字
+-- 标题文字 - 缩小字号
 local title = Instance.new("TextLabel")
 title.Size = UDim2.new(0.7, 0, 1, 0)
 title.Position = UDim2.new(0.05, 0, 0, 0)
 title.BackgroundTransparency = 1
-title.Text = "⚡ PLAYBREAK刷票 ⚡"
+title.Text = "⚡ PLAYBREAK 刷票 ⚡"
 title.TextColor3 = Color3.fromRGB(255, 255, 255)
-title.TextSize = 18
+title.TextSize = 16  -- 从18缩小到16
 title.Font = Enum.Font.GothamBold
 title.TextXAlignment = Enum.TextXAlignment.Left
 title.Parent = titleBar
 
--- 版本信息
+-- 版本信息 - 缩小字号
 local versionLabel = Instance.new("TextLabel")
 versionLabel.Size = UDim2.new(0.25, 0, 1, 0)
 versionLabel.Position = UDim2.new(0.75, 0, 0, 0)
 versionLabel.BackgroundTransparency = 1
 versionLabel.Text = "v2.0"
 versionLabel.TextColor3 = Color3.fromRGB(200, 200, 200)
-versionLabel.TextSize = 12
+versionLabel.TextSize = 11  -- 从12缩小到11
 versionLabel.Font = Enum.Font.Gotham
 versionLabel.TextXAlignment = Enum.TextXAlignment.Right
 versionLabel.Parent = titleBar
 
--- 关闭按钮
+-- 关闭按钮 - 缩小尺寸
 local closeBtn = Instance.new("ImageButton")
-closeBtn.Size = UDim2.new(0, 32, 0, 32)
-closeBtn.Position = UDim2.new(0.92, 0, 0.15, 0)
+closeBtn.Size = UDim2.new(0, 28, 0, 28)  -- 从32缩小到28
+closeBtn.Position = UDim2.new(0.92, 0, 0.2, 0)  -- 调整位置
 closeBtn.BackgroundColor3 = Color3.fromRGB(255, 60, 60)
 closeBtn.Image = "rbxassetid://3926305904"
 closeBtn.ImageRectOffset = Vector2.new(284, 4)
@@ -201,10 +169,10 @@ local closeCorner = Instance.new("UICorner")
 closeCorner.CornerRadius = UDim.new(1, 0)
 closeCorner.Parent = closeBtn
 
--- 状态显示区域
+-- 状态显示区域 - 缩小高度
 local statusContainer = Instance.new("Frame")
-statusContainer.Size = UDim2.new(1, -20, 0, 80)
-statusContainer.Position = UDim2.new(0, 10, 0, 60)
+statusContainer.Size = UDim2.new(1, -20, 0, 70)  -- 从80缩小到70
+statusContainer.Position = UDim2.new(0, 10, 0, 55)  -- 调整位置
 statusContainer.BackgroundColor3 = Color3.fromRGB(40, 40, 45)
 statusContainer.BorderSizePixel = 0
 statusContainer.Parent = panel
@@ -213,47 +181,48 @@ local statusCorner = Instance.new("UICorner")
 statusCorner.CornerRadius = UDim.new(0, 8)
 statusCorner.Parent = statusContainer
 
--- 状态标题
+-- 状态标题 - 缩小字号
 local statusTitle = Instance.new("TextLabel")
-statusTitle.Size = UDim2.new(1, 0, 0, 25)
+statusTitle.Size = UDim2.new(1, 0, 0, 22)  -- 从25缩小到22
 statusTitle.Position = UDim2.new(0, 0, 0, 0)
 statusTitle.BackgroundTransparency = 1
 statusTitle.Text = " 📊 系统状态"
 statusTitle.TextColor3 = Color3.fromRGB(200, 200, 255)
-statusTitle.TextSize = 14
+statusTitle.TextSize = 13  -- 从14缩小到13
 statusTitle.Font = Enum.Font.GothamBold
 statusTitle.TextXAlignment = Enum.TextXAlignment.Left
 statusTitle.Parent = statusContainer
 
+-- 状态分隔线
 local statusDivider = Instance.new("Frame")
 statusDivider.Size = UDim2.new(1, -20, 0, 1)
-statusDivider.Position = UDim2.new(0, 10, 0, 25)
+statusDivider.Position = UDim2.new(0, 10, 0, 22)  -- 调整位置
 statusDivider.BackgroundColor3 = Color3.fromRGB(80, 80, 100)
 statusDivider.BorderSizePixel = 0
 statusDivider.Parent = statusContainer
 
--- 状态文字
+-- 状态文字 - 缩小字号
 local statusText = Instance.new("TextLabel")
-statusText.Size = UDim2.new(1, -20, 0, 50)
-statusText.Position = UDim2.new(0, 10, 0, 30)
+statusText.Size = UDim2.new(1, -20, 0, 44)  -- 从50缩小到44
+statusText.Position = UDim2.new(0, 10, 0, 26)  -- 调整位置
 statusText.BackgroundTransparency = 1
 statusText.Text = "🟢 系统就绪\n选择功能开始使用"
 statusText.TextColor3 = Color3.fromRGB(220, 220, 220)
-statusText.TextSize = 13
+statusText.TextSize = 12  -- 从13缩小到12
 statusText.Font = Enum.Font.Gotham
 statusText.TextWrapped = true
 statusText.TextXAlignment = Enum.TextXAlignment.Left
 statusText.TextYAlignment = Enum.TextYAlignment.Top
 statusText.Parent = statusContainer
 
--- 按钮容器
+-- 按钮容器 - 调整位置和大小
 local buttonContainer = Instance.new("Frame")
-buttonContainer.Size = UDim2.new(1, -20, 0, 240)
-buttonContainer.Position = UDim2.new(0, 10, 0, 150)
+buttonContainer.Size = UDim2.new(1, -20, 0, 200)  -- 从240缩小到200
+buttonContainer.Position = UDim2.new(0, 10, 0, 135)  -- 调整位置
 buttonContainer.BackgroundTransparency = 1
 buttonContainer.Parent = panel
 
--- 按钮样式函数
+-- 按钮样式函数（简化版，缩小尺寸）
 local function createStyledButton(name, icon, color, position, size)
     local button = Instance.new("Frame")
     button.Size = size
@@ -263,13 +232,13 @@ local function createStyledButton(name, icon, color, position, size)
     button.Parent = buttonContainer
     
     local buttonCorner = Instance.new("UICorner")
-    buttonCorner.CornerRadius = UDim.new(0, 8)
+    buttonCorner.CornerRadius = UDim.new(0, 6)  -- 从8缩小到6
     buttonCorner.Parent = button
     
     -- 按钮边框
     local buttonBorder = Instance.new("UIStroke")
     buttonBorder.Color = color
-    buttonBorder.Thickness = 2
+    buttonBorder.Thickness = 1.5  -- 从2缩小到1.5
     buttonBorder.Parent = button
     
     -- 按钮内容
@@ -280,26 +249,26 @@ local function createStyledButton(name, icon, color, position, size)
     buttonContent.AutoButtonColor = false
     buttonContent.Parent = button
     
-    -- 图标
+    -- 图标 - 缩小
     local buttonIcon = Instance.new("TextLabel")
-    buttonIcon.Size = UDim2.new(0, 30, 1, 0)
-    buttonIcon.Position = UDim2.new(0, 10, 0, 0)
+    buttonIcon.Size = UDim2.new(0, 26, 1, 0)  -- 从30缩小到26
+    buttonIcon.Position = UDim2.new(0, 8, 0, 0)  -- 从10缩小到8
     buttonIcon.BackgroundTransparency = 1
     buttonIcon.Text = icon
     buttonIcon.TextColor3 = color
-    buttonIcon.TextSize = 24
+    buttonIcon.TextSize = 20  -- 从24缩小到20
     buttonIcon.Font = Enum.Font.GothamBold
     buttonIcon.TextXAlignment = Enum.TextXAlignment.Left
     buttonIcon.Parent = buttonContent
     
-    -- 按钮文字
+    -- 按钮文字 - 缩小字号
     local buttonLabel = Instance.new("TextLabel")
-    buttonLabel.Size = UDim2.new(1, -50, 1, 0)
-    buttonLabel.Position = UDim2.new(0, 50, 0, 0)
+    buttonLabel.Size = UDim2.new(1, -42, 1, 0)  -- 从-50调整到-42
+    buttonLabel.Position = UDim2.new(0, 42, 0, 0)  -- 从50调整到42
     buttonLabel.BackgroundTransparency = 1
     buttonLabel.Text = name
     buttonLabel.TextColor3 = Color3.fromRGB(255, 255, 255)
-    buttonLabel.TextSize = 16
+    buttonLabel.TextSize = 14  -- 从16缩小到14
     buttonLabel.Font = Enum.Font.GothamBold
     buttonLabel.TextXAlignment = Enum.TextXAlignment.Left
     buttonLabel.Parent = buttonContent
@@ -314,7 +283,7 @@ local function createStyledButton(name, icon, color, position, size)
     buttonHover.Parent = buttonContent
     
     local hoverCorner = Instance.new("UICorner")
-    hoverCorner.CornerRadius = UDim.new(0, 8)
+    hoverCorner.CornerRadius = UDim.new(0, 6)  -- 从8缩小到6
     hoverCorner.Parent = buttonHover
     
     -- 悬停动画
@@ -330,7 +299,7 @@ local function createStyledButton(name, icon, color, position, size)
     buttonContent.MouseEnter:Connect(function()
         buttonHover.Visible = true
         hoverAnimation:Play()
-        buttonBorder.Thickness = 3
+        buttonBorder.Thickness = 2  -- 从3缩小到2
     end)
     
     buttonContent.MouseLeave:Connect(function()
@@ -339,43 +308,44 @@ local function createStyledButton(name, icon, color, position, size)
         if buttonHover.Visible then
             buttonHover.Visible = false
         end
-        buttonBorder.Thickness = 2
+        buttonBorder.Thickness = 1.5  -- 从2缩小到1.5
     end)
     
     return buttonContent
 end
 
--- 创建按钮
+-- 创建按钮 - 缩小按钮尺寸和间距
 local cleanBtn = createStyledButton("开始执行", "▶️", Color3.fromRGB(76, 175, 80),
-    UDim2.new(0, 0, 0, 0), UDim2.new(1, 0, 0, 60))
+    UDim2.new(0, 0, 0, 0), UDim2.new(1, 0, 0, 50))  -- 从60缩小到50
 
-local instantBtn = createStyledButton("秒互动", "⏭", Color3.fromRGB(0, 150, 255),
-    UDim2.new(0, 0, 0, 70), UDim2.new(1, 0, 0, 60))
+local instantBtn = createStyledButton("秒互动", "⏩️", Color3.fromRGB(0, 150, 255),
+    UDim2.new(0, 0, 0, 55), UDim2.new(1, 0, 0, 50))  -- 间距从70缩小到55
 
-local autoInteractBtn = createStyledButton("自动互动", "📳", Color3.fromRGB(156, 39, 176),
-    UDim2.new(0, 0, 0, 140), UDim2.new(1, 0, 0, 60))
+local autoInteractBtn = createStyledButton("自动互动", "⏸️", Color3.fromRGB(156, 39, 176),
+    UDim2.new(0, 0, 0, 110), UDim2.new(1, 0, 0, 50))  -- 间距从140缩小到110
 
 local closeUIBtn = createStyledButton("关闭界面", "❌", Color3.fromRGB(200, 50, 50),
-    UDim2.new(0, 0, 0, 210), UDim2.new(1, 0, 0, 60))
+    UDim2.new(0, 0, 0, 165), UDim2.new(1, 0, 0, 50))  -- 间距从210缩小到165
 
--- 底部信息栏
+-- 底部信息栏 - 缩小高度
 local footer = Instance.new("Frame")
-footer.Size = UDim2.new(1, -20, 0, 30)
-footer.Position = UDim2.new(0, 10, 1, -40)
+footer.Size = UDim2.new(1, -20, 0, 25)  -- 从30缩小到25
+footer.Position = UDim2.new(0, 10, 1, -35)  -- 调整位置
 footer.BackgroundColor3 = Color3.fromRGB(40, 40, 45)
 footer.BorderSizePixel = 0
 footer.Parent = panel
 
 local footerCorner = Instance.new("UICorner")
-footerCorner.CornerRadius = UDim.new(0, 8)
+footerCorner.CornerRadius = UDim.new(0, 6)  -- 从8缩小到6
 footerCorner.Parent = footer
 
+-- 底部文字 - 缩小字号
 local footerText = Instance.new("TextLabel")
 footerText.Size = UDim2.new(1, 0, 1, 0)
 footerText.BackgroundTransparency = 1
 footerText.Text = "✨ 渔炒鱼 | F1-F4 快捷键"
 footerText.TextColor3 = Color3.fromRGB(180, 180, 200)
-footerText.TextSize = 12
+footerText.TextSize = 11  -- 从12缩小到11
 footerText.Font = Enum.Font.Gotham
 footerText.Parent = footer
 
@@ -479,7 +449,7 @@ cleanBtn.MouseButton1Click:Connect(function()
         
         if success then
             if type(result) == "number" then
-                statusText.Text = string.format("✅ 清理完成！\n共移除 %d 个脚本", result)
+                statusText.Text = string.format("✅ 清理完成！\n共移除 %d 个障碍", result)
                 statusText.TextColor3 = Color3.fromRGB(100, 255, 100)
                 
                 -- 发送通知
