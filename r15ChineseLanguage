@@ -1,4 +1,4 @@
--- R15动作脚本汉化修复版
+-- R15动作脚本汉化优化版 - 修复触摸问题
 local function loadAndTranslateR15AnimationScript()
     local scriptUrl = "https://raw.githubusercontent.com/Boxten-Keyes/music/refs/heads/main/music%23%5Bscripts%5D/music%23%5Bmiscellaneous%5D/music%23%5Bfe%20r15%20animation%20player%5D.lua"
     
@@ -15,8 +15,9 @@ local function loadAndTranslateR15AnimationScript()
         -- 等待脚本完全初始化
         wait(3)
         
-        -- 直接汉化函数 - 更直接的方法
+        -- 汉化函数 - 只执行一次，不循环
         local function translateTextObjects()
+            -- 翻译表
             local translationMap = {
                 -- 主界面和按钮文本
                 ["FE R15 Animation Player"] = "FE R15动作播放器",
@@ -112,59 +113,102 @@ local function loadAndTranslateR15AnimationScript()
                 ["Chinese Dance"] = "科目五",
             }
             
-            -- 获取所有GUI
+            -- 只针对特定的UI进行汉化，而不是全部GUI
             local player = game.Players.LocalPlayer
-            local coreGui = game:GetService("CoreGui")
-            local playerGui = player:WaitForChild("PlayerGui")
             
-            -- 遍历所有文本对象
-            local function searchAndTranslate(parent)
-                for _, obj in pairs(parent:GetDescendants()) do
-                    if obj:IsA("TextLabel") or obj:IsA("TextButton") or obj:IsA("TextBox") then
-                        local originalText = obj.Text
-                        
-                        if originalText and originalText ~= "" then
-                            -- 直接匹配完整文本
-                            for eng, chi in pairs(translationMap) do
-                                if originalText == eng then
-                                    obj.Text = chi
-                                    break
-                                elseif originalText:find(eng) then
-                                    obj.Text = originalText:gsub(eng, chi)
-                                    break
+            -- 方法1：找到特定的ScreenGui进行汉化
+            local function translateSpecificGUI(gui)
+                if not gui then return end
+                
+                -- 只查找文本元素，不遍历太深的层级
+                local framesToCheck = {gui}
+                
+                while #framesToCheck > 0 do
+                    local frame = table.remove(framesToCheck, 1)
+                    
+                    -- 检查当前帧的文本元素
+                    for _, obj in pairs(frame:GetChildren()) do
+                        if obj:IsA("TextLabel") or obj:IsA("TextButton") or obj:IsA("TextBox") then
+                            local originalText = obj.Text
+                            
+                            if originalText and originalText ~= "" then
+                                -- 尝试匹配翻译
+                                for eng, chi in pairs(translationMap) do
+                                    if originalText == eng then
+                                        obj.Text = chi
+                                        break
+                                    elseif originalText:find(eng) then
+                                        obj.Text = originalText:gsub(eng, chi)
+                                        break
+                                    end
                                 end
                             end
+                        end
+                        
+                        -- 如果是Frame或ScrollingFrame，继续检查
+                        if obj:IsA("Frame") or obj:IsA("ScrollingFrame") then
+                            table.insert(framesToCheck, obj)
                         end
                     end
                 end
             end
             
-            -- 在所有GUI中搜索
-            searchAndTranslate(coreGui)
-            searchAndTranslate(playerGui)
+            -- 查找FE动画播放器的UI
+            local playerGui = player:WaitForChild("PlayerGui")
+            local coreGui = game:GetService("CoreGui")
+            
+            -- 等待UI完全加载
+            wait(0.5)
+            
+            -- 查找所有ScreenGui，找到包含"Animation"或"Player"的
+            local guisToCheck = {playerGui, coreGui}
+            
+            for _, guiParent in pairs(guisToCheck) do
+                for _, screenGui in pairs(guiParent:GetChildren()) do
+                    if screenGui:IsA("ScreenGui") then
+                        -- 如果ScreenGui名称包含相关关键词，进行汉化
+                        local guiName = screenGui.Name:lower()
+                        if guiName:find("animation") or guiName:find("player") or guiName:find("fe") then
+                            translateSpecificGUI(screenGui)
+                        end
+                        
+                        -- 另外，检查ScreenGui中是否有特定的文本标签
+                        local foundText = false
+                        for _, child in pairs(screenGui:GetChildren()) do
+                            if child:IsA("TextLabel") or child:IsA("TextButton") then
+                                if child.Text and (child.Text:find("Animation") or child.Text:find("Player")) then
+                                    foundText = true
+                                    break
+                                end
+                            end
+                        end
+                        
+                        if foundText then
+                            translateSpecificGUI(screenGui)
+                        end
+                    end
+                end
+            end
+            
+            print("汉化完成")
         end
         
-        -- 执行汉化
+        -- 执行汉化（分阶段，避免一次性操作太多）
         print("正在汉化界面...")
-        translateTextObjects()
         
-        -- 延迟再次汉化，确保覆盖所有动态生成的文本
-        wait(1)
-        translateTextObjects()
+        -- 第一次汉化
+        pcall(translateTextObjects)
         
-        -- 监听UI变化，当有新UI生成时进行汉化
-        local RunService = game:GetService("RunService")
-        local lastCheck = tick()
+        -- 延迟第二次汉化（确保动态内容已加载）
+        wait(2)
+        pcall(translateTextObjects)
         
-        RunService.RenderStepped:Connect(function()
-            -- 每2秒检查一次，避免性能问题
-            if tick() - lastCheck > 2 then
-                lastCheck = tick()
-                translateTextObjects()
-            end
-        end)
+        -- 延迟第三次汉化
+        wait(2)
+        pcall(translateTextObjects)
         
-        print("R15动作脚本汉化完成")
+        print("R15动作脚本汉化流程完成")
+        
     else
         print("R15动作脚本加载失败:", err)
     end
