@@ -287,7 +287,7 @@ game:GetService("StarterGui"):SetCore("SendNotification", {
 
 game:GetService("StarterGui"):SetCore("SendNotification", {
     Title = "roblox名",
-    Text = "MCBFUNAE(不服打我",
+    Text = "MCBFUN(不服打我",
     Icon = "rbxassetid://84628952225457",
     Duration = 8,
     Position = UDim2.new(0, 20, 1, -50)
