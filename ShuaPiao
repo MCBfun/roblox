@@ -130,21 +130,9 @@ miniTitle.TextXAlignment = Enum.TextXAlignment.Left
 miniTitle.Visible = false  -- 默认隐藏
 miniTitle.Parent = titleBar
 
--- 版本信息
-local versionLabel = Instance.new("TextLabel")
-versionLabel.Size = UDim2.new(0.25, 0, 1, 0)
-versionLabel.Position = UDim2.new(0.75, 0, 0, 0)
-versionLabel.BackgroundTransparency = 1
-versionLabel.Text = "v2.0"
-versionLabel.TextColor3 = Color3.fromRGB(200, 200, 200)
-versionLabel.TextSize = 11
-versionLabel.Font = Enum.Font.Gotham
-versionLabel.TextXAlignment = Enum.TextXAlignment.Right
-versionLabel.Parent = titleBar
-
 -- 最小化按钮
 local minimizeBtn = Instance.new("TextButton")
-minimizeBtn.Size = UDim2.new(0, 12, 0, 22)  -- 缩小按钮
+minimizeBtn.Size = UDim2.new(0, 22, 0, 22)  -- 缩小按钮
 minimizeBtn.Position = UDim2.new(0.93, 0, 0.2, 0)
 minimizeBtn.BackgroundColor3 = Color3.fromRGB(255, 193, 7)  -- 黄色，表示最小化
 minimizeBtn.Text = "─"  -- 减号
@@ -706,7 +694,7 @@ closeUIBtn.MouseButton1Click:Connect(function()
     
     game:GetService("StarterGui"):SetCore("SendNotification", {
         Title = "提示",
-        Text = "工具箱已完全关闭 包括功能",
+        Text = "工具箱已完全关闭",
         Duration = 2
     })
 end)
