@@ -62,8 +62,8 @@ ui.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
 
 -- 记录原始面板大小
 local originalPanelSize = UDim2.new(0, 300, 0, 360)
-local minimizedPanelSize = UDim2.new(0, 150, 0, 25)  -- 进一步缩小：150x25
-local originalPosition = UDim2.new(0.05, 10, 0.5, -180)  -- 进一步靠左：5% + 10像素
+local minimizedPanelSize = UDim2.new(0, 150, 0, 25)
+local originalPosition = UDim2.new(0.05, 10, 0.5, -180)
 
 -- 主面板
 local panel = Instance.new("Frame")
@@ -124,20 +124,32 @@ miniTitle.Position = UDim2.new(0.05, 0, 0, 0)
 miniTitle.BackgroundTransparency = 1
 miniTitle.Text = "⚡ PB 刷票"
 miniTitle.TextColor3 = Color3.fromRGB(255, 255, 255)
-miniTitle.TextSize = 12  -- 进一步缩小文字大小
+miniTitle.TextSize = 12
 miniTitle.Font = Enum.Font.GothamBold
 miniTitle.TextXAlignment = Enum.TextXAlignment.Left
-miniTitle.Visible = false  -- 默认隐藏
+miniTitle.Visible = false
 miniTitle.Parent = titleBar
+
+-- 版本信息标签（添加这个，修复缺失的问题）
+local versionLabel = Instance.new("TextLabel")
+versionLabel.Size = UDim2.new(0.25, 0, 1, 0)
+versionLabel.Position = UDim2.new(0.75, 0, 0, 0)
+versionLabel.BackgroundTransparency = 1
+versionLabel.Text = "v3.0"
+versionLabel.TextColor3 = Color3.fromRGB(200, 200, 200)
+versionLabel.TextSize = 11
+versionLabel.Font = Enum.Font.Gotham
+versionLabel.TextXAlignment = Enum.TextXAlignment.Right
+versionLabel.Parent = titleBar
 
 -- 最小化按钮
 local minimizeBtn = Instance.new("TextButton")
-minimizeBtn.Size = UDim2.new(0, 22, 0, 22)  -- 缩小按钮
+minimizeBtn.Size = UDim2.new(0, 22, 0, 22)
 minimizeBtn.Position = UDim2.new(0.93, 0, 0.2, 0)
-minimizeBtn.BackgroundColor3 = Color3.fromRGB(255, 193, 7)  -- 黄色，表示最小化
-minimizeBtn.Text = "─"  -- 减号
+minimizeBtn.BackgroundColor3 = Color3.fromRGB(255, 193, 7)
+minimizeBtn.Text = "─"
 minimizeBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
-minimizeBtn.TextSize = 14  -- 缩小文字
+minimizeBtn.TextSize = 14
 minimizeBtn.Font = Enum.Font.GothamBold
 minimizeBtn.Parent = titleBar
 
@@ -337,10 +349,10 @@ minimizeBtn.MouseButton1Click:Connect(function()
     if isMinimized then
         -- 恢复原状
         isMinimized = false
-        minimizeBtn.Text = "─"  -- 保持减号
-        minimizeBtn.BackgroundColor3 = Color3.fromRGB(255, 193, 7)  -- 黄色
-        minimizeBtn.Size = UDim2.new(0, 22, 0, 22)  -- 恢复按钮大小
-        minimizeBtn.Position = UDim2.new(0.93, 0, 0.2, 0)  -- 恢复位置
+        minimizeBtn.Text = "─"
+        minimizeBtn.BackgroundColor3 = Color3.fromRGB(255, 193, 7)
+        minimizeBtn.Size = UDim2.new(0, 22, 0, 22)
+        minimizeBtn.Position = UDim2.new(0.93, 0, 0.2, 0)
         
         -- 显示所有内容
         statusContainer.Visible = true
@@ -356,7 +368,7 @@ minimizeBtn.MouseButton1Click:Connect(function()
         -- 动画恢复大小和位置
         local tween = TweenService:Create(panel, TweenInfo.new(0.3, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), {
             Size = originalPanelSize,
-            Position = originalPosition  -- 恢复原始位置
+            Position = originalPosition
         })
         tween:Play()
         
@@ -365,10 +377,10 @@ minimizeBtn.MouseButton1Click:Connect(function()
     else
         -- 最小化
         isMinimized = true
-        minimizeBtn.Text = "+"  -- 变成加号，表示可以展开
-        minimizeBtn.BackgroundColor3 = Color3.fromRGB(76, 175, 80)  -- 绿色
-        minimizeBtn.Size = UDim2.new(0, 18, 0, 18)  -- 缩小按钮
-        minimizeBtn.Position = UDim2.new(0.93, 0, 0.1, 0)  -- 调整位置
+        minimizeBtn.Text = "+"
+        minimizeBtn.BackgroundColor3 = Color3.fromRGB(76, 175, 80)
+        minimizeBtn.Size = UDim2.new(0, 18, 0, 18)
+        minimizeBtn.Position = UDim2.new(0.93, 0, 0.1, 0)
         
         -- 隐藏内容，只保留标题栏
         statusContainer.Visible = false
@@ -376,19 +388,18 @@ minimizeBtn.MouseButton1Click:Connect(function()
         footer.Visible = false
         title.Visible = false
         versionLabel.Visible = false
-        miniTitle.Visible = true  -- 显示小标题
+        miniTitle.Visible = true
         
         -- 缩小标题栏
-        titleBar.Size = UDim2.new(1, 0, 1, 0)  -- 占据整个面板
+        titleBar.Size = UDim2.new(1, 0, 1, 0)
         
         -- 动画缩小
         local tween = TweenService:Create(panel, TweenInfo.new(0.3, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), {
             Size = minimizedPanelSize,
-            Position = UDim2.new(0.05, 10, 0.1, 10)  -- 缩小后移动到左上角附近
+            Position = UDim2.new(0.05, 10, 0.1, 10)
         })
         tween:Play()
         
-        -- 保存状态文本
         statusText.Text = "📦 工具箱已最小化"
     end
 end)
@@ -457,7 +468,6 @@ instantBtn.MouseButton1Click:Connect(function()
     
     spawn(function()
         local success = pcall(function()
-            -- 简单的秒互动实现
             instantInteractionEnabled = true
             
             local mouse = localPlayer:GetMouse()
@@ -465,13 +475,11 @@ instantBtn.MouseButton1Click:Connect(function()
             mouse.Button1Down:Connect(function()
                 local target = mouse.Target
                 if target then
-                    -- 点击探测器
                     local clicker = target:FindFirstChildOfClass("ClickDetector")
                     if clicker then
                         pcall(fireclickdetector, clicker)
                     end
                     
-                    -- 近距离提示
                     local prompt = target:FindFirstChildOfClass("ProximityPrompt")
                     if prompt then
                         pcall(function()
@@ -513,8 +521,8 @@ end)
 local autoInteractEnabled = false
 local autoInteractConnection = nil
 local lastInteractTime = 0
-local interactCache = {}  -- 缓存已交互的对象
-local interactCacheTTL = 5  -- 缓存过期时间（秒）
+local interactCache = {}
+local interactCacheTTL = 5
 
 -- 优化的自动互动函数
 local function optimizedAutoInteract()
@@ -529,26 +537,21 @@ local function optimizedAutoInteract()
     local currentTime = tick()
     local interacted = 0
     
-    -- 清理过期缓存
     for objectId, cacheTime in pairs(interactCache) do
         if currentTime - cacheTime > interactCacheTTL then
             interactCache[objectId] = nil
         end
     end
     
-    -- 使用局部变量提高性能
     local workspaceDescendants = workspace:GetDescendants()
     local rootPosition = root.Position
-    local maxDistance = 25  -- 最大距离
-    
-    -- 每次处理固定数量的对象，避免卡顿
-    local batchSize = 30  -- 每帧处理30个对象
+    local maxDistance = 25
+    local batchSize = 30
     local processedCount = 0
     
     for _, obj in ipairs(workspaceDescendants) do
         if not autoInteractEnabled then break end
         
-        -- 批量处理控制
         if processedCount >= batchSize then
             break
         end
@@ -556,11 +559,10 @@ local function optimizedAutoInteract()
         if obj:IsA("ClickDetector") then
             processedCount = processedCount + 1
             
-            -- 检查缓存，避免重复交互
             local objectId = tostring(obj)
             local lastInteract = interactCache[objectId]
             
-            if lastInteract and (currentTime - lastInteract < 1) then  -- 1秒内不重复交互
+            if lastInteract and (currentTime - lastInteract < 1) then
                 break
             end
             
@@ -571,21 +573,19 @@ local function optimizedAutoInteract()
             end
             
             if distance <= maxDistance then
-                -- 尝试交互
                 local success = pcall(fireclickdetector, obj)
                 if success then
                     interacted = interacted + 1
-                    interactCache[objectId] = currentTime  -- 记录交互时间
+                    interactCache[objectId] = currentTime
                 end
             end
         elseif obj:IsA("ProximityPrompt") then
             processedCount = processedCount + 1
             
-            -- 检查缓存
             local objectId = tostring(obj)
             local lastInteract = interactCache[objectId]
             
-            if lastInteract and (currentTime - lastInteract < 0.5) then  -- 0.5秒内不重复交互
+            if lastInteract and (currentTime - lastInteract < 0.5) then
                 break
             end
             
@@ -596,7 +596,7 @@ local function optimizedAutoInteract()
                     pcall(function()
                         obj.HoldDuration = 0
                         obj:InputHoldBegin()
-                        task.wait(0.001)  -- 更短的等待
+                        task.wait(0.001)
                         obj:InputHoldEnd()
                         interactCache[objectId] = currentTime
                         interacted = interacted + 1
@@ -616,13 +616,11 @@ end
 -- 优化后的连接处理
 autoInteractBtn.MouseButton1Click:Connect(function()
     if autoInteractEnabled then
-        -- 停止自动互动
         autoInteractEnabled = false
         if autoInteractConnection then
             autoInteractConnection:Disconnect()
             autoInteractConnection = nil
         end
-        -- 清空缓存
         interactCache = {}
         
         statusText.Text = "自动互动已停止"
@@ -635,17 +633,14 @@ autoInteractBtn.MouseButton1Click:Connect(function()
             Icon = "rbxassetid://7734068321"
         })
     else
-        -- 启动自动互动
         autoInteractEnabled = true
         statusText.Text = "启动自动互动..."
         statusText.TextColor3 = Color3.fromRGB(200, 100, 255)
         
-        -- 使用Stepped代替Heartbeat，性能更好
         spawn(function()
             autoInteractConnection = RunService.Stepped:Connect(function()
                 if not autoInteractEnabled then return end
                 
-                -- 限制执行频率，每0.05秒执行一次（20次/秒）
                 local currentTime = tick()
                 if currentTime - lastInteractTime >= 0.05 then
                     optimizedAutoInteract()
@@ -668,21 +663,19 @@ autoInteractBtn.MouseButton1Click:Connect(function()
     end
 end)
 
--- 关闭界面功能（完全关闭工具箱）
+-- 关闭界面功能
 closeUIBtn.MouseButton1Click:Connect(function()
-    -- 停止自动互动
     if autoInteractEnabled then
         autoInteractEnabled = false
         if autoInteractConnection then
             autoInteractConnection:Disconnect()
             autoInteractConnection = nil
         end
-        interactCache = {}  -- 清空缓存
+        interactCache = {}
     end
     
     statusText.Text = "关闭中..."
     
-    -- 淡出动画
     local tween = TweenService:Create(panel, TweenInfo.new(0.3, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), {
         Position = UDim2.new(0.5, -150, -0.5, -180),
         BackgroundTransparency = 1
@@ -712,7 +705,6 @@ UserInputService.InputBegan:Connect(function(input, processed)
     elseif input.KeyCode == Enum.KeyCode.F3 then
         autoInteractBtn:MouseButton1Click()
     elseif input.KeyCode == Enum.KeyCode.F4 then
-        -- F4切换最小化/恢复
         minimizeBtn:MouseButton1Click()
     end
 end)
