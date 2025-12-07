@@ -1,6 +1,6 @@
 game:GetService("StarterGui"):SetCore("SendNotification", {
     Title = "公告",
-    Text = "渔炒鱼工具箱加载中...",
+    Text = "刷票加载中...",
     Icon = "rbxassetid://111333374680640",
     Duration = 3,
     Position = UDim2.new(0, 20, 1, -50)
@@ -110,7 +110,7 @@ local title = Instance.new("TextLabel")
 title.Size = UDim2.new(0.7, 0, 1, 0)
 title.Position = UDim2.new(0.05, 0, 0, 0)
 title.BackgroundTransparency = 1
-title.Text = "⚡ PLAYBREAK"
+title.Text = "PLAYBREAK 〡 刷票"
 title.TextColor3 = Color3.fromRGB(255, 255, 255)
 title.TextSize = 16
 title.Font = Enum.Font.GothamBold
@@ -122,7 +122,7 @@ local miniTitle = Instance.new("TextLabel")
 miniTitle.Size = UDim2.new(0.6, 0, 1, 0)
 miniTitle.Position = UDim2.new(0.05, 0, 0, 0)
 miniTitle.BackgroundTransparency = 1
-miniTitle.Text = "⚡ PB"
+miniTitle.Text = "⚡ PB 刷票"
 miniTitle.TextColor3 = Color3.fromRGB(255, 255, 255)
 miniTitle.TextSize = 12  -- 进一步缩小文字大小
 miniTitle.Font = Enum.Font.GothamBold
@@ -144,7 +144,7 @@ versionLabel.Parent = titleBar
 
 -- 最小化按钮
 local minimizeBtn = Instance.new("TextButton")
-minimizeBtn.Size = UDim2.new(0, 22, 0, 22)  -- 缩小按钮
+minimizeBtn.Size = UDim2.new(0, 12, 0, 22)  -- 缩小按钮
 minimizeBtn.Position = UDim2.new(0.93, 0, 0.2, 0)
 minimizeBtn.BackgroundColor3 = Color3.fromRGB(255, 193, 7)  -- 黄色，表示最小化
 minimizeBtn.Text = "─"  -- 减号
