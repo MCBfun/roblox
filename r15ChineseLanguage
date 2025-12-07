@@ -165,13 +165,7 @@ local function loadAndTranslateR15AnimationScript()
         local lastCheck = tick()
         
         RunService.RenderStepped:Connect(function()
-            -- 每2秒检查一次，避免性能问题
-            if tick() - lastCheck > 2 then
-                lastCheck = tick()
-                translateTextObjects()
-            end
-        end)
-        
+
         print("R15动作脚本汉化完成")
     else
         print("R15动作脚本加载失败:", err)
