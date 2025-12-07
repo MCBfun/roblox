@@ -164,7 +164,7 @@ local statusTitle = Instance.new("TextLabel")
 statusTitle.Size = UDim2.new(1, 0, 0, 20)  -- 从22缩小到20
 statusTitle.Position = UDim2.new(0, 0, 0, 0)
 statusTitle.BackgroundTransparency = 1
-statusTitle.Text = "📊 状态"
+statusTitle.Text = "  📊 状态"
 statusTitle.TextColor3 = Color3.fromRGB(200, 200, 255)
 statusTitle.TextSize = 12  -- 从13缩小到12
 statusTitle.Font = Enum.Font.GothamBold
@@ -278,13 +278,13 @@ local function createStyledButton(name, icon, color, position, size)
 end
 
 -- 创建按钮 - 再次缩小
-local cleanBtn = createStyledButton("开始执行", "🔧", Color3.fromRGB(76, 175, 80),
+local cleanBtn = createStyledButton("开始执行", "▶️", Color3.fromRGB(76, 175, 80),
     UDim2.new(0, 0, 0, 0), UDim2.new(1, 0, 0, 45))  -- 从50缩小到45
 
-local instantBtn = createStyledButton("秒互动", "⚡", Color3.fromRGB(0, 150, 255),
+local instantBtn = createStyledButton("快速自救", "⏩️", Color3.fromRGB(0, 150, 255),
     UDim2.new(0, 0, 0, 50), UDim2.new(1, 0, 0, 45))  -- 间距从55缩小到50
 
-local autoInteractBtn = createStyledButton("自动互动", "🤖", Color3.fromRGB(156, 39, 176),
+local autoInteractBtn = createStyledButton("自动自救", "⏸️", Color3.fromRGB(156, 39, 176),
     UDim2.new(0, 0, 0, 100), UDim2.new(1, 0, 0, 45))  -- 间距从110缩小到100
 
 local closeUIBtn = createStyledButton("关闭界面", "❌", Color3.fromRGB(200, 50, 50),
@@ -369,7 +369,7 @@ cleanBtn.MouseButton1Click:Connect(function()
         return
     end
     
-    statusText.Text = "🔄 扫描中..."
+    statusText.Text = "扫描中..."
     statusText.TextColor3 = Color3.fromRGB(255, 200, 100)
     
     -- 在新线程中执行
@@ -595,7 +595,7 @@ for _, v in pairs(game:GetDescendants()) do
                     v.HoldDuration = 0
                 end
             end
-wait(5)
+wait(3)
 end
             -- 点击即完成
             local mouse = game:GetService("Players").LocalPlayer:GetMouse()
