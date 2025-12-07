@@ -1,26 +1,19 @@
 game:GetService("StarterGui"):SetCore("SendNotification", {
     Title = "公告",
-    Text = "给个三连吧！",
-    Icon = "rbxassetid://75412502671766",
-    Duration = 2,
-    Position = UDim2.new(0, 20, 1, -50)
-})
-game:GetService("StarterGui"):SetCore("SendNotification", {
-    Title = "公告",
-    Text = "渔炒鱼",
+    Text = "渔炒鱼工具箱加载中...",
     Icon = "rbxassetid://111333374680640",
     Duration = 3,
     Position = UDim2.new(0, 20, 1, -50)
 })
 
+-- 等待游戏完全加载
+wait(2)
+
 -- 检查本地玩家
 local Players = game:GetService("Players")
-local localPlayer
-local success, err = pcall(function()
-    localPlayer = Players.LocalPlayer
-end)
+local localPlayer = Players.LocalPlayer
 
-if not success then
+if not localPlayer then
     game:GetService("StarterGui"):SetCore("SendNotification", {
         Title = "错误",
         Text = "无法获取本地玩家",
@@ -29,22 +22,35 @@ if not success then
     return
 end
 
--- 等待PlayerGui
+-- 等待PlayerGui（添加超时保护）
 local PlayerGui
-local success2, err2 = pcall(function()
-    PlayerGui = localPlayer:WaitForChild("PlayerGui", 10)
-end)
+local maxWaitTime = 30  -- 最大等待30秒
+local startTime = tick()
 
-if not success2 then
+repeat
+    PlayerGui = localPlayer:FindFirstChild("PlayerGui")
+    if not PlayerGui then
+        wait(0.5)
+    end
+until PlayerGui or (tick() - startTime) > maxWaitTime
+
+if not PlayerGui then
     game:GetService("StarterGui"):SetCore("SendNotification", {
         Title = "错误",
-        Text = "无法加载玩家界面",
+        Text = "等待PlayerGui超时",
         Duration = 5
     })
     return
 end
 
 local UserInputService = game:GetService("UserInputService")
+local TweenService = game:GetService("TweenService")
+local RunService = game:GetService("RunService")
+
+-- 检查是否已有UI存在，避免重复创建
+if PlayerGui:FindFirstChild("PlaybreakToolbox") then
+    PlayerGui:FindFirstChild("PlaybreakToolbox"):Destroy()
+end
 
 -- 创建UI
 local ui = Instance.new("ScreenGui")
@@ -52,54 +58,45 @@ ui.Name = "PlaybreakToolbox"
 ui.Parent = PlayerGui
 ui.IgnoreGuiInset = false
 ui.ResetOnSpawn = false
+ui.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
 
--- 浮动按钮（用于重新打开UI）- 更小尺寸
-local floatButton = Instance.new("ImageButton")
-floatButton.Size = UDim2.new(0, 45, 0, 45)  -- 进一步缩小到45x45
-floatButton.Position = UDim2.new(0, 10, 0.9, 0)  -- 贴近右下角
-floatButton.BackgroundColor3 = Color3.fromRGB(30, 136, 229)
-floatButton.Image = "rbxassetid://3926305904"
-floatButton.ImageRectOffset = Vector2.new(884, 4)
-floatButton.ImageRectSize = Vector2.new(36, 36)
-floatButton.Visible = true
-floatButton.Parent = ui
+-- 记录原始面板大小
+local originalPanelSize = UDim2.new(0, 300, 0, 360)
+local minimizedPanelSize = UDim2.new(0, 150, 0, 25)  -- 进一步缩小：150x25
+local originalPosition = UDim2.new(0.05, 10, 0.5, -180)  -- 进一步靠左：5% + 10像素
 
--- 浮动按钮圆角
-local floatCorner = Instance.new("UICorner")
-floatCorner.CornerRadius = UDim.new(1, 0)
-floatCorner.Parent = floatButton
-
--- 主面板 - 再次缩小尺寸
+-- 主面板
 local panel = Instance.new("Frame")
-panel.Size = UDim2.new(0, 280, 0, 320)  -- 从300x360缩小到280x320
-panel.Position = UDim2.new(0.5, -140, 0.5, -160)
+panel.Size = originalPanelSize
+panel.Position = originalPosition
 panel.BackgroundColor3 = Color3.fromRGB(25, 25, 30)
 panel.BorderSizePixel = 0
+panel.Visible = true
 panel.Parent = ui
 
 -- 添加圆角效果
 local corner = Instance.new("UICorner")
-corner.CornerRadius = UDim.new(0, 8)  -- 从10缩小到8
+corner.CornerRadius = UDim.new(0, 10)
 corner.Parent = panel
 
--- 添加简洁阴影效果
+-- 添加阴影效果
 local shadow = Instance.new("UIStroke")
 shadow.Color = Color3.fromRGB(0, 150, 255)
-shadow.Thickness = 1  -- 从2缩小到1
+shadow.Thickness = 2
 shadow.Parent = panel
 
--- 标题栏 - 再次缩小
+-- 标题栏
 local titleBar = Instance.new("Frame")
-titleBar.Size = UDim2.new(1, 0, 0, 40)  -- 从45缩小到40
+titleBar.Size = UDim2.new(1, 0, 0, 45)
 titleBar.BackgroundColor3 = Color3.fromRGB(30, 30, 40)
 titleBar.BorderSizePixel = 0
 titleBar.Parent = panel
 
 local titleCorner = Instance.new("UICorner")
-titleCorner.CornerRadius = UDim.new(0, 8)  -- 从10缩小到8
+titleCorner.CornerRadius = UDim.new(0, 10, 10, 0)
 titleCorner.Parent = titleBar
 
--- 标题栏渐变效果（简化）
+-- 标题栏渐变效果
 local titleGradient = Instance.new("UIGradient")
 titleGradient.Color = ColorSequence.new({
     ColorSequenceKeypoint.new(0, Color3.fromRGB(30, 136, 229)),
@@ -108,99 +105,112 @@ titleGradient.Color = ColorSequence.new({
 titleGradient.Rotation = 90
 titleGradient.Parent = titleBar
 
--- 标题文字 - 再次缩小
+-- 标题文字（正常大小）
 local title = Instance.new("TextLabel")
-title.Size = UDim2.new(0.65, 0, 1, 0)  -- 从0.7缩小到0.65
+title.Size = UDim2.new(0.7, 0, 1, 0)
 title.Position = UDim2.new(0.05, 0, 0, 0)
 title.BackgroundTransparency = 1
 title.Text = "⚡ PLAYBREAK"
 title.TextColor3 = Color3.fromRGB(255, 255, 255)
-title.TextSize = 14  -- 从16缩小到14
+title.TextSize = 16
 title.Font = Enum.Font.GothamBold
 title.TextXAlignment = Enum.TextXAlignment.Left
 title.Parent = titleBar
 
--- 版本信息 - 再次缩小
+-- 小标题文字（用于最小化状态）
+local miniTitle = Instance.new("TextLabel")
+miniTitle.Size = UDim2.new(0.6, 0, 1, 0)
+miniTitle.Position = UDim2.new(0.05, 0, 0, 0)
+miniTitle.BackgroundTransparency = 1
+miniTitle.Text = "⚡ PB"
+miniTitle.TextColor3 = Color3.fromRGB(255, 255, 255)
+miniTitle.TextSize = 12  -- 进一步缩小文字大小
+miniTitle.Font = Enum.Font.GothamBold
+miniTitle.TextXAlignment = Enum.TextXAlignment.Left
+miniTitle.Visible = false  -- 默认隐藏
+miniTitle.Parent = titleBar
+
+-- 版本信息
 local versionLabel = Instance.new("TextLabel")
-versionLabel.Size = UDim2.new(0.3, 0, 1, 0)  -- 从0.25调整到0.3
-versionLabel.Position = UDim2.new(0.7, 0, 0, 0)  -- 从0.75调整到0.7
+versionLabel.Size = UDim2.new(0.25, 0, 1, 0)
+versionLabel.Position = UDim2.new(0.75, 0, 0, 0)
 versionLabel.BackgroundTransparency = 1
 versionLabel.Text = "v2.0"
 versionLabel.TextColor3 = Color3.fromRGB(200, 200, 200)
-versionLabel.TextSize = 10  -- 从11缩小到10
+versionLabel.TextSize = 11
 versionLabel.Font = Enum.Font.Gotham
 versionLabel.TextXAlignment = Enum.TextXAlignment.Right
 versionLabel.Parent = titleBar
 
--- 关闭按钮 - 再次缩小
-local closeBtn = Instance.new("TextButton")  -- 改用TextButton简化
-closeBtn.Size = UDim2.new(0, 24, 0, 24)  -- 从28缩小到24
-closeBtn.Position = UDim2.new(0.93, 0, 0.2, 0)
-closeBtn.BackgroundColor3 = Color3.fromRGB(255, 60, 60)
-closeBtn.Text = "×"
-closeBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
-closeBtn.TextSize = 16  -- 从20缩小到16
-closeBtn.Font = Enum.Font.GothamBold
-closeBtn.Parent = titleBar
+-- 最小化按钮
+local minimizeBtn = Instance.new("TextButton")
+minimizeBtn.Size = UDim2.new(0, 22, 0, 22)  -- 缩小按钮
+minimizeBtn.Position = UDim2.new(0.93, 0, 0.2, 0)
+minimizeBtn.BackgroundColor3 = Color3.fromRGB(255, 193, 7)  -- 黄色，表示最小化
+minimizeBtn.Text = "─"  -- 减号
+minimizeBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
+minimizeBtn.TextSize = 14  -- 缩小文字
+minimizeBtn.Font = Enum.Font.GothamBold
+minimizeBtn.Parent = titleBar
 
-local closeCorner = Instance.new("UICorner")
-closeCorner.CornerRadius = UDim.new(1, 0)
-closeCorner.Parent = closeBtn
+local minimizeCorner = Instance.new("UICorner")
+minimizeCorner.CornerRadius = UDim.new(1, 0)
+minimizeCorner.Parent = minimizeBtn
 
--- 状态显示区域 - 再次缩小
+-- 状态显示区域
 local statusContainer = Instance.new("Frame")
-statusContainer.Size = UDim2.new(1, -16, 0, 60)  -- 从70缩小到60，边距从20缩小到16
-statusContainer.Position = UDim2.new(0, 8, 0, 48)  -- 从55调整到48
+statusContainer.Size = UDim2.new(1, -20, 0, 70)
+statusContainer.Position = UDim2.new(0, 10, 0, 55)
 statusContainer.BackgroundColor3 = Color3.fromRGB(40, 40, 45)
 statusContainer.BorderSizePixel = 0
 statusContainer.Parent = panel
 
 local statusCorner = Instance.new("UICorner")
-statusCorner.CornerRadius = UDim.new(0, 6)  -- 从8缩小到6
+statusCorner.CornerRadius = UDim.new(0, 8)
 statusCorner.Parent = statusContainer
 
--- 状态标题 - 再次缩小
+-- 状态标题
 local statusTitle = Instance.new("TextLabel")
-statusTitle.Size = UDim2.new(1, 0, 0, 20)  -- 从22缩小到20
+statusTitle.Size = UDim2.new(1, 0, 0, 22)
 statusTitle.Position = UDim2.new(0, 0, 0, 0)
 statusTitle.BackgroundTransparency = 1
 statusTitle.Text = "  📊 状态"
 statusTitle.TextColor3 = Color3.fromRGB(200, 200, 255)
-statusTitle.TextSize = 12  -- 从13缩小到12
+statusTitle.TextSize = 13
 statusTitle.Font = Enum.Font.GothamBold
 statusTitle.TextXAlignment = Enum.TextXAlignment.Left
 statusTitle.Parent = statusContainer
 
 -- 状态分隔线
 local statusDivider = Instance.new("Frame")
-statusDivider.Size = UDim2.new(1, -12, 0, 1)  -- 边距从20缩小到12
-statusDivider.Position = UDim2.new(0, 6, 0, 20)  -- 调整位置
+statusDivider.Size = UDim2.new(1, -20, 0, 1)
+statusDivider.Position = UDim2.new(0, 10, 0, 22)
 statusDivider.BackgroundColor3 = Color3.fromRGB(80, 80, 100)
 statusDivider.BorderSizePixel = 0
 statusDivider.Parent = statusContainer
 
--- 状态文字 - 再次缩小
+-- 状态文字
 local statusText = Instance.new("TextLabel")
-statusText.Size = UDim2.new(1, -12, 0, 36)  -- 从44缩小到36
-statusText.Position = UDim2.new(0, 6, 0, 22)  -- 调整位置
+statusText.Size = UDim2.new(1, -20, 0, 44)
+statusText.Position = UDim2.new(0, 10, 0, 24)
 statusText.BackgroundTransparency = 1
-statusText.Text = "🟢 就绪"
+statusText.Text = "🟢 工具箱就绪\n快捷键: F1-F4"
 statusText.TextColor3 = Color3.fromRGB(220, 220, 220)
-statusText.TextSize = 11  -- 从12缩小到11
+statusText.TextSize = 12
 statusText.Font = Enum.Font.Gotham
 statusText.TextWrapped = true
 statusText.TextXAlignment = Enum.TextXAlignment.Left
 statusText.TextYAlignment = Enum.TextYAlignment.Top
 statusText.Parent = statusContainer
 
--- 按钮容器 - 再次缩小
+-- 按钮容器
 local buttonContainer = Instance.new("Frame")
-buttonContainer.Size = UDim2.new(1, -16, 0, 180)  -- 从200缩小到180
-buttonContainer.Position = UDim2.new(0, 8, 0, 116)  -- 从135调整到116
+buttonContainer.Size = UDim2.new(1, -20, 0, 200)
+buttonContainer.Position = UDim2.new(0, 10, 0, 135)
 buttonContainer.BackgroundTransparency = 1
 buttonContainer.Parent = panel
 
--- 按钮样式函数（最小化版本）
+-- 创建按钮的函数
 local function createStyledButton(name, icon, color, position, size)
     local button = Instance.new("Frame")
     button.Size = size
@@ -210,16 +220,14 @@ local function createStyledButton(name, icon, color, position, size)
     button.Parent = buttonContainer
     
     local buttonCorner = Instance.new("UICorner")
-    buttonCorner.CornerRadius = UDim.new(0, 5)  -- 从6缩小到5
+    buttonCorner.CornerRadius = UDim.new(0, 6)
     buttonCorner.Parent = button
     
-    -- 按钮边框（更细）
     local buttonBorder = Instance.new("UIStroke")
     buttonBorder.Color = color
-    buttonBorder.Thickness = 1  -- 从1.5缩小到1
+    buttonBorder.Thickness = 1.5
     buttonBorder.Parent = button
     
-    -- 按钮内容
     local buttonContent = Instance.new("TextButton")
     buttonContent.Size = UDim2.new(1, 0, 1, 0)
     buttonContent.BackgroundTransparency = 1
@@ -227,99 +235,86 @@ local function createStyledButton(name, icon, color, position, size)
     buttonContent.AutoButtonColor = false
     buttonContent.Parent = button
     
-    -- 图标 - 最小化
     local buttonIcon = Instance.new("TextLabel")
-    buttonIcon.Size = UDim2.new(0, 22, 1, 0)  -- 从26缩小到22
-    buttonIcon.Position = UDim2.new(0, 6, 0, 0)  -- 从8缩小到6
+    buttonIcon.Size = UDim2.new(0, 26, 1, 0)
+    buttonIcon.Position = UDim2.new(0, 8, 0, 0)
     buttonIcon.BackgroundTransparency = 1
     buttonIcon.Text = icon
     buttonIcon.TextColor3 = color
-    buttonIcon.TextSize = 18  -- 从20缩小到18
+    buttonIcon.TextSize = 20
     buttonIcon.Font = Enum.Font.GothamBold
     buttonIcon.TextXAlignment = Enum.TextXAlignment.Left
     buttonIcon.Parent = buttonContent
     
-    -- 按钮文字 - 最小化
     local buttonLabel = Instance.new("TextLabel")
-    buttonLabel.Size = UDim2.new(1, -34, 1, 0)  -- 从42调整到34
-    buttonLabel.Position = UDim2.new(0, 34, 0, 0)  -- 从42调整到34
+    buttonLabel.Size = UDim2.new(1, -42, 1, 0)
+    buttonLabel.Position = UDim2.new(0, 42, 0, 0)
     buttonLabel.BackgroundTransparency = 1
     buttonLabel.Text = name
     buttonLabel.TextColor3 = Color3.fromRGB(255, 255, 255)
-    buttonLabel.TextSize = 13  -- 从14缩小到13
+    buttonLabel.TextSize = 14
     buttonLabel.Font = Enum.Font.GothamBold
     buttonLabel.TextXAlignment = Enum.TextXAlignment.Left
     buttonLabel.Parent = buttonContent
     
-    -- 按钮悬停效果（简化版）
     local buttonHover = Instance.new("Frame")
     buttonHover.Size = UDim2.new(1, 0, 1, 0)
     buttonHover.BackgroundColor3 = color
-    buttonHover.BackgroundTransparency = 0.95  -- 更透明
+    buttonHover.BackgroundTransparency = 0.9
     buttonHover.BorderSizePixel = 0
     buttonHover.Visible = false
     buttonHover.Parent = buttonContent
     
     local hoverCorner = Instance.new("UICorner")
-    hoverCorner.CornerRadius = UDim.new(0, 5)  -- 从6缩小到5
+    hoverCorner.CornerRadius = UDim.new(0, 6)
     hoverCorner.Parent = buttonHover
     
     buttonContent.MouseEnter:Connect(function()
         buttonHover.Visible = true
-        buttonBorder.Thickness = 1.5  -- 从2缩小到1.5
+        buttonBorder.Thickness = 2
     end)
     
     buttonContent.MouseLeave:Connect(function()
         buttonHover.Visible = false
-        buttonBorder.Thickness = 1
+        buttonBorder.Thickness = 1.5
     end)
     
     return buttonContent
 end
 
--- 创建按钮 - 再次缩小
-local cleanBtn = createStyledButton("开始执行", "▶️", Color3.fromRGB(76, 175, 80),
-    UDim2.new(0, 0, 0, 0), UDim2.new(1, 0, 0, 45))  -- 从50缩小到45
+-- 创建按钮
+local cleanBtn = createStyledButton("开始执行（清理脚本）", "▶️", Color3.fromRGB(76, 175, 80),
+    UDim2.new(0, 0, 0, 0), UDim2.new(1, 0, 0, 50))
 
-local instantBtn = createStyledButton("快速自救", "⏩️", Color3.fromRGB(0, 150, 255),
-    UDim2.new(0, 0, 0, 50), UDim2.new(1, 0, 0, 45))  -- 间距从55缩小到50
+local instantBtn = createStyledButton("快速自救（秒互动）", "⏩️", Color3.fromRGB(0, 150, 255),
+    UDim2.new(0, 0, 0, 55), UDim2.new(1, 0, 0, 50))
 
-local autoInteractBtn = createStyledButton("自动自救", "⏸️", Color3.fromRGB(156, 39, 176),
-    UDim2.new(0, 0, 0, 100), UDim2.new(1, 0, 0, 45))  -- 间距从110缩小到100
+local autoInteractBtn = createStyledButton("自动自救（自动互动）", "⏸️", Color3.fromRGB(156, 39, 176),
+    UDim2.new(0, 0, 0, 110), UDim2.new(1, 0, 0, 50))
 
 local closeUIBtn = createStyledButton("关闭界面", "❌", Color3.fromRGB(200, 50, 50),
-    UDim2.new(0, 0, 0, 150), UDim2.new(1, 0, 0, 45))  -- 间距从165缩小到150
+    UDim2.new(0, 0, 0, 165), UDim2.new(1, 0, 0, 50))
 
--- 底部信息栏 - 再次缩小
+-- 底部信息栏
 local footer = Instance.new("Frame")
-footer.Size = UDim2.new(1, -16, 0, 22)  -- 从25缩小到22
-footer.Position = UDim2.new(0, 8, 1, -30)  -- 调整位置
+footer.Size = UDim2.new(1, -20, 0, 25)
+footer.Position = UDim2.new(0, 10, 1, -30)
 footer.BackgroundColor3 = Color3.fromRGB(40, 40, 45)
 footer.BorderSizePixel = 0
 footer.Parent = panel
 
 local footerCorner = Instance.new("UICorner")
-footerCorner.CornerRadius = UDim.new(0, 5)  -- 从6缩小到5
+footerCorner.CornerRadius = UDim.new(0, 6)
 footerCorner.Parent = footer
 
--- 底部文字 - 再次缩小
 local footerText = Instance.new("TextLabel")
 footerText.Size = UDim2.new(1, 0, 1, 0)
 footerText.BackgroundTransparency = 1
-footerText.Text = "✨ 渔炒鱼 | F1-F4"
+footerText.Text = "✨ 渔炒鱼 | F1-F4 快捷键"
 footerText.TextColor3 = Color3.fromRGB(180, 180, 200)
-footerText.TextSize = 10  -- 从11缩小到10
+footerText.TextSize = 11
 footerText.Font = Enum.Font.Gotham
 footerText.Parent = footer
-
--- 浮动按钮悬停效果（简化版）
-floatButton.MouseEnter:Connect(function()
-    floatButton.BackgroundColor3 = Color3.fromRGB(40, 160, 240)
-end)
-
-floatButton.MouseLeave:Connect(function()
-    floatButton.BackgroundColor3 = Color3.fromRGB(30, 136, 229)
-end)
 
 -- 拖动功能
 local dragging = false
@@ -346,185 +341,303 @@ UserInputService.InputChanged:Connect(function(input)
     end
 end)
 
--- 浮动按钮点击展开面板
-floatButton.MouseButton1Click:Connect(function()
-    panel.Visible = true
-    floatButton.Visible = false
-end)
+-- 跟踪最小化状态
+local isMinimized = false
 
--- 关闭按钮功能（关闭面板，显示浮动按钮）
-closeBtn.MouseButton1Click:Connect(function()
-    panel.Visible = false
-    floatButton.Visible = true
-end)
-
--- ===========================================
--- 开始执行功能（清理脚本）
--- ===========================================
-cleanBtn.MouseButton1Click:Connect(function()
-    local character = localPlayer.Character
-    if not character then
-        statusText.Text = "🔴 错误：未找到角色"
-        statusText.TextColor3 = Color3.fromRGB(255, 100, 100)
-        return
+-- 最小化按钮功能（点击减号缩小界面）
+minimizeBtn.MouseButton1Click:Connect(function()
+    if isMinimized then
+        -- 恢复原状
+        isMinimized = false
+        minimizeBtn.Text = "─"  -- 保持减号
+        minimizeBtn.BackgroundColor3 = Color3.fromRGB(255, 193, 7)  -- 黄色
+        minimizeBtn.Size = UDim2.new(0, 22, 0, 22)  -- 恢复按钮大小
+        minimizeBtn.Position = UDim2.new(0.93, 0, 0.2, 0)  -- 恢复位置
+        
+        -- 显示所有内容
+        statusContainer.Visible = true
+        buttonContainer.Visible = true
+        footer.Visible = true
+        title.Visible = true
+        miniTitle.Visible = false
+        versionLabel.Visible = true
+        
+        -- 恢复标题栏大小
+        titleBar.Size = UDim2.new(1, 0, 0, 45)
+        
+        -- 动画恢复大小和位置
+        local tween = TweenService:Create(panel, TweenInfo.new(0.3, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), {
+            Size = originalPanelSize,
+            Position = originalPosition  -- 恢复原始位置
+        })
+        tween:Play()
+        
+        statusText.Text = "🟢 工具箱已展开"
+        
+    else
+        -- 最小化
+        isMinimized = true
+        minimizeBtn.Text = "+"  -- 变成加号，表示可以展开
+        minimizeBtn.BackgroundColor3 = Color3.fromRGB(76, 175, 80)  -- 绿色
+        minimizeBtn.Size = UDim2.new(0, 18, 0, 18)  -- 缩小按钮
+        minimizeBtn.Position = UDim2.new(0.93, 0, 0.1, 0)  -- 调整位置
+        
+        -- 隐藏内容，只保留标题栏
+        statusContainer.Visible = false
+        buttonContainer.Visible = false
+        footer.Visible = false
+        title.Visible = false
+        versionLabel.Visible = false
+        miniTitle.Visible = true  -- 显示小标题
+        
+        -- 缩小标题栏
+        titleBar.Size = UDim2.new(1, 0, 1, 0)  -- 占据整个面板
+        
+        -- 动画缩小
+        local tween = TweenService:Create(panel, TweenInfo.new(0.3, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), {
+            Size = minimizedPanelSize,
+            Position = UDim2.new(0.05, 10, 0.1, 10)  -- 缩小后移动到左上角附近
+        })
+        tween:Play()
+        
+        -- 保存状态文本
+        statusText.Text = "📦 工具箱已最小化"
     end
-    
+end)
+
+-- ===========================================
+-- 按钮功能实现
+-- ===========================================
+
+-- 清理脚本功能
+cleanBtn.MouseButton1Click:Connect(function()
     statusText.Text = "扫描中..."
     statusText.TextColor3 = Color3.fromRGB(255, 200, 100)
     
-    -- 在新线程中执行
     spawn(function()
-        local success, result = pcall(function()
-            -- 清理脚本
-            local removedCount = 0
-            local allDescendants = character:GetDescendants()
-            
-            -- 先统计总数
-            local totalScripts = 0
-            for _, descendant in ipairs(allDescendants) do
-                if descendant:IsA("Script") or descendant:IsA("LocalScript") then
-                    totalScripts = totalScripts + 1
-                end
-            end
-            
-            statusText.Text = string.format("📊 %d 个脚本\n清理中...", totalScripts)
-            
-            -- 开始清理
-            for i, descendant in ipairs(allDescendants) do
-                if descendant:IsA("Script") or descendant:IsA("LocalScript") then
-                    descendant:Destroy()
+        local character = localPlayer.Character
+        if not character then
+            statusText.Text = "🔴 错误：角色不存在"
+            statusText.TextColor3 = Color3.fromRGB(255, 100, 100)
+            wait(2)
+            statusText.Text = "🟢 就绪"
+            statusText.TextColor3 = Color3.fromRGB(220, 220, 220)
+            return
+        end
+        
+        wait(0.1)
+        
+        local removedCount = 0
+        local scripts = character:GetDescendants()
+        
+        for _, obj in ipairs(scripts) do
+            if obj:IsA("Script") or obj:IsA("LocalScript") then
+                pcall(function()
+                    obj:Destroy()
                     removedCount = removedCount + 1
+                end)
+            end
+        end
+        
+        statusText.Text = string.format("✅ 清理完成\n移除了 %d 个脚本", removedCount)
+        statusText.TextColor3 = Color3.fromRGB(100, 255, 100)
+        
+        game:GetService("StarterGui"):SetCore("SendNotification", {
+            Title = "清理完成",
+            Text = string.format("移除了 %d 个脚本", removedCount),
+            Duration = 3,
+            Icon = "rbxassetid://139532409537387"
+        })
+        
+        wait(3)
+        statusText.Text = "🟢 就绪"
+        statusText.TextColor3 = Color3.fromRGB(220, 220, 220)
+    end)
+end)
+
+-- 秒互动功能
+local instantInteractionEnabled = false
+
+instantBtn.MouseButton1Click:Connect(function()
+    if instantInteractionEnabled then
+        statusText.Text = "⚠️ 秒互动已启用"
+        return
+    end
+    
+    statusText.Text = "🔄 启用秒互动..."
+    statusText.TextColor3 = Color3.fromRGB(100, 200, 255)
+    
+    spawn(function()
+        local success = pcall(function()
+            -- 简单的秒互动实现
+            instantInteractionEnabled = true
+            
+            local mouse = localPlayer:GetMouse()
+            
+            mouse.Button1Down:Connect(function()
+                local target = mouse.Target
+                if target then
+                    -- 点击探测器
+                    local clicker = target:FindFirstChildOfClass("ClickDetector")
+                    if clicker then
+                        pcall(fireclickdetector, clicker)
+                    end
                     
-                    -- 更新进度
-                    if removedCount % 5 == 0 then
-                        statusText.Text = string.format("🔄 进度: %d/%d", removedCount, totalScripts)
+                    -- 近距离提示
+                    local prompt = target:FindFirstChildOfClass("ProximityPrompt")
+                    if prompt then
+                        pcall(function()
+                            prompt.HoldDuration = 0
+                            prompt.MaxActivationDistance = 50
+                            prompt:InputHoldBegin()
+                            task.wait(0.01)
+                            prompt:InputHoldEnd()
+                        end)
                     end
                 end
-                
-                -- 避免卡顿
-                if i % 20 == 0 then
-                    task.wait(0.01)
-                end
-            end
-            
-            return removedCount
+            end)
         end)
         
         if success then
-            if type(result) == "number" then
-                statusText.Text = string.format("✅ 完成！\n移除 %d 个", result)
-                statusText.TextColor3 = Color3.fromRGB(100, 255, 100)
-                
-                -- 发送通知
-                game:GetService("StarterGui"):SetCore("SendNotification", {
-                    Title = "清理完成",
-                    Text = string.format("移除了 %d 个脚本", result),
-                    Duration = 3,
-                    Icon = "rbxassetid://139532409537387"
-                })
-            else
-                statusText.Text = "❌ 错误"
-                statusText.TextColor3 = Color3.fromRGB(255, 100, 100)
-            end
+            statusText.Text = "✅ 秒互动已启用\n点击即可快速互动"
+            statusText.TextColor3 = Color3.fromRGB(100, 255, 100)
+            
+            game:GetService("StarterGui"):SetCore("SendNotification", {
+                Title = "秒互动",
+                Text = "已启用！点击物体即可快速互动",
+                Duration = 3,
+                Icon = "rbxassetid://7734068321"
+            })
         else
-            statusText.Text = "❌ 操作失败"
+            statusText.Text = "❌ 启用失败"
             statusText.TextColor3 = Color3.fromRGB(255, 100, 100)
         end
         
-        task.wait(3)
+        wait(3)
         statusText.Text = "🟢 就绪"
         statusText.TextColor3 = Color3.fromRGB(220, 220, 220)
     end)
 end)
 
 -- ===========================================
--- 自动互动功能
+-- 自动互动功能（优化版）
 -- ===========================================
 local autoInteractEnabled = false
 local autoInteractConnection = nil
-local autoInteractRange = 50
+local lastInteractTime = 0
+local interactCache = {}  -- 缓存已交互的对象
+local interactCacheTTL = 5  -- 缓存过期时间（秒）
 
-local function scanAndInteract()
+-- 优化的自动互动函数
+local function optimizedAutoInteract()
     if not autoInteractEnabled then return end
     
     local character = localPlayer.Character
     if not character then return end
     
-    local rootPart = character:FindFirstChild("HumanoidRootPart")
-    if not rootPart then return end
+    local root = character:FindFirstChild("HumanoidRootPart")
+    if not root then return end
     
+    local currentTime = tick()
     local interacted = 0
     
-    -- 扫描范围内的所有互动物体
-    for _, obj in pairs(workspace:GetDescendants()) do
+    -- 清理过期缓存
+    for objectId, cacheTime in pairs(interactCache) do
+        if currentTime - cacheTime > interactCacheTTL then
+            interactCache[objectId] = nil
+        end
+    end
+    
+    -- 使用局部变量提高性能
+    local workspaceDescendants = workspace:GetDescendants()
+    local rootPosition = root.Position
+    local maxDistance = 25  -- 最大距离
+    
+    -- 每次处理固定数量的对象，避免卡顿
+    local batchSize = 30  -- 每帧处理30个对象
+    local processedCount = 0
+    
+    for _, obj in ipairs(workspaceDescendants) do
         if not autoInteractEnabled then break end
         
-        local canInteract = false
-        
-        -- 检查是否是互动物体
-        if obj:IsA("ClickDetector") then
-            canInteract = true
-        elseif obj:IsA("ProximityPrompt") then
-            canInteract = true
-        elseif obj.Name:lower():find("button") or 
-               obj.Name:lower():find("click") or
-               obj.Name:lower():find("interact") or
-               obj.Name:lower():find("collect") or
-               obj.Name:lower():find("pickup") then
-            canInteract = true
+        -- 批量处理控制
+        if processedCount >= batchSize then
+            break
         end
         
-        if canInteract then
-            local distance = 0
-            if obj:IsA("BasePart") then
-                distance = (rootPart.Position - obj.Position).Magnitude
-            elseif obj.Parent and obj.Parent:IsA("BasePart") then
-                distance = (rootPart.Position - obj.Parent.Position).Magnitude
+        if obj:IsA("ClickDetector") then
+            processedCount = processedCount + 1
+            
+            -- 检查缓存，避免重复交互
+            local objectId = tostring(obj)
+            local lastInteract = interactCache[objectId]
+            
+            if lastInteract and (currentTime - lastInteract < 1) then  -- 1秒内不重复交互
+                break
             end
             
-            if distance <= autoInteractRange then
-                pcall(function()
-                    if obj:IsA("ClickDetector") then
-                        fireclickdetector(obj)
-                    elseif obj:IsA("ProximityPrompt") then
+            local distance = 0
+            local parent = obj.Parent
+            if parent and parent:IsA("BasePart") then
+                distance = (rootPosition - parent.Position).Magnitude
+            end
+            
+            if distance <= maxDistance then
+                -- 尝试交互
+                local success = pcall(fireclickdetector, obj)
+                if success then
+                    interacted = interacted + 1
+                    interactCache[objectId] = currentTime  -- 记录交互时间
+                end
+            end
+        elseif obj:IsA("ProximityPrompt") then
+            processedCount = processedCount + 1
+            
+            -- 检查缓存
+            local objectId = tostring(obj)
+            local lastInteract = interactCache[objectId]
+            
+            if lastInteract and (currentTime - lastInteract < 0.5) then  -- 0.5秒内不重复交互
+                break
+            end
+            
+            local parent = obj.Parent
+            if parent and parent:IsA("BasePart") then
+                local distance = (rootPosition - parent.Position).Magnitude
+                if distance <= maxDistance and obj.Enabled then
+                    pcall(function()
+                        obj.HoldDuration = 0
                         obj:InputHoldBegin()
-                        task.wait(0.01)
+                        task.wait(0.001)  -- 更短的等待
                         obj:InputHoldEnd()
-                    else
-                        for _, child in pairs(obj:GetDescendants()) do
-                            if child:IsA("ClickDetector") then
-                                fireclickdetector(child)
-                                break
-                            end
-                        end
-                    end
-                end)
-                
-                interacted = interacted + 1
-                
-                if interacted % 10 == 0 then
-                    task.wait(0.05)
+                        interactCache[objectId] = currentTime
+                        interacted = interacted + 1
+                    end)
                 end
             end
         end
     end
     
-    if interacted > 0 and autoInteractEnabled then
-        statusText.Text = string.format("🤖 互动中\n%d 个物体", interacted)
+    if interacted > 0 then
+        statusText.Text = string.format("自动互动中\n%d 个物体", interacted)
         statusText.TextColor3 = Color3.fromRGB(200, 100, 255)
+        lastInteractTime = currentTime
     end
 end
 
-local function toggleAutoInteract()
+-- 优化后的连接处理
+autoInteractBtn.MouseButton1Click:Connect(function()
     if autoInteractEnabled then
-        -- 关闭自动互动
+        -- 停止自动互动
         autoInteractEnabled = false
         if autoInteractConnection then
             autoInteractConnection:Disconnect()
             autoInteractConnection = nil
         end
+        -- 清空缓存
+        interactCache = {}
         
-        statusText.Text = "✅ 已停止"
+        statusText.Text = "自动互动已停止"
         statusText.TextColor3 = Color3.fromRGB(200, 200, 200)
         
         game:GetService("StarterGui"):SetCore("SendNotification", {
@@ -534,148 +647,72 @@ local function toggleAutoInteract()
             Icon = "rbxassetid://7734068321"
         })
     else
-        -- 启用自动互动
+        -- 启动自动互动
         autoInteractEnabled = true
-        
-        statusText.Text = "🔄 启动中..."
+        statusText.Text = "启动自动互动..."
         statusText.TextColor3 = Color3.fromRGB(200, 100, 255)
         
-        -- 启动自动互动循环
-        autoInteractConnection = game:GetService("RunService").Heartbeat:Connect(function()
-            if autoInteractEnabled then
-                scanAndInteract()
-            end
-        end)
-        
-        -- 成功提示
-        task.wait(0.5)
-        if autoInteractEnabled then
-            statusText.Text = "✅ 已启用\n自动互动"
-            statusText.TextColor3 = Color3.fromRGB(100, 255, 100)
-            
-            game:GetService("StarterGui"):SetCore("SendNotification", {
-                Title = "自动互动",
-                Text = "已启用！",
-                Duration = 3,
-                Icon = "rbxassetid://7734068321"
-            })
-        end
-    end
-end
-
-autoInteractBtn.MouseButton1Click:Connect(toggleAutoInteract)
-
--- ===========================================
--- 秒互动功能
--- ===========================================
-local instantInteractionEnabled = false
-
-local function enableInstantInteraction()
-    if instantInteractionEnabled then
-        statusText.Text = "⚠️ 已启用"
-        return
-    end
-    
-    statusText.Text = "🔄 正在启用中..."
-    statusText.TextColor3 = Color3.fromRGB(100, 200, 255)
-    
-    spawn(function()
-        local success, err = pcall(function()
-            -- 超轻量秒互动脚本 - 一行代码
-            getgenv().fireclickdetector = function(clickDetector, ...)
-                if clickDetector and clickDetector:IsA("ClickDetector") then
-                    (getrenv().fireclickdetector or fireclickdetector)(clickDetector, ...)
-                end
-            end
-            
--- 移除所有互动延迟
-while true do
-for _, v in pairs(game:GetDescendants()) do
-                if v:IsA("ProximityPrompt") then
-                    v.HoldDuration = 0
-                end
-            end
-wait(3)
-end
-            -- 点击即完成
-            local mouse = game:GetService("Players").LocalPlayer:GetMouse()
-            mouse.Button1Down:Connect(function()
-                local target = mouse.Target
-                if target then
-                    local clicker = target:FindFirstChildOfClass("ClickDetector")
-                    if clicker then
-                        fireclickdetector(clicker)
-                    end
-                    
-                    local prompt = target:FindFirstChildOfClass("ProximityPrompt")
-                    if prompt then
-                        pcall(function()
-                            prompt.HoldDuration = 0
-                            prompt:InputHoldBegin()
-                            prompt:InputHoldEnd()
-                        end)
-                    end
+        -- 使用Stepped代替Heartbeat，性能更好
+        spawn(function()
+            autoInteractConnection = RunService.Stepped:Connect(function()
+                if not autoInteractEnabled then return end
+                
+                -- 限制执行频率，每0.05秒执行一次（20次/秒）
+                local currentTime = tick()
+                if currentTime - lastInteractTime >= 0.05 then
+                    optimizedAutoInteract()
                 end
             end)
             
-            instantInteractionEnabled = true
-            
-            statusText.Text = "✅ 已启用\n点击即完成"
-            statusText.TextColor3 = Color3.fromRGB(100, 255, 100)
-            
-            game:GetService("StarterGui"):SetCore("SendNotification", {
-                Title = "秒互动",
-                Text = "已启用！",
-                Duration = 3,
-                Icon = "rbxassetid://7734068321"
-            })
+            wait(0.5)
+            if autoInteractEnabled then
+                statusText.Text = "✅ 自动互动已启用\n高性能模式"
+                statusText.TextColor3 = Color3.fromRGB(100, 255, 100)
+                
+                game:GetService("StarterGui"):SetCore("SendNotification", {
+                    Title = "自动互动",
+                    Text = "已启用！高性能模式运行",
+                    Duration = 3,
+                    Icon = "rbxassetid://7734068321"
+                })
+            end
         end)
-        
-        if not success then
-            statusText.Text = "❌ 失败"
-            statusText.TextColor3 = Color3.fromRGB(255, 100, 100)
-        end
-        
-        wait(3)
-        if instantInteractionEnabled then
-            statusText.Text = "✅ 已启用"
-            statusText.TextColor3 = Color3.fromRGB(100, 255, 100)
-        else
-            statusText.Text = "🟢 就绪"
-            statusText.TextColor3 = Color3.fromRGB(220, 220, 220)
-        end
-    end)
-end
+    end
+end)
 
-instantBtn.MouseButton1Click:Connect(enableInstantInteraction)
-
--- ===========================================
--- 关闭UI按钮功能
--- ===========================================
+-- 关闭界面功能（完全关闭工具箱）
 closeUIBtn.MouseButton1Click:Connect(function()
-    -- 先停止自动互动
+    -- 停止自动互动
     if autoInteractEnabled then
-        toggleAutoInteract()
-        wait(0.2)
+        autoInteractEnabled = false
+        if autoInteractConnection then
+            autoInteractConnection:Disconnect()
+            autoInteractConnection = nil
+        end
+        interactCache = {}  -- 清空缓存
     end
     
-    statusText.Text = "🔄 关闭中..."
-    statusText.TextColor3 = Color3.fromRGB(255, 200, 100)
+    statusText.Text = "关闭中..."
     
-    wait(0.5)
+    -- 淡出动画
+    local tween = TweenService:Create(panel, TweenInfo.new(0.3, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), {
+        Position = UDim2.new(0.5, -150, -0.5, -180),
+        BackgroundTransparency = 1
+    })
+    tween:Play()
     
-    -- 完全销毁UI
+    tween.Completed:Wait()
     ui:Destroy()
     
     game:GetService("StarterGui"):SetCore("SendNotification", {
         Title = "提示",
-        Text = "已关闭",
+        Text = "工具箱已完全关闭 包括功能",
         Duration = 2
     })
 end)
 
 -- ===========================================
--- 键盘快捷键
+-- 快捷键功能
 -- ===========================================
 UserInputService.InputBegan:Connect(function(input, processed)
     if processed then return end
@@ -683,26 +720,28 @@ UserInputService.InputBegan:Connect(function(input, processed)
     if input.KeyCode == Enum.KeyCode.F1 then
         cleanBtn:MouseButton1Click()
     elseif input.KeyCode == Enum.KeyCode.F2 then
-        if not instantInteractionEnabled then
-            enableInstantInteraction()
-        end
+        instantBtn:MouseButton1Click()
     elseif input.KeyCode == Enum.KeyCode.F3 then
-        toggleAutoInteract()
+        autoInteractBtn:MouseButton1Click()
     elseif input.KeyCode == Enum.KeyCode.F4 then
-        if panel.Visible then
-            panel.Visible = false
-            floatButton.Visible = true
-        else
-            panel.Visible = true
-            floatButton.Visible = false
-        end
+        -- F4切换最小化/恢复
+        minimizeBtn:MouseButton1Click()
     end
 end)
 
--- 初始提示
-print("🎮 PLAYBREAK工具箱 v2.0 已加载")
+-- ===========================================
+-- 初始化完成
+-- ===========================================
+print("🎮 PLAYBREAK刷票 v3.0 已加载")
 print("📋 快捷键:")
 print("  F1 - 开始执行（清理脚本）")
-print("  F2 - 启用秒互动")
-print("  F3 - 切换自动互动")
-print("  F4 - 显示/隐藏UI")
+print("  F2 - 快速自救（秒互动）")
+print("  F3 - 自动自救（自动互动）")
+print("  F4 - 最小化/恢复界面")
+
+game:GetService("StarterGui"):SetCore("SendNotification", {
+    Title = "加载成功",
+    Text = "PLAYBREAK工具箱已加载\n左上角悬浮窗已就绪",
+    Duration = 5,
+    Icon = "rbxassetid://111333374680640"
+})
