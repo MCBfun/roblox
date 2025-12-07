@@ -1,9 +1,9 @@
 game:GetService("StarterGui"):SetCore("SendNotification", {
     Title = "公告",
     Text = "汉化版R15动作脚本",
-    Icon = "rbxassetid://98446998103932", -- 选：图标ID（这里用个示例笑脸图标）
-    Duration = 8, -- 显示时长（秒）
-    Position = UDim2.new(0, 20, 1, -50) -- 定位到左下角
+    Icon = "rbxassetid://98446998103932",
+    Duration = 8,
+    Position = UDim2.new(0, 20, 1, -50)
 })
 
 -- R15动作脚本汉化修复版
@@ -21,10 +21,13 @@ local function loadAndTranslateR15AnimationScript()
         print("R15动作脚本加载成功")
         
         -- 等待脚本完全初始化
-        wait(3)
+        wait(5)
         
-        -- 直接汉化函数 - 更直接的方法
-        local function translateTextObjects()
+        -- 已汉化的对象跟踪表
+        local translatedObjects = {}
+        
+        -- 直接汉化函数
+        local function translateTextObjects(parent)
             local translationMap = {
                 -- 主界面和按钮文本
                 ["FE R15 Animation Player"] = "FE R15动作播放器",
@@ -96,7 +99,7 @@ local function loadAndTranslateR15AnimationScript()
                 ["Fit Check"] = "穿搭检查",
                 ["Surrender"] = "投降",
                 ["Assumptions"] = "左右横跳舞",
-                ["Griddy"] = "Griddy舞",
+                ["Griddy"] = "Griddy舞", -- 修复这里，确保只汉化一次
                 ["Take The L"] = "接受失败舞",
                 ["Basketball Head Spin"] = "篮球头转",
                 ["Parrot Dance"] = "mc鹦鹉舞",
@@ -120,53 +123,116 @@ local function loadAndTranslateR15AnimationScript()
                 ["Chinese Dance"] = "科目五",
             }
             
-            -- 获取所有GUI
-            local player = game.Players.LocalPlayer
-            local coreGui = game:GetService("CoreGui")
-            local playerGui = player:WaitForChild("PlayerGui")
-            
-            -- 遍历所有文本对象
-            local function searchAndTranslate(parent)
-                for _, obj in pairs(parent:GetDescendants()) do
-                    if obj:IsA("TextLabel") or obj:IsA("TextButton") or obj:IsA("TextBox") then
+            for _, obj in pairs(parent:GetDescendants()) do
+                if obj:IsA("TextLabel") or obj:IsA("TextButton") or obj:IsA("TextBox") then
+                    -- 检查对象是否已被汉化
+                    local objectId = tostring(obj) .. "_" .. tostring(obj.Text)
+                    if not translatedObjects[objectId] then
                         local originalText = obj.Text
                         
                         if originalText and originalText ~= "" then
                             -- 直接匹配完整文本
-                            for eng, chi in pairs(translationMap) do
-                                if originalText == eng then
-                                    obj.Text = chi
-                                    break
-                                elseif originalText:find(eng) then
-                                    obj.Text = originalText:gsub(eng, chi)
-                                    break
+                            if translationMap[originalText] then
+                                obj.Text = translationMap[originalText]
+                                translatedObjects[objectId] = true
+                                print("汉化: " .. originalText .. " -> " .. translationMap[originalText])
+                            else
+                                -- 尝试部分匹配
+                                local wasTranslated = false
+                                for eng, chi in pairs(translationMap) do
+                                    if originalText:find(eng, 1, true) then
+                                        obj.Text = originalText:gsub(eng, chi)
+                                        translatedObjects[objectId] = true
+                                        print("部分汉化: " .. originalText .. " -> " .. obj.Text)
+                                        wasTranslated = true
+                                        break
+                                    end
+                                end
+                                
+                                -- 如果没有匹配，也标记为已处理，避免重复检查
+                                if not wasTranslated then
+                                    translatedObjects[objectId] = true
                                 end
                             end
+                        else
+                            -- 空文本也标记为已处理
+                            translatedObjects[objectId] = true
                         end
                     end
                 end
             end
-            
-            -- 在所有GUI中搜索
-            searchAndTranslate(coreGui)
-            searchAndTranslate(playerGui)
         end
         
         -- 执行汉化
         print("正在汉化界面...")
-        translateTextObjects()
+        
+        local player = game.Players.LocalPlayer
+        local coreGui = game:GetService("CoreGui")
+        local playerGui = player:WaitForChild("PlayerGui")
+        
+        -- 初始汉化
+        translateTextObjects(coreGui)
+        translateTextObjects(playerGui)
         
         -- 延迟再次汉化，确保覆盖所有动态生成的文本
-        wait(1)
-        translateTextObjects()
+        wait(3)
+        print("执行第二次汉化...")
+        translateTextObjects(coreGui)
+        translateTextObjects(playerGui)
         
-        -- 监听UI变化，当有新UI生成时进行汉化
-        local RunService = game:GetService("RunService")
-        local lastCheck = tick()
+        -- 监听新UI对象创建
+        local function setupChildAddedListener(parent)
+            parent.DescendantAdded:Connect(function(obj)
+                wait(0.1) -- 等待对象完全初始化
+                if obj:IsA("TextLabel") or obj:IsA("TextButton") or obj:IsA("TextBox") then
+                    local objectId = tostring(obj) .. "_" .. tostring(obj.Text or "")
+                    if not translatedObjects[objectId] and obj.Text and obj.Text ~= "" then
+                        local translationMap = {
+                            ["Griddy"] = "Griddy舞",
+                            -- 这里可以添加其他需要翻译的文本
+                        }
+                        
+                        for eng, chi in pairs(translationMap) do
+                            if obj.Text == eng or obj.Text:find(eng, 1, true) then
+                                obj.Text = obj.Text:gsub(eng, chi)
+                                translatedObjects[objectId] = true
+                                print("新对象汉化: " .. eng .. " -> " .. chi)
+                                break
+                            end
+                        end
+                    end
+                end
+            end)
+        end
         
-        RunService.RenderStepped:Connect(function()
-
+        -- 为两个GUI设置监听
+        setupChildAddedListener(coreGui)
+        setupChildAddedListener(playerGui)
+        
         print("R15动作脚本汉化完成")
+        print("已汉化对象数量: " .. tostring(#translatedObjects))
+        
+        -- 创建一个简单的监控函数来检查是否有重复汉化
+        spawn(function()
+            while wait(10) do
+                local griddyCount = 0
+                for _, obj in pairs(coreGui:GetDescendants()) do
+                    if obj:IsA("TextLabel") or obj:IsA("TextButton") or obj:IsA("TextBox") then
+                        if obj.Text and obj.Text:find("Griddy舞") then
+                            griddyCount = griddyCount + 1
+                        end
+                    end
+                end
+                for _, obj in pairs(playerGui:GetDescendants()) do
+                    if obj:IsA("TextLabel") or obj:IsA("TextButton") or obj:IsA("TextBox") then
+                        if obj.Text and obj.Text:find("Griddy舞") then
+                            griddyCount = griddyCount + 1
+                        end
+                    end
+                end
+                print("当前Griddy舞文本数量: " .. tostring(griddyCount))
+            end
+        end)
     else
         print("R15动作脚本加载失败:", err)
     end
