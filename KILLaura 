@@ -100,7 +100,7 @@ statusLabel.Parent = mainFrame
 -- 变量
 local isComboActive = false  -- 三合一状态
 local maxDistance = 50  -- 固定搜索距离
-local teleportHeight = 5  -- 固定传送高度
+local teleportHeight = 1  -- 固定传送高度
 local currentTarget = nil
 local lastAttackTime = 0
 local attackRate = 5  -- 固定攻击频率
