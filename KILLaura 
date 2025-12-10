@@ -1,0 +1,319 @@
+-- 极简自瞄+传送+攻击脚本 - 三个功能合一
+local Players = game:GetService("Players")
+local UserInputService = game:GetService("UserInputService")
+local RunService = game:GetService("RunService")
+local VirtualInputManager = game:GetService("VirtualInputManager")
+local Workspace = game:GetService("Workspace")
+
+local player = Players.LocalPlayer
+local isRunning = true
+local camera = Workspace.CurrentCamera
+
+-- 创建最小化UI
+local screenGui = Instance.new("ScreenGui")
+screenGui.Name = "SimpleAimbotGUI"
+screenGui.ResetOnSpawn = false
+screenGui.Parent = player:WaitForChild("PlayerGui")
+
+local mainFrame = Instance.new("Frame")
+mainFrame.Name = "MainFrame"
+mainFrame.Size = UDim2.new(0, 120, 0, 100)  -- 最小尺寸
+mainFrame.Position = UDim2.new(0.5, -60, 0.5, -50)  -- 居中
+mainFrame.AnchorPoint = Vector2.new(0.5, 0.5)
+mainFrame.BackgroundColor3 = Color3.fromRGB(40, 40, 55)
+mainFrame.BackgroundTransparency = 0.2
+mainFrame.BorderSizePixel = 1
+mainFrame.BorderColor3 = Color3.fromRGB(80, 80, 100)
+mainFrame.Active = false
+mainFrame.Draggable = false
+mainFrame.ClipsDescendants = true
+mainFrame.Parent = screenGui
+
+-- 标题栏
+local titleBar = Instance.new("Frame")
+titleBar.Name = "TitleBar"
+titleBar.Size = UDim2.new(1, 0, 0, 25)
+titleBar.BackgroundColor3 = Color3.fromRGB(30, 30, 45)
+titleBar.BorderSizePixel = 0
+titleBar.Parent = mainFrame
+
+local title = Instance.new("TextLabel")
+title.Text = "killaura"
+title.Size = UDim2.new(1, -50, 1, 0)
+title.Position = UDim2.new(0, 5, 0, 0)
+title.BackgroundTransparency = 1
+title.TextColor3 = Color3.fromRGB(255, 255, 255)
+title.TextXAlignment = Enum.TextXAlignment.Left
+title.Font = Enum.Font.SourceSansSemibold
+title.TextSize = 14
+title.Parent = titleBar
+
+-- 缩小按钮
+local minimizeBtn = Instance.new("TextButton")
+minimizeBtn.Name = "MinimizeButton"
+minimizeBtn.Size = UDim2.new(0, 25, 0, 25)
+minimizeBtn.Position = UDim2.new(1, -50, 0, 0)
+minimizeBtn.Text = "_"
+minimizeBtn.BackgroundColor3 = Color3.fromRGB(60, 60, 80)
+minimizeBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
+minimizeBtn.Font = Enum.Font.SourceSansBold
+minimizeBtn.TextSize = 16
+minimizeBtn.Parent = titleBar
+
+-- 关闭按钮
+local closeBtn = Instance.new("TextButton")
+closeBtn.Size = UDim2.new(0, 25, 0, 25)
+closeBtn.Position = UDim2.new(1, -25, 0, 0)
+closeBtn.Text = "×"
+closeBtn.BackgroundColor3 = Color3.fromRGB(180, 60, 60)
+closeBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
+closeBtn.Font = Enum.Font.SourceSansBold
+closeBtn.TextSize = 16
+closeBtn.Parent = titleBar
+
+-- 三个合一按钮
+local comboButton = Instance.new("TextButton")
+comboButton.Name = "ComboButton"
+comboButton.Size = UDim2.new(1, -10, 1, -35)
+comboButton.Position = UDim2.new(0, 5, 0, 30)
+comboButton.Text = "🔴 关闭\nkillaura"
+comboButton.BackgroundColor3 = Color3.fromRGB(180, 60, 60)
+comboButton.TextColor3 = Color3.fromRGB(255, 255, 255)
+comboButton.Font = Enum.Font.SourceSansSemibold
+comboButton.TextSize = 16
+comboButton.TextWrapped = true
+comboButton.Parent = mainFrame
+
+-- 状态显示（缩小后）
+local statusLabel = Instance.new("TextLabel")
+statusLabel.Name = "StatusLabel"
+statusLabel.Size = UDim2.new(1, -10, 1, -10)
+statusLabel.Position = UDim2.new(0, 5, 0, 5)
+statusLabel.BackgroundTransparency = 1
+statusLabel.Text = "killaura\n点击展开"
+statusLabel.TextColor3 = Color3.fromRGB(200, 200, 220)
+statusLabel.TextSize = 12
+statusLabel.TextWrapped = true
+statusLabel.Visible = false
+statusLabel.Parent = mainFrame
+
+-- 变量
+local isComboActive = false  -- 三合一状态
+local maxDistance = 50  -- 固定搜索距离
+local teleportHeight = 5  -- 固定传送高度
+local currentTarget = nil
+local lastAttackTime = 0
+local attackRate = 5  -- 固定攻击频率
+local isMinimized = false
+local originalSize = mainFrame.Size
+local minimizedSize = UDim2.new(0, 80, 0, 40)  -- 更小的缩小模式
+local minimizedPosition = UDim2.new(0.5, -40, 0.5, -20)
+
+-- 缩小功能
+minimizeBtn.MouseButton1Click:Connect(function()
+    isMinimized = not isMinimized
+    
+    if isMinimized then
+        mainFrame.Size = minimizedSize
+        mainFrame.Position = minimizedPosition
+        comboButton.Visible = false
+        statusLabel.Visible = true
+        minimizeBtn.Text = "+"
+        title.Text = "🎯"
+        
+        if isComboActive then
+            statusLabel.Text = "killaura\n运行中"
+        else
+            statusLabel.Text = "killaura\n已关闭"
+        end
+    else
+        mainFrame.Size = originalSize
+        mainFrame.Position = UDim2.new(0.5, -60, 0.5, -50)
+        comboButton.Visible = true
+        statusLabel.Visible = false
+        minimizeBtn.Text = "_"
+        title.Text = "killaura"
+    end
+end)
+
+-- 关闭功能
+closeBtn.MouseButton1Click:Connect(function()
+    screenGui:Destroy()
+    isRunning = false
+end)
+
+-- 三合一按钮功能
+comboButton.MouseButton1Click:Connect(function()
+    isComboActive = not isComboActive
+    
+    if isComboActive then
+        comboButton.Text = "🟢 开启\nkillaura"
+        comboButton.BackgroundColor3 = Color3.fromRGB(60, 180, 80)
+        if isMinimized then
+            statusLabel.Text = "killaura\n运行中"
+        end
+    else
+        comboButton.Text = "🔴 关闭\nkillaura"
+        comboButton.BackgroundColor3 = Color3.fromRGB(180, 60, 60)
+        currentTarget = nil
+        if isMinimized then
+            statusLabel.Text = "killaura\n已关闭"
+        end
+    end
+end)
+
+-- 获取最近玩家
+local function getNearestPlayer()
+    local character = player.Character
+    if not character then return nil end
+    
+    local rootPart = character:FindFirstChild("HumanoidRootPart")
+    if not rootPart then return nil end
+    
+    local myPos = rootPart.Position
+    local nearestPlayer = nil
+    local nearestDistance = maxDistance
+    
+    for _, otherPlayer in ipairs(Players:GetPlayers()) do
+        if otherPlayer ~= player and otherPlayer.Character then
+            local otherRoot = otherPlayer.Character:FindFirstChild("HumanoidRootPart")
+            if otherRoot then
+                local distance = (otherRoot.Position - myPos).Magnitude
+                if distance <= nearestDistance then
+                    nearestDistance = distance
+                    nearestPlayer = {
+                        Player = otherPlayer,
+                        Character = otherPlayer.Character,
+                        Distance = distance,
+                        Position = otherRoot.Position
+                    }
+                end
+            end
+        end
+    end
+    
+    return nearestPlayer
+end
+
+-- 执行三合一功能
+local function performCombo()
+    if not isComboActive then return false end
+    
+    local target = getNearestPlayer()
+    currentTarget = target
+    
+    if target then
+        -- 1. 自瞄（瞄准头部）
+        local head = target.Character:FindFirstChild("Head")
+        local aimPosition = head and head.Position or target.Position
+        
+        local cameraCFrame = camera.CFrame
+        local targetDirection = (aimPosition - cameraCFrame.Position).Unit
+        local currentLook = cameraCFrame.LookVector
+        local smoothedDirection = currentLook:Lerp(targetDirection, 0.5)
+        camera.CFrame = CFrame.new(cameraCFrame.Position, cameraCFrame.Position + smoothedDirection)
+        
+        -- 2. 传送（到目标上方）
+        local character = player.Character
+        if character then
+            local humanoidRootPart = character:FindFirstChild("HumanoidRootPart")
+            if humanoidRootPart then
+                local teleportPos = target.Position + Vector3.new(0, teleportHeight * 4, 0)
+                humanoidRootPart.CFrame = CFrame.new(teleportPos)
+            end
+        end
+        
+        -- 3. 攻击（自动左键）
+        local currentTime = tick()
+        if currentTime - lastAttackTime >= (1 / attackRate) then
+            pcall(function()
+                VirtualInputManager:SendMouseButtonEvent(0, 0, 0, true, game, 1)
+                task.wait(0.05)
+                VirtualInputManager:SendMouseButtonEvent(0, 0, 0, false, game, 1)
+            end)
+            lastAttackTime = currentTime
+        end
+        
+        -- 更新缩小状态
+        if isMinimized then
+            statusLabel.Text = string.format("killaura\n%s", target.Player.Name)
+        end
+        
+        return true
+    else
+        if isMinimized then
+            statusLabel.Text = "killaura\n无目标"
+        end
+        return false
+    end
+end
+
+-- 主循环
+RunService.Heartbeat:Connect(function()
+    if not isRunning then return end
+    performCombo()
+end)
+
+-- 快捷键
+UserInputService.InputBegan:Connect(function(input, gameProcessed)
+    if gameProcessed then return end
+    
+    -- 空格键：开关三合一
+    if input.KeyCode == Enum.KeyCode.Space then
+        isComboActive = not isComboActive
+        
+        if isComboActive then
+            comboButton.Text = "🟢 开启\n killaura"
+            comboButton.BackgroundColor3 = Color3.fromRGB(60, 180, 80)
+            if isMinimized then
+                statusLabel.Text = "killaura\n运行中"
+            end
+        else
+            comboButton.Text = "🔴 关闭\n killaura"
+            comboButton.BackgroundColor3 = Color3.fromRGB(180, 60, 60)
+            currentTarget = nil
+            if isMinimized then
+                statusLabel.Text = "killaura\n已关闭"
+            end
+        end
+    end
+    
+    -- M键：缩小/放大
+    if input.KeyCode == Enum.KeyCode.M then
+        isMinimized = not isMinimized
+        
+        if isMinimized then
+            mainFrame.Size = minimizedSize
+            mainFrame.Position = minimizedPosition
+            comboButton.Visible = false
+            statusLabel.Visible = true
+            minimizeBtn.Text = "+"
+            title.Text = "🤫"
+            
+            if isComboActive then
+                statusLabel.Text = "killaura\n运行中"
+            else
+                statusLabel.Text = "killaura\n已关闭"
+            end
+        else
+            mainFrame.Size = originalSize
+            mainFrame.Position = UDim2.new(0.5, -60, 0.5, -50)
+            comboButton.Visible = true
+            statusLabel.Visible = false
+            minimizeBtn.Text = "_"
+            title.Text = "killaura "
+        end
+    end
+end)
+
+print("=== 极简三合一自瞄脚本已加载 ===")
+print("功能: 自瞄+传送+攻击 三合一")
+print("操作:")
+print("- 点击大按钮或按空格键开关")
+print("- 点击_按钮或按M键缩小")
+print("- 缩小后显示状态")
+print("参数:")
+print("- 搜索距离: 50米(固定)")
+print("- 传送高度: 5格(固定)")
+print("- 攻击频率: 5次/秒(固定)")
+print("状态: 就绪")
