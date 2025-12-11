@@ -1,4 +1,4 @@
--- 极简自瞄+传送+攻击脚本 - 三个功能合一（忽略低血量）
+-- 极简自瞄+传送+攻击脚本 - 完整版（四合一功能）
 local Players = game:GetService("Players")
 local UserInputService = game:GetService("UserInputService")
 local RunService = game:GetService("RunService")
@@ -17,8 +17,8 @@ screenGui.Parent = player:WaitForChild("PlayerGui")
 
 local mainFrame = Instance.new("Frame")
 mainFrame.Name = "MainFrame"
-mainFrame.Size = UDim2.new(0, 120, 0, 140)  -- 增加高度以容纳新按钮
-mainFrame.Position = UDim2.new(0.5, -60, 0.5, -70)  -- 调整位置
+mainFrame.Size = UDim2.new(0, 120, 0, 210)  -- 增加高度以容纳四个按钮
+mainFrame.Position = UDim2.new(0.5, -60, 0.5, -105)  -- 调整位置（210/2 = 105）
 mainFrame.AnchorPoint = Vector2.new(0.5, 0.5)
 mainFrame.BackgroundColor3 = Color3.fromRGB(40, 40, 55)
 mainFrame.BackgroundTransparency = 0.2
@@ -74,7 +74,7 @@ closeBtn.Parent = titleBar
 -- 三个合一按钮
 local comboButton = Instance.new("TextButton")
 comboButton.Name = "ComboButton"
-comboButton.Size = UDim2.new(1, -10, 0, 40)  -- 调整大小
+comboButton.Size = UDim2.new(1, -10, 0, 40)
 comboButton.Position = UDim2.new(0, 5, 0, 30)
 comboButton.Text = "自瞄+传送+攻击\n杀戮光环"
 comboButton.BackgroundColor3 = Color3.fromRGB(180, 60, 60)
@@ -87,7 +87,7 @@ comboButton.Parent = mainFrame
 -- 轮流传送按钮
 local cycleTeleportButton = Instance.new("TextButton")
 cycleTeleportButton.Name = "CycleTeleportButton"
-cycleTeleportButton.Size = UDim2.new(1, -10, 0, 40)  -- 调整大小
+cycleTeleportButton.Size = UDim2.new(1, -10, 0, 40)
 cycleTeleportButton.Position = UDim2.new(0, 5, 0, 75)
 cycleTeleportButton.Text = "轮流传送\n下一个玩家"
 cycleTeleportButton.BackgroundColor3 = Color3.fromRGB(60, 100, 180)
@@ -96,6 +96,52 @@ cycleTeleportButton.Font = Enum.Font.SourceSansSemibold
 cycleTeleportButton.TextSize = 14
 cycleTeleportButton.TextWrapped = true
 cycleTeleportButton.Parent = mainFrame
+
+-- 工厂地图自动管道传送功能
+local factoryLocations = {
+    {X = 314.57, Y = 10.58, Z = 350.95},
+    {X = 387, Y = 7.48, Z = 331.22},
+    {X = 335.74, Y = 18.14, Z = 206},
+    {X = 184.17, Y = 18, Z = 244.44},
+    {X = 405.2, Y = 33, Z = 374.88},
+    {X = 358.95, Y = 18, Z = 436.84}
+}
+
+-- 工厂传送按钮
+local factoryTeleportButton = Instance.new("TextButton")
+factoryTeleportButton.Name = "FactoryTeleportButton"
+factoryTeleportButton.Size = UDim2.new(1, -10, 0, 40)
+factoryTeleportButton.Position = UDim2.new(0, 5, 0, 120)
+factoryTeleportButton.Text = "工厂地图自动管道"
+factoryTeleportButton.BackgroundColor3 = Color3.fromRGB(180, 100, 60)  -- 橙色
+factoryTeleportButton.TextColor3 = Color3.fromRGB(255, 255, 255)
+factoryTeleportButton.Font = Enum.Font.SourceSansSemibold
+factoryTeleportButton.TextSize = 14
+factoryTeleportButton.TextWrapped = true
+factoryTeleportButton.Parent = mainFrame
+
+-- 剧院地图传送功能
+local theaterLocations = {
+    {X = 15.25, Y = 87.42, Z = -455.5},
+    {X = 13.54, Y = 94.18, Z = -531.25},
+    {X = -1.22, Y = 71, Z = -329.23},
+    {X = 43.73, Y = 68.93, Z = -254.27},
+    {X = -61.2, Y = -158.37, Z = -158.37},
+    {X = 33.67, Y = 60.16, Z = -472}
+}
+
+-- 剧院传送按钮
+local theaterTeleportButton = Instance.new("TextButton")
+theaterTeleportButton.Name = "TheaterTeleportButton"
+theaterTeleportButton.Size = UDim2.new(1, -10, 0, 40)
+theaterTeleportButton.Position = UDim2.new(0, 5, 0, 165)
+theaterTeleportButton.Text = "剧院地图自动传送"
+theaterTeleportButton.BackgroundColor3 = Color3.fromRGB(100, 60, 180)  -- 紫色
+theaterTeleportButton.TextColor3 = Color3.fromRGB(255, 255, 255)
+theaterTeleportButton.Font = Enum.Font.SourceSansSemibold
+theaterTeleportButton.TextSize = 14
+theaterTeleportButton.TextWrapped = true
+theaterTeleportButton.Parent = mainFrame
 
 -- 状态显示（缩小后）
 local statusLabel = Instance.new("TextLabel")
@@ -123,10 +169,10 @@ local minimizedSize = UDim2.new(0, 80, 0, 40)  -- 更小的缩小模式
 local minimizedPosition = UDim2.new(0.5, -40, 0.5, -20)
 local ignoreHealthThreshold = 5  -- 忽略血量低于此值的玩家
 
--- 轮流传送相关变量
+-- 传送相关变量
 local cycleTeleportIndex = 1  -- 当前传送的玩家索引
-local cycleTeleportPlayers = {}  -- 存储玩家列表
-local cycleTeleportEnabled = false  -- 轮流传送是否启用
+local factoryTeleportIndex = 1  -- 工厂传送索引
+local theaterTeleportIndex = 1  -- 剧院传送索引
 
 -- 缩小功能
 minimizeBtn.MouseButton1Click:Connect(function()
@@ -137,6 +183,8 @@ minimizeBtn.MouseButton1Click:Connect(function()
         mainFrame.Position = minimizedPosition
         comboButton.Visible = false
         cycleTeleportButton.Visible = false
+        factoryTeleportButton.Visible = false
+        theaterTeleportButton.Visible = false
         statusLabel.Visible = true
         minimizeBtn.Text = "+"
         title.Text = "🎯"
@@ -147,10 +195,12 @@ minimizeBtn.MouseButton1Click:Connect(function()
             statusLabel.Text = "killaura\n已关闭"
         end
     else
-        mainFrame.Size = originalSize
-        mainFrame.Position = UDim2.new(0.5, -60, 0.5, -70)
+        mainFrame.Size = UDim2.new(0, 120, 0, 210)
+        mainFrame.Position = UDim2.new(0.5, -60, 0.5, -105)
         comboButton.Visible = true
         cycleTeleportButton.Visible = true
+        factoryTeleportButton.Visible = true
+        theaterTeleportButton.Visible = true
         statusLabel.Visible = false
         minimizeBtn.Text = "_"
         title.Text = "killaura"
@@ -259,9 +309,9 @@ local function performCycleTeleport()
     if not humanoidRootPart then return end
     
     -- 获取有效玩家列表
-    cycleTeleportPlayers = getValidPlayers()
+    local validPlayers = getValidPlayers()
     
-    if #cycleTeleportPlayers == 0 then
+    if #validPlayers == 0 then
         if isMinimized then
             statusLabel.Text = "无有效玩家"
         else
@@ -271,11 +321,11 @@ local function performCycleTeleport()
     end
     
     -- 确保索引在有效范围内
-    if cycleTeleportIndex > #cycleTeleportPlayers then
+    if cycleTeleportIndex > #validPlayers then
         cycleTeleportIndex = 1
     end
     
-    local targetInfo = cycleTeleportPlayers[cycleTeleportIndex]
+    local targetInfo = validPlayers[cycleTeleportIndex]
     
     if targetInfo and targetInfo.RootPart then
         -- 传送到目标位置
@@ -289,7 +339,7 @@ local function performCycleTeleport()
         
         -- 更新索引到下一个玩家
         cycleTeleportIndex = cycleTeleportIndex + 1
-        if cycleTeleportIndex > #cycleTeleportPlayers then
+        if cycleTeleportIndex > #validPlayers then
             cycleTeleportIndex = 1
         end
         
@@ -300,6 +350,78 @@ local function performCycleTeleport()
         
         return targetInfo
     end
+end
+
+-- 执行工厂传送
+local function performFactoryTeleport()
+    local character = player.Character
+    if not character then return end
+    
+    local humanoidRootPart = character:FindFirstChild("HumanoidRootPart")
+    if not humanoidRootPart then return end
+    
+    -- 获取当前位置
+    local currentLocation = factoryLocations[factoryTeleportIndex]
+    
+    if currentLocation then
+        -- 传送到指定位置
+        local teleportPos = Vector3.new(
+            currentLocation.X,
+            currentLocation.Y,
+            currentLocation.Z
+        )
+        humanoidRootPart.CFrame = CFrame.new(teleportPos)
+        
+        -- 更新按钮显示当前位置
+        factoryTeleportButton.Text = string.format("工厂传送\n%d/%d", 
+            factoryTeleportIndex, #factoryLocations)
+        
+        -- 更新索引到下一个位置
+        factoryTeleportIndex = factoryTeleportIndex + 1
+        if factoryTeleportIndex > #factoryLocations then
+            factoryTeleportIndex = 1
+        end
+        
+        return true
+    end
+    
+    return false
+end
+
+-- 执行剧院传送
+local function performTheaterTeleport()
+    local character = player.Character
+    if not character then return end
+    
+    local humanoidRootPart = character:FindFirstChild("HumanoidRootPart")
+    if not humanoidRootPart then return end
+    
+    -- 获取当前位置
+    local currentLocation = theaterLocations[theaterTeleportIndex]
+    
+    if currentLocation then
+        -- 传送到指定位置
+        local teleportPos = Vector3.new(
+            currentLocation.X,
+            currentLocation.Y,
+            currentLocation.Z
+        )
+        humanoidRootPart.CFrame = CFrame.new(teleportPos)
+        
+        -- 更新按钮显示当前位置
+        theaterTeleportButton.Text = string.format("剧院传送\n%d/%d", 
+            theaterTeleportIndex, #theaterLocations)
+        
+        -- 更新索引到下一个位置
+        theaterTeleportIndex = theaterTeleportIndex + 1
+        if theaterTeleportIndex > #theaterLocations then
+            theaterTeleportIndex = 1
+        end
+        
+        return true
+    end
+    
+    return false
 end
 
 -- 执行三合一功能
@@ -356,9 +478,17 @@ local function performCombo()
     end
 end
 
--- 轮流传送按钮点击事件
+-- 按钮点击事件
 cycleTeleportButton.MouseButton1Click:Connect(function()
     performCycleTeleport()
+end)
+
+factoryTeleportButton.MouseButton1Click:Connect(function()
+    performFactoryTeleport()
+end)
+
+theaterTeleportButton.MouseButton1Click:Connect(function()
+    performTheaterTeleport()
 end)
 
 -- 主循环
@@ -396,6 +526,16 @@ UserInputService.InputBegan:Connect(function(input, gameProcessed)
         performCycleTeleport()
     end
 
+    -- F键：触发工厂传送
+    if input.KeyCode == Enum.KeyCode.F then
+        performFactoryTeleport()
+    end
+
+    -- V键：触发剧院传送
+    if input.KeyCode == Enum.KeyCode.V then
+        performTheaterTeleport()
+    end
+
     -- M键：缩小/放大
     if input.KeyCode == Enum.KeyCode.M then
         isMinimized = not isMinimized
@@ -405,6 +545,8 @@ UserInputService.InputBegan:Connect(function(input, gameProcessed)
             mainFrame.Position = minimizedPosition
             comboButton.Visible = false
             cycleTeleportButton.Visible = false
+            factoryTeleportButton.Visible = false
+            theaterTeleportButton.Visible = false
             statusLabel.Visible = true
             minimizeBtn.Text = "+"
             title.Text = "渔炒鱼"
@@ -415,10 +557,12 @@ UserInputService.InputBegan:Connect(function(input, gameProcessed)
                 statusLabel.Text = "killaura\n已关闭"
             end
         else
-            mainFrame.Size = originalSize
-            mainFrame.Position = UDim2.new(0.5, -60, 0.5, -70)
+            mainFrame.Size = UDim2.new(0, 120, 0, 210)
+            mainFrame.Position = UDim2.new(0.5, -60, 0.5, -105)
             comboButton.Visible = true
             cycleTeleportButton.Visible = true
+            factoryTeleportButton.Visible = true
+            theaterTeleportButton.Visible = true
             statusLabel.Visible = false
             minimizeBtn.Text = "_"
             title.Text = "killaura"
@@ -430,13 +574,27 @@ print("=== killaura脚本已加载 ===")
 print("功能:")
 print("- 自瞄+传送+攻击 (忽略血量<5的玩家)")
 print("- 轮流传送所有玩家")
+print("- 工厂地图自动管道传送")
+print("- 剧院地图自动传送")
 print("操作:")
 print("- 点击按钮或按空格键开关杀戮光环")
-print("- 点击按钮或按T键轮流传送")
+print("- 点击按钮或按T键轮流传送玩家")
+print("- 点击按钮或按F键工厂地图传送")
+print("- 点击按钮或按V键剧院地图传送")
 print("- 点击_按钮或按M键缩小")
-print("参数:")
-print("- 搜索距离: 200米")
-print("- 传送高度: 0格 (相同高度)")
-print("- 攻击频率: 4次/秒")
-print("- 忽略血量: <5的玩家")
+print("工厂传送点:")
+for i, loc in ipairs(factoryLocations) do
+    print(string.format("  %d. X:%.2f, Y:%.2f, Z:%.2f", i, loc.X, loc.Y, loc.Z))
+end
+print("剧院传送点:")
+for i, loc in ipairs(theaterLocations) do
+    print(string.format("  %d. X:%.2f, Y:%.2f, Z=%.2f", i, loc.X, loc.Y, loc.Z))
+end
 print("状态: 就绪")
+game:GetService("StarterGui"):SetCore("SendNotification", {
+    Title = "公告",
+    Text = "已入侵艾登垃圾反挂🤮",
+    Icon = "rbxassetid://14550088217", -- 选：图标ID（这里用个示例笑脸图标）
+    Duration = 8, -- 显示时长（秒）
+    Position = UDim2.new(0, 20, 1, -50) -- 定位到左下角
+})
