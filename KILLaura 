@@ -99,11 +99,11 @@ statusLabel.Parent = mainFrame
 
 -- 变量
 local isComboActive = false  -- 三合一状态
-local maxDistance = 50  -- 固定搜索距离
+local maxDistance = 200  -- 固定搜索距离
 local teleportHeight = 0  -- 固定传送高度
 local currentTarget = nil
 local lastAttackTime = 0
-local attackRate = 5  -- 固定攻击频率
+local attackRate = 4  -- 固定攻击频率
 local isMinimized = false
 local originalSize = mainFrame.Size
 local minimizedSize = UDim2.new(0, 80, 0, 40)  -- 更小的缩小模式
@@ -132,7 +132,7 @@ minimizeBtn.MouseButton1Click:Connect(function()
         comboButton.Visible = true
         statusLabel.Visible = false
         minimizeBtn.Text = "_"
-        title.Text = "killaura"
+        title.Text = "\nkillaura"
     end
 end)
 
