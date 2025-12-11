@@ -76,7 +76,7 @@ local comboButton = Instance.new("TextButton")
 comboButton.Name = "ComboButton"
 comboButton.Size = UDim2.new(1, -10, 0, 40)
 comboButton.Position = UDim2.new(0, 5, 0, 30)
-comboButton.Text = "自瞄+传送+攻击\n杀戮光环"
+comboButton.Text = "杀戮光环😴"
 comboButton.BackgroundColor3 = Color3.fromRGB(180, 60, 60)
 comboButton.TextColor3 = Color3.fromRGB(255, 255, 255)
 comboButton.Font = Enum.Font.SourceSansSemibold
@@ -112,7 +112,7 @@ local factoryTeleportButton = Instance.new("TextButton")
 factoryTeleportButton.Name = "FactoryTeleportButton"
 factoryTeleportButton.Size = UDim2.new(1, -10, 0, 40)
 factoryTeleportButton.Position = UDim2.new(0, 5, 0, 120)
-factoryTeleportButton.Text = "工厂地图自动管道"
+factoryTeleportButton.Text = "工厂自动管道"
 factoryTeleportButton.BackgroundColor3 = Color3.fromRGB(180, 100, 60)  -- 橙色
 factoryTeleportButton.TextColor3 = Color3.fromRGB(255, 255, 255)
 factoryTeleportButton.Font = Enum.Font.SourceSansSemibold
@@ -135,7 +135,7 @@ local theaterTeleportButton = Instance.new("TextButton")
 theaterTeleportButton.Name = "TheaterTeleportButton"
 theaterTeleportButton.Size = UDim2.new(1, -10, 0, 40)
 theaterTeleportButton.Position = UDim2.new(0, 5, 0, 165)
-theaterTeleportButton.Text = "剧院地图自动传送"
+theaterTeleportButton.Text = "剧院自动管道"
 theaterTeleportButton.BackgroundColor3 = Color3.fromRGB(100, 60, 180)  -- 紫色
 theaterTeleportButton.TextColor3 = Color3.fromRGB(255, 255, 255)
 theaterTeleportButton.Font = Enum.Font.SourceSansSemibold
@@ -571,18 +571,6 @@ UserInputService.InputBegan:Connect(function(input, gameProcessed)
 end)
 
 print("=== killaura脚本已加载 ===")
-print("功能:")
-print("- 自瞄+传送+攻击 (忽略血量<5的玩家)")
-print("- 轮流传送所有玩家")
-print("- 工厂地图自动管道传送")
-print("- 剧院地图自动传送")
-print("操作:")
-print("- 点击按钮或按空格键开关杀戮光环")
-print("- 点击按钮或按T键轮流传送玩家")
-print("- 点击按钮或按F键工厂地图传送")
-print("- 点击按钮或按V键剧院地图传送")
-print("- 点击_按钮或按M键缩小")
-print("工厂传送点:")
 for i, loc in ipairs(factoryLocations) do
     print(string.format("  %d. X:%.2f, Y:%.2f, Z:%.2f", i, loc.X, loc.Y, loc.Z))
 end
