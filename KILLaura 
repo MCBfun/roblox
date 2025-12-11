@@ -1,4 +1,4 @@
--- 极简自瞄+传送+攻击脚本 - 三个功能合一
+-- 极简自瞄+传送+攻击脚本 - 三个功能合一（忽略低血量）
 local Players = game:GetService("Players")
 local UserInputService = game:GetService("UserInputService")
 local RunService = game:GetService("RunService")
@@ -108,11 +108,12 @@ local isMinimized = false
 local originalSize = mainFrame.Size
 local minimizedSize = UDim2.new(0, 80, 0, 40)  -- 更小的缩小模式
 local minimizedPosition = UDim2.new(0.5, -40, 0.5, -20)
+local ignoreHealthThreshold = 5  -- 新增：忽略血量低于此值的玩家
 
 -- 缩小功能
 minimizeBtn.MouseButton1Click:Connect(function()
     isMinimized = not isMinimized
-    
+
     if isMinimized then
         mainFrame.Size = minimizedSize
         mainFrame.Position = minimizedPosition
@@ -120,7 +121,7 @@ minimizeBtn.MouseButton1Click:Connect(function()
         statusLabel.Visible = true
         minimizeBtn.Text = "+"
         title.Text = "🎯"
-        
+
         if isComboActive then
             statusLabel.Text = "killaura\n运行中"
         else
@@ -132,7 +133,7 @@ minimizeBtn.MouseButton1Click:Connect(function()
         comboButton.Visible = true
         statusLabel.Visible = false
         minimizeBtn.Text = "_"
-        title.Text = "\nkillaura"
+        title.Text = "killaura"
     end
 end)
 
@@ -145,7 +146,7 @@ end)
 -- 三合一按钮功能
 comboButton.MouseButton1Click:Connect(function()
     isComboActive = not isComboActive
-    
+
     if isComboActive then
         comboButton.Text = "🟢 on\nkillaura"
         comboButton.BackgroundColor3 = Color3.fromRGB(60, 180, 80)
@@ -162,22 +163,42 @@ comboButton.MouseButton1Click:Connect(function()
     end
 end)
 
--- 获取最近玩家
+-- 获取玩家当前血量
+local function getPlayerHealth(targetCharacter)
+    local humanoid = targetCharacter:FindFirstChild("Humanoid")
+    if humanoid then
+        return humanoid.Health
+    end
+    return 100  -- 如果找不到Humanoid，默认返回100
+end
+
+-- 获取最近玩家（忽略血量低于5的）
 local function getNearestPlayer()
     local character = player.Character
     if not character then return nil end
-    
+
     local rootPart = character:FindFirstChild("HumanoidRootPart")
     if not rootPart then return nil end
-    
+
     local myPos = rootPart.Position
     local nearestPlayer = nil
     local nearestDistance = maxDistance
-    
+
     for _, otherPlayer in ipairs(Players:GetPlayers()) do
         if otherPlayer ~= player and otherPlayer.Character then
             local otherRoot = otherPlayer.Character:FindFirstChild("HumanoidRootPart")
             if otherRoot then
+                -- 检查玩家血量
+                local health = getPlayerHealth(otherPlayer.Character)
+                
+                -- 如果血量低于5，跳过这个玩家
+                if health < ignoreHealthThreshold then
+                    if isMinimized and nearestPlayer == nil then
+                        statusLabel.Text = string.format("killaura\n血量<%.0f", ignoreHealthThreshold)
+                    end
+                    continue  -- 跳过这个玩家
+                end
+                
                 local distance = (otherRoot.Position - myPos).Magnitude
                 if distance <= nearestDistance then
                     nearestDistance = distance
@@ -185,35 +206,42 @@ local function getNearestPlayer()
                         Player = otherPlayer,
                         Character = otherPlayer.Character,
                         Distance = distance,
-                        Position = otherRoot.Position
+                        Position = otherRoot.Position,
+                        Health = health  -- 存储血量信息
                     }
                 end
             end
         end
     end
-    
+
     return nearestPlayer
 end
 
 -- 执行三合一功能
 local function performCombo()
     if not isComboActive then return false end
-    
+
     local target = getNearestPlayer()
     currentTarget = target
-    
+
     if target then
+        -- 显示目标血量（仅限缩小模式）
+        if isMinimized then
+            statusLabel.Text = string.format("killaura\n%s HP:%.0f", 
+                target.Player.Name, target.Health)
+        end
+        
         -- 1. 自瞄（瞄准头部）
         local head = target.Character:FindFirstChild("Head")
         local aimPosition = head and head.Position or target.Position
-        
+
         local cameraCFrame = camera.CFrame
         local targetDirection = (aimPosition - cameraCFrame.Position).Unit
         local currentLook = cameraCFrame.LookVector
         local smoothedDirection = currentLook:Lerp(targetDirection, 0.5)
         camera.CFrame = CFrame.new(cameraCFrame.Position, cameraCFrame.Position + smoothedDirection)
-        
-        -- 2. 传送（到目标上方）
+
+        -- 2. 传送（到目标位置，高度为0）
         local character = player.Character
         if character then
             local humanoidRootPart = character:FindFirstChild("HumanoidRootPart")
@@ -222,7 +250,7 @@ local function performCombo()
                 humanoidRootPart.CFrame = CFrame.new(teleportPos)
             end
         end
-        
+
         -- 3. 攻击（自动左键）
         local currentTime = tick()
         if currentTime - lastAttackTime >= (1 / attackRate) then
@@ -233,16 +261,11 @@ local function performCombo()
             end)
             lastAttackTime = currentTime
         end
-        
-        -- 更新缩小状态
-        if isMinimized then
-            statusLabel.Text = string.format("killaura\n%s", target.Player.Name)
-        end
-        
+
         return true
     else
         if isMinimized then
-            statusLabel.Text = "killaura\n无目标"
+            statusLabel.Text = "killaura\n无有效目标"
         end
         return false
     end
@@ -257,19 +280,19 @@ end)
 -- 快捷键
 UserInputService.InputBegan:Connect(function(input, gameProcessed)
     if gameProcessed then return end
-    
+
     -- 空格键：开关三合一
     if input.KeyCode == Enum.KeyCode.Space then
         isComboActive = not isComboActive
-        
+
         if isComboActive then
-            comboButton.Text = "🟢 on\n killaura"
+            comboButton.Text = "🟢 on\nkillaura"
             comboButton.BackgroundColor3 = Color3.fromRGB(60, 180, 80)
             if isMinimized then
                 statusLabel.Text = "killaura\n运行中"
             end
         else
-            comboButton.Text = "🔴 off\n killaura"
+            comboButton.Text = "🔴 off\nkillaura"
             comboButton.BackgroundColor3 = Color3.fromRGB(180, 60, 60)
             currentTarget = nil
             if isMinimized then
@@ -277,11 +300,11 @@ UserInputService.InputBegan:Connect(function(input, gameProcessed)
             end
         end
     end
-    
+
     -- M键：缩小/放大
     if input.KeyCode == Enum.KeyCode.M then
         isMinimized = not isMinimized
-        
+
         if isMinimized then
             mainFrame.Size = minimizedSize
             mainFrame.Position = minimizedPosition
@@ -289,7 +312,7 @@ UserInputService.InputBegan:Connect(function(input, gameProcessed)
             statusLabel.Visible = true
             minimizeBtn.Text = "+"
             title.Text = "渔炒鱼"
-            
+
             if isComboActive then
                 statusLabel.Text = "killaura\n运行中"
             else
@@ -301,13 +324,19 @@ UserInputService.InputBegan:Connect(function(input, gameProcessed)
             comboButton.Visible = true
             statusLabel.Visible = false
             minimizeBtn.Text = "_"
-            title.Text = "killaura "
+            title.Text = "killaura"
         end
     end
 end)
 
 print("=== killaura脚本已加载 ===")
-print("killaura")
+print("功能: 自瞄+传送+攻击 (忽略血量<5的玩家)")
 print("操作:")
 print("- 点击大按钮或按空格键开关")
 print("- 点击_按钮或按M键缩小")
+print("参数:")
+print("- 搜索距离: 200米")
+print("- 传送高度: 0格 (相同高度)")
+print("- 攻击频率: 4次/秒")
+print("- 忽略血量: <5的玩家")
+print("状态: 就绪")
