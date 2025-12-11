@@ -17,8 +17,8 @@ screenGui.Parent = player:WaitForChild("PlayerGui")
 
 local mainFrame = Instance.new("Frame")
 mainFrame.Name = "MainFrame"
-mainFrame.Size = UDim2.new(0, 120, 0, 100)  -- 最小尺寸
-mainFrame.Position = UDim2.new(0.5, -60, 0.5, -50)  -- 居中
+mainFrame.Size = UDim2.new(0, 120, 0, 140)  -- 增加高度以容纳新按钮
+mainFrame.Position = UDim2.new(0.5, -60, 0.5, -70)  -- 调整位置
 mainFrame.AnchorPoint = Vector2.new(0.5, 0.5)
 mainFrame.BackgroundColor3 = Color3.fromRGB(40, 40, 55)
 mainFrame.BackgroundTransparency = 0.2
@@ -74,15 +74,28 @@ closeBtn.Parent = titleBar
 -- 三个合一按钮
 local comboButton = Instance.new("TextButton")
 comboButton.Name = "ComboButton"
-comboButton.Size = UDim2.new(1, -10, 1, -35)
+comboButton.Size = UDim2.new(1, -10, 0, 40)  -- 调整大小
 comboButton.Position = UDim2.new(0, 5, 0, 30)
-comboButton.Text = "playbreak\n渔炒鱼 | 杀戮光环"
+comboButton.Text = "自瞄+传送+攻击\n杀戮光环"
 comboButton.BackgroundColor3 = Color3.fromRGB(180, 60, 60)
 comboButton.TextColor3 = Color3.fromRGB(255, 255, 255)
 comboButton.Font = Enum.Font.SourceSansSemibold
-comboButton.TextSize = 16
+comboButton.TextSize = 14
 comboButton.TextWrapped = true
 comboButton.Parent = mainFrame
+
+-- 轮流传送按钮
+local cycleTeleportButton = Instance.new("TextButton")
+cycleTeleportButton.Name = "CycleTeleportButton"
+cycleTeleportButton.Size = UDim2.new(1, -10, 0, 40)  -- 调整大小
+cycleTeleportButton.Position = UDim2.new(0, 5, 0, 75)
+cycleTeleportButton.Text = "轮流传送\n下一个玩家"
+cycleTeleportButton.BackgroundColor3 = Color3.fromRGB(60, 100, 180)
+cycleTeleportButton.TextColor3 = Color3.fromRGB(255, 255, 255)
+cycleTeleportButton.Font = Enum.Font.SourceSansSemibold
+cycleTeleportButton.TextSize = 14
+cycleTeleportButton.TextWrapped = true
+cycleTeleportButton.Parent = mainFrame
 
 -- 状态显示（缩小后）
 local statusLabel = Instance.new("TextLabel")
@@ -108,7 +121,12 @@ local isMinimized = false
 local originalSize = mainFrame.Size
 local minimizedSize = UDim2.new(0, 80, 0, 40)  -- 更小的缩小模式
 local minimizedPosition = UDim2.new(0.5, -40, 0.5, -20)
-local ignoreHealthThreshold = 5  -- 新增：忽略血量低于此值的玩家
+local ignoreHealthThreshold = 5  -- 忽略血量低于此值的玩家
+
+-- 轮流传送相关变量
+local cycleTeleportIndex = 1  -- 当前传送的玩家索引
+local cycleTeleportPlayers = {}  -- 存储玩家列表
+local cycleTeleportEnabled = false  -- 轮流传送是否启用
 
 -- 缩小功能
 minimizeBtn.MouseButton1Click:Connect(function()
@@ -118,6 +136,7 @@ minimizeBtn.MouseButton1Click:Connect(function()
         mainFrame.Size = minimizedSize
         mainFrame.Position = minimizedPosition
         comboButton.Visible = false
+        cycleTeleportButton.Visible = false
         statusLabel.Visible = true
         minimizeBtn.Text = "+"
         title.Text = "🎯"
@@ -129,8 +148,9 @@ minimizeBtn.MouseButton1Click:Connect(function()
         end
     else
         mainFrame.Size = originalSize
-        mainFrame.Position = UDim2.new(0.5, -60, 0.5, -50)
+        mainFrame.Position = UDim2.new(0.5, -60, 0.5, -70)
         comboButton.Visible = true
+        cycleTeleportButton.Visible = true
         statusLabel.Visible = false
         minimizeBtn.Text = "_"
         title.Text = "killaura"
@@ -148,13 +168,13 @@ comboButton.MouseButton1Click:Connect(function()
     isComboActive = not isComboActive
 
     if isComboActive then
-        comboButton.Text = "🟢 on\nkillaura"
+        comboButton.Text = "🟢 开启\n杀戮光环"
         comboButton.BackgroundColor3 = Color3.fromRGB(60, 180, 80)
         if isMinimized then
             statusLabel.Text = "killaura\n运行中"
         end
     else
-        comboButton.Text = "🔴 off\nkillaura"
+        comboButton.Text = "🔴 关闭\n杀戮光环"
         comboButton.BackgroundColor3 = Color3.fromRGB(180, 60, 60)
         currentTarget = nil
         if isMinimized then
@@ -172,6 +192,33 @@ local function getPlayerHealth(targetCharacter)
     return 100  -- 如果找不到Humanoid，默认返回100
 end
 
+-- 获取所有有效玩家列表（忽略血量低于5的）
+local function getValidPlayers()
+    local validPlayers = {}
+    
+    for _, otherPlayer in ipairs(Players:GetPlayers()) do
+        if otherPlayer ~= player and otherPlayer.Character then
+            local otherRoot = otherPlayer.Character:FindFirstChild("HumanoidRootPart")
+            if otherRoot then
+                -- 检查玩家血量
+                local health = getPlayerHealth(otherPlayer.Character)
+                
+                -- 忽略血量低于阈值的玩家
+                if health >= ignoreHealthThreshold then
+                    table.insert(validPlayers, {
+                        Player = otherPlayer,
+                        Character = otherPlayer.Character,
+                        RootPart = otherRoot,
+                        Health = health
+                    })
+                end
+            end
+        end
+    end
+    
+    return validPlayers
+end
+
 -- 获取最近玩家（忽略血量低于5的）
 local function getNearestPlayer()
     local character = player.Character
@@ -184,37 +231,75 @@ local function getNearestPlayer()
     local nearestPlayer = nil
     local nearestDistance = maxDistance
 
-    for _, otherPlayer in ipairs(Players:GetPlayers()) do
-        if otherPlayer ~= player and otherPlayer.Character then
-            local otherRoot = otherPlayer.Character:FindFirstChild("HumanoidRootPart")
-            if otherRoot then
-                -- 检查玩家血量
-                local health = getPlayerHealth(otherPlayer.Character)
-                
-                -- 如果血量低于5，跳过这个玩家
-                if health < ignoreHealthThreshold then
-                    if isMinimized and nearestPlayer == nil then
-                        statusLabel.Text = string.format("killaura\n血量<%.0f", ignoreHealthThreshold)
-                    end
-                    continue  -- 跳过这个玩家
-                end
-                
-                local distance = (otherRoot.Position - myPos).Magnitude
-                if distance <= nearestDistance then
-                    nearestDistance = distance
-                    nearestPlayer = {
-                        Player = otherPlayer,
-                        Character = otherPlayer.Character,
-                        Distance = distance,
-                        Position = otherRoot.Position,
-                        Health = health  -- 存储血量信息
-                    }
-                end
-            end
+    local validPlayers = getValidPlayers()
+    
+    for _, targetInfo in ipairs(validPlayers) do
+        local distance = (targetInfo.RootPart.Position - myPos).Magnitude
+        if distance <= nearestDistance then
+            nearestDistance = distance
+            nearestPlayer = {
+                Player = targetInfo.Player,
+                Character = targetInfo.Character,
+                Distance = distance,
+                Position = targetInfo.RootPart.Position,
+                Health = targetInfo.Health
+            }
         end
     end
 
     return nearestPlayer
+end
+
+-- 执行轮流传送
+local function performCycleTeleport()
+    local character = player.Character
+    if not character then return end
+    
+    local humanoidRootPart = character:FindFirstChild("HumanoidRootPart")
+    if not humanoidRootPart then return end
+    
+    -- 获取有效玩家列表
+    cycleTeleportPlayers = getValidPlayers()
+    
+    if #cycleTeleportPlayers == 0 then
+        if isMinimized then
+            statusLabel.Text = "无有效玩家"
+        else
+            cycleTeleportButton.Text = "无有效玩家"
+        end
+        return
+    end
+    
+    -- 确保索引在有效范围内
+    if cycleTeleportIndex > #cycleTeleportPlayers then
+        cycleTeleportIndex = 1
+    end
+    
+    local targetInfo = cycleTeleportPlayers[cycleTeleportIndex]
+    
+    if targetInfo and targetInfo.RootPart then
+        -- 传送到目标位置
+        local teleportPos = targetInfo.RootPart.Position + Vector3.new(0, teleportHeight * 4, 0)
+        humanoidRootPart.CFrame = CFrame.new(teleportPos)
+        
+        -- 更新按钮显示
+        if not isMinimized then
+            cycleTeleportButton.Text = string.format("传送至\n%s", targetInfo.Player.Name)
+        end
+        
+        -- 更新索引到下一个玩家
+        cycleTeleportIndex = cycleTeleportIndex + 1
+        if cycleTeleportIndex > #cycleTeleportPlayers then
+            cycleTeleportIndex = 1
+        end
+        
+        -- 如果处于缩小模式，更新状态
+        if isMinimized then
+            statusLabel.Text = string.format("传送至\n%s", targetInfo.Player.Name)
+        end
+        
+        return targetInfo
+    end
 end
 
 -- 执行三合一功能
@@ -230,7 +315,7 @@ local function performCombo()
             statusLabel.Text = string.format("killaura\n%s HP:%.0f", 
                 target.Player.Name, target.Health)
         end
-        
+
         -- 1. 自瞄（瞄准头部）
         local head = target.Character:FindFirstChild("Head")
         local aimPosition = head and head.Position or target.Position
@@ -271,6 +356,11 @@ local function performCombo()
     end
 end
 
+-- 轮流传送按钮点击事件
+cycleTeleportButton.MouseButton1Click:Connect(function()
+    performCycleTeleport()
+end)
+
 -- 主循环
 RunService.Heartbeat:Connect(function()
     if not isRunning then return end
@@ -286,19 +376,24 @@ UserInputService.InputBegan:Connect(function(input, gameProcessed)
         isComboActive = not isComboActive
 
         if isComboActive then
-            comboButton.Text = "🟢 on\nkillaura"
+            comboButton.Text = "🟢 开启\n杀戮光环"
             comboButton.BackgroundColor3 = Color3.fromRGB(60, 180, 80)
             if isMinimized then
                 statusLabel.Text = "killaura\n运行中"
             end
         else
-            comboButton.Text = "🔴 off\nkillaura"
+            comboButton.Text = "🔴 关闭\n杀戮光环"
             comboButton.BackgroundColor3 = Color3.fromRGB(180, 60, 60)
             currentTarget = nil
             if isMinimized then
                 statusLabel.Text = "killaura\n已关闭"
             end
         end
+    end
+
+    -- T键：触发轮流传送
+    if input.KeyCode == Enum.KeyCode.T then
+        performCycleTeleport()
     end
 
     -- M键：缩小/放大
@@ -309,6 +404,7 @@ UserInputService.InputBegan:Connect(function(input, gameProcessed)
             mainFrame.Size = minimizedSize
             mainFrame.Position = minimizedPosition
             comboButton.Visible = false
+            cycleTeleportButton.Visible = false
             statusLabel.Visible = true
             minimizeBtn.Text = "+"
             title.Text = "渔炒鱼"
@@ -320,8 +416,9 @@ UserInputService.InputBegan:Connect(function(input, gameProcessed)
             end
         else
             mainFrame.Size = originalSize
-            mainFrame.Position = UDim2.new(0.5, -60, 0.5, -50)
+            mainFrame.Position = UDim2.new(0.5, -60, 0.5, -70)
             comboButton.Visible = true
+            cycleTeleportButton.Visible = true
             statusLabel.Visible = false
             minimizeBtn.Text = "_"
             title.Text = "killaura"
@@ -330,9 +427,12 @@ UserInputService.InputBegan:Connect(function(input, gameProcessed)
 end)
 
 print("=== killaura脚本已加载 ===")
-print("功能: 自瞄+传送+攻击 (忽略血量<5的玩家)")
+print("功能:")
+print("- 自瞄+传送+攻击 (忽略血量<5的玩家)")
+print("- 轮流传送所有玩家")
 print("操作:")
-print("- 点击大按钮或按空格键开关")
+print("- 点击按钮或按空格键开关杀戮光环")
+print("- 点击按钮或按T键轮流传送")
 print("- 点击_按钮或按M键缩小")
 print("参数:")
 print("- 搜索距离: 200米")
