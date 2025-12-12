@@ -864,7 +864,7 @@ end
 
 game:GetService("StarterGui"):SetCore("SendNotification", {
     Title = "Monster",
-    Text = "攻击传送脚本已加载",
+    Text = "已入侵艾登服务器",
     Icon = "rbxassetid://111253731477608",
     Duration = 8,
     Position = UDim2.new(0, 20, 1, -50)
