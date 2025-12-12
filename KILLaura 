@@ -19,8 +19,7 @@ screenGui.Parent = player:WaitForChild("PlayerGui")
 local mainFrame = Instance.new("Frame")
 mainFrame.Name = "MainFrame"
 mainFrame.Size = UDim2.new(0, 120, 0, 210)  -- 增加高度以容纳四个按钮
-mainFrame.Position = UDim2.new(0.5, -60, 0.5, -105)  -- 调整位置（210/2 = 105）
-mainFrame.AnchorPoint = Vector2.new(0.5, 0.5)
+mainFrame.Position = UDim2.new(0.02, 0, 0.3, 0)  -- 改为固定位置，而不是使用AnchorPoint
 mainFrame.BackgroundColor3 = Color3.fromRGB(40, 40, 55)
 mainFrame.BackgroundTransparency = 0.2
 mainFrame.BorderSizePixel = 1
@@ -77,6 +76,7 @@ zoomBtn.BackgroundColor3 = Color3.fromRGB(60, 100, 180)
 zoomBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
 zoomBtn.Font = Enum.Font.SourceSansBold
 zoomBtn.TextSize = 14
+zoomBtn.AutoButtonColor = false
 zoomBtn.Parent = controlButtons
 
 -- 缩小按钮
@@ -89,6 +89,7 @@ minimizeBtn.BackgroundColor3 = Color3.fromRGB(60, 60, 80)
 minimizeBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
 minimizeBtn.Font = Enum.Font.SourceSansBold
 minimizeBtn.TextSize = 16
+minimizeBtn.AutoButtonColor = false
 minimizeBtn.Parent = controlButtons
 
 -- 关闭按钮
@@ -100,6 +101,7 @@ closeBtn.BackgroundColor3 = Color3.fromRGB(180, 60, 60)
 closeBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
 closeBtn.Font = Enum.Font.SourceSansBold
 closeBtn.TextSize = 16
+closeBtn.AutoButtonColor = false
 closeBtn.Parent = controlButtons
 
 -- 三个合一按钮
@@ -107,7 +109,7 @@ local comboButton = Instance.new("TextButton")
 comboButton.Name = "ComboButton"
 comboButton.Size = UDim2.new(1, -10, 0, 40)
 comboButton.Position = UDim2.new(0, 5, 0, 30)
-comboButton.Text = "杀戮光环"
+comboButton.Text = "killaura"
 comboButton.BackgroundColor3 = Color3.fromRGB(180, 60, 60)
 comboButton.TextColor3 = Color3.fromRGB(255, 255, 255)
 comboButton.Font = Enum.Font.SourceSansSemibold
@@ -221,8 +223,8 @@ local attackRate = 4  -- 固定攻击频率
 local isMinimized = false
 local isZoomed = false  -- 新增：缩放状态
 local originalSize = mainFrame.Size
+local originalPosition = mainFrame.Position  -- 保存原始位置
 local minimizedSize = UDim2.new(0, 80, 0, 40)  -- 更小的缩小模式
-local minimizedPosition = UDim2.new(0.5, -40, 0.5, -20)
 local zoomedSize = UDim2.new(0, 140, 0, 230)  -- 放大后的尺寸
 local ignoreHealthThreshold = 5  -- 忽略血量低于此值的玩家
 
@@ -263,15 +265,15 @@ setupButtonHover(zoomBtn)
 setupButtonHover(minimizeBtn)
 setupButtonHover(closeBtn)
 
--- 缩放功能（新增）
+-- 缩放功能（修复版）
 zoomBtn.MouseButton1Click:Connect(function()
     isZoomed = not isZoomed
 
     if isZoomed then
-        -- 放大界面
+        -- 放大界面，保持当前位置不变
+        local currentPos = mainFrame.Position
         local tween = TweenService:Create(mainFrame, TweenInfo.new(0.3), {
-            Size = zoomedSize,
-            Position = UDim2.new(0.5, -zoomedSize.X.Offset/2, 0.5, -zoomedSize.Y.Offset/2)
+            Size = zoomedSize
         })
         tween:Play()
 
@@ -287,10 +289,10 @@ zoomBtn.MouseButton1Click:Connect(function()
             title.TextSize = 15
         end
     else
-        -- 缩小到原始大小
+        -- 缩小到原始大小，保持当前位置不变
+        local currentPos = mainFrame.Position
         local tween = TweenService:Create(mainFrame, TweenInfo.new(0.3), {
-            Size = originalSize,
-            Position = UDim2.new(0.5, -originalSize.X.Offset/2, 0.5, -originalSize.Y.Offset/2)
+            Size = originalSize
         })
         tween:Play()
 
@@ -308,15 +310,27 @@ zoomBtn.MouseButton1Click:Connect(function()
     end
 end)
 
--- 缩小功能
+-- 缩小功能（修复版）
 minimizeBtn.MouseButton1Click:Connect(function()
     isMinimized = not isMinimized
 
     if isMinimized then
-        -- 缩小动画
+        -- 保存当前位置
+        originalPosition = mainFrame.Position
+        
+        -- 计算缩小后的位置（保持当前位置，但调整以适应新大小）
+        local currentPos = mainFrame.Position
+        local minimizedPos = UDim2.new(
+            currentPos.X.Scale,
+            currentPos.X.Offset,
+            currentPos.Y.Scale,
+            currentPos.Y.Offset
+        )
+        
+        -- 缩小动画，保持当前位置
         local tween = TweenService:Create(mainFrame, TweenInfo.new(0.3), {
             Size = minimizedSize,
-            Position = minimizedPosition
+            Position = minimizedPos
         })
         tween:Play()
 
@@ -345,15 +359,13 @@ minimizeBtn.MouseButton1Click:Connect(function()
         minimizeBtn.Text = "_"
         title.Text = "killaura"
 
-        -- 恢复大小（根据当前缩放状态）
+        -- 恢复大小（根据当前缩放状态），保持当前位置不变
+        local currentPos = mainFrame.Position
         local targetSize = isZoomed and zoomedSize or originalSize
-        local targetPosition = isZoomed and 
-            UDim2.new(0.5, -zoomedSize.X.Offset/2, 0.5, -zoomedSize.Y.Offset/2) or
-            UDim2.new(0.5, -originalSize.X.Offset/2, 0.5, -originalSize.Y.Offset/2)
-
+        
         local tween = TweenService:Create(mainFrame, TweenInfo.new(0.3), {
             Size = targetSize,
-            Position = targetPosition
+            Position = currentPos
         })
         tween:Play()
     end
@@ -660,7 +672,7 @@ RunService.Heartbeat:Connect(function()
     performCombo()
 end)
 
--- 快捷键
+-- 快捷键（修复版）
 UserInputService.InputBegan:Connect(function(input, gameProcessed)
     if gameProcessed then return end
 
@@ -699,14 +711,18 @@ UserInputService.InputBegan:Connect(function(input, gameProcessed)
         performTheaterTeleport()
     end
 
-    -- M键：缩小/放大
+    -- M键：缩小/放大（修复版）
     if input.KeyCode == Enum.KeyCode.M then
         isMinimized = not isMinimized
 
         if isMinimized then
+            -- 保存当前位置
+            originalPosition = mainFrame.Position
+            
+            local currentPos = mainFrame.Position
             local tween = TweenService:Create(mainFrame, TweenInfo.new(0.3), {
                 Size = minimizedSize,
-                Position = minimizedPosition
+                Position = currentPos
             })
             tween:Play()
 
@@ -734,29 +750,28 @@ UserInputService.InputBegan:Connect(function(input, gameProcessed)
             minimizeBtn.Text = "_"
             title.Text = "killaura"
 
-            -- 恢复大小（根据当前缩放状态）
+            -- 恢复大小（根据当前缩放状态），保持当前位置
+            local currentPos = mainFrame.Position
             local targetSize = isZoomed and zoomedSize or originalSize
-            local targetPosition = isZoomed and 
-                UDim2.new(0.5, -zoomedSize.X.Offset/2, 0.5, -zoomedSize.Y.Offset/2) or
-                UDim2.new(0.5, -originalSize.X.Offset/2, 0.5, -originalSize.Y.Offset/2)
-
+            
             local tween = TweenService:Create(mainFrame, TweenInfo.new(0.3), {
                 Size = targetSize,
-                Position = targetPosition
+                Position = currentPos
             })
             tween:Play()
         end
     end
 
-    -- Z键：触发缩放（新增）
+    -- Z键：触发缩放（修复版）
     if input.KeyCode == Enum.KeyCode.Z then
         isZoomed = not isZoomed
 
         if isZoomed then
-            -- 放大界面
+            -- 放大界面，保持当前位置
+            local currentPos = mainFrame.Position
             local tween = TweenService:Create(mainFrame, TweenInfo.new(0.3), {
                 Size = zoomedSize,
-                Position = UDim2.new(0.5, -zoomedSize.X.Offset/2, 0.5, -zoomedSize.Y.Offset/2)
+                Position = currentPos
             })
             tween:Play()
 
@@ -772,10 +787,11 @@ UserInputService.InputBegan:Connect(function(input, gameProcessed)
                 title.TextSize = 15
             end
         else
-            -- 缩小到原始大小
+            -- 缩小到原始大小，保持当前位置
+            local currentPos = mainFrame.Position
             local tween = TweenService:Create(mainFrame, TweenInfo.new(0.3), {
                 Size = originalSize,
-                Position = UDim2.new(0.5, -originalSize.X.Offset/2, 0.5, -originalSize.Y.Offset/2)
+                Position = currentPos
             })
             tween:Play()
 
@@ -794,15 +810,15 @@ UserInputService.InputBegan:Connect(function(input, gameProcessed)
     end
 end)
 
--- 初始淡入动画
+-- 初始淡入动画（修复版）
 mainFrame.BackgroundTransparency = 1
-mainFrame.Position = mainFrame.Position + UDim2.new(0, 0, 0, -30)
+mainFrame.Position = originalPosition + UDim2.new(0, 0, 0, -30)
 
 task.wait(0.1)
 
 local fadeInTween = TweenService:Create(mainFrame, TweenInfo.new(0.5), {
     BackgroundTransparency = 0.2,
-    Position = mainFrame.Position - UDim2.new(0, 0, 0, -30)
+    Position = originalPosition
 })
 fadeInTween:Play()
 
