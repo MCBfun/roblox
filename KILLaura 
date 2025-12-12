@@ -72,7 +72,7 @@ local zoomBtn = Instance.new("TextButton")
 zoomBtn.Name = "ZoomButton"
 zoomBtn.Size = UDim2.new(0, 25, 0, 25)
 zoomBtn.Position = UDim2.new(0, 0, 0, 0)
-zoomBtn.Text = "◐"
+zoomBtn.Text = "⏺️"
 zoomBtn.BackgroundColor3 = Color3.fromRGB(60, 100, 180)
 zoomBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
 zoomBtn.Font = Enum.Font.SourceSansBold
@@ -275,7 +275,7 @@ zoomBtn.MouseButton1Click:Connect(function()
         })
         tween:Play()
         
-        zoomBtn.Text = "◑"
+        zoomBtn.Text = "⏺️"
         zoomBtn.BackgroundColor3 = Color3.fromRGB(80, 140, 220)
         
         -- 放大后更新文本大小
