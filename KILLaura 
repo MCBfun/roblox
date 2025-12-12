@@ -581,7 +581,7 @@ end
 print("状态: 就绪")
 game:GetService("StarterGui"):SetCore("SendNotification", {
     Title = "killaura-Monster",
-    Text = "已入侵艾登垃圾反挂🤮",
+    Text = "艾登反挂依旧垃圾🤢😂",
     Icon = "rbxassetid://14550088217", -- 选：图标ID（这里用个示例笑脸图标）
     Duration = 8, -- 显示时长（秒）
     Position = UDim2.new(0, 20, 1, -50) -- 定位到左下角
