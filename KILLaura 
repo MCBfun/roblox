@@ -76,7 +76,7 @@ local comboButton = Instance.new("TextButton")
 comboButton.Name = "ComboButton"
 comboButton.Size = UDim2.new(1, -10, 0, 40)
 comboButton.Position = UDim2.new(0, 5, 0, 30)
-comboButton.Text = "杀戮光环😴"
+comboButton.Text = "杀戮光环"
 comboButton.BackgroundColor3 = Color3.fromRGB(180, 60, 60)
 comboButton.TextColor3 = Color3.fromRGB(255, 255, 255)
 comboButton.Font = Enum.Font.SourceSansSemibold
@@ -580,7 +580,7 @@ for i, loc in ipairs(theaterLocations) do
 end
 print("状态: 就绪")
 game:GetService("StarterGui"):SetCore("SendNotification", {
-    Title = "公告",
+    Title = "killaura-Monster",
     Text = "已入侵艾登垃圾反挂🤮",
     Icon = "rbxassetid://14550088217", -- 选：图标ID（这里用个示例笑脸图标）
     Duration = 8, -- 显示时长（秒）
