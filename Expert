@@ -1,0 +1,441 @@
+-- Expert - 等候厅传送脚本
+local Players = game:GetService("Players")
+local UserInputService = game:GetService("UserInputService")
+local RunService = game:GetService("RunService")
+local TweenService = game:GetService("TweenService")
+
+local player = Players.LocalPlayer
+local isRunning = true
+
+-- 创建最小化UI
+local screenGui = Instance.new("ScreenGui")
+screenGui.Name = "ExpertGUI"
+screenGui.ResetOnSpawn = false
+screenGui.Parent = player:WaitForChild("PlayerGui")
+
+local mainFrame = Instance.new("Frame")
+mainFrame.Name = "MainFrame"
+mainFrame.Size = UDim2.new(0, 120, 0, 120)  -- 调整高度为120，只容纳一个按钮
+mainFrame.Position = UDim2.new(0.02, 0, 0.3, 0)  -- 改为固定位置，而不是使用AnchorPoint
+mainFrame.BackgroundColor3 = Color3.fromRGB(40, 40, 55)
+mainFrame.BackgroundTransparency = 0.2
+mainFrame.BorderSizePixel = 1
+mainFrame.BorderColor3 = Color3.fromRGB(80, 80, 100)
+mainFrame.Active = true
+mainFrame.Draggable = true
+mainFrame.ClipsDescendants = true
+mainFrame.Parent = screenGui
+
+-- 圆角效果
+local uiCorner = Instance.new("UICorner")
+uiCorner.CornerRadius = UDim.new(0, 6)
+uiCorner.Parent = mainFrame
+
+-- 标题栏
+local titleBar = Instance.new("Frame")
+titleBar.Name = "TitleBar"
+titleBar.Size = UDim2.new(1, 0, 0, 25)
+titleBar.BackgroundColor3 = Color3.fromRGB(30, 30, 45)
+titleBar.BorderSizePixel = 0
+titleBar.Parent = mainFrame
+
+-- 标题栏圆角
+local titleCorner = Instance.new("UICorner")
+titleCorner.CornerRadius = UDim.new(0, 6)
+titleCorner.Parent = titleBar
+
+local title = Instance.new("TextLabel")
+title.Text = "Expert"
+title.Size = UDim2.new(1, -80, 1, 0)
+title.Position = UDim2.new(0, 5, 0, 0)
+title.BackgroundTransparency = 1
+title.TextColor3 = Color3.fromRGB(255, 255, 255)
+title.TextXAlignment = Enum.TextXAlignment.Left
+title.Font = Enum.Font.SourceSansSemibold
+title.TextSize = 14
+title.Parent = titleBar
+
+-- 控制按钮容器（现在有3个按钮）
+local controlButtons = Instance.new("Frame")
+controlButtons.Name = "ControlButtons"
+controlButtons.Size = UDim2.new(0, 75, 1, 0)
+controlButtons.Position = UDim2.new(1, -75, 0, 0)
+controlButtons.BackgroundTransparency = 1
+controlButtons.Parent = titleBar
+
+-- 缩放按钮（新增）
+local zoomBtn = Instance.new("TextButton")
+zoomBtn.Name = "ZoomButton"
+zoomBtn.Size = UDim2.new(0, 25, 0, 25)
+zoomBtn.Position = UDim2.new(0, 0, 0, 0)
+zoomBtn.Text = "⏺️"
+zoomBtn.BackgroundColor3 = Color3.fromRGB(60, 100, 180)
+zoomBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
+zoomBtn.Font = Enum.Font.SourceSansBold
+zoomBtn.TextSize = 14
+zoomBtn.AutoButtonColor = false
+zoomBtn.Parent = controlButtons
+
+-- 缩小按钮
+local minimizeBtn = Instance.new("TextButton")
+minimizeBtn.Name = "MinimizeButton"
+minimizeBtn.Size = UDim2.new(0, 25, 0, 25)
+minimizeBtn.Position = UDim2.new(0, 25, 0, 0)
+minimizeBtn.Text = "_"
+minimizeBtn.BackgroundColor3 = Color3.fromRGB(60, 60, 80)
+minimizeBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
+minimizeBtn.Font = Enum.Font.SourceSansBold
+minimizeBtn.TextSize = 16
+minimizeBtn.AutoButtonColor = false
+minimizeBtn.Parent = controlButtons
+
+-- 关闭按钮
+local closeBtn = Instance.new("TextButton")
+closeBtn.Size = UDim2.new(0, 25, 0, 25)
+closeBtn.Position = UDim2.new(0, 50, 0, 0)
+closeBtn.Text = "×"
+closeBtn.BackgroundColor3 = Color3.fromRGB(180, 60, 60)
+closeBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
+closeBtn.Font = Enum.Font.SourceSansBold
+closeBtn.TextSize = 16
+closeBtn.AutoButtonColor = false
+closeBtn.Parent = controlButtons
+
+-- 等候厅传送按钮
+local backroomTeleportButton = Instance.new("TextButton")
+backroomTeleportButton.Name = "BackroomTeleportButton"
+backroomTeleportButton.Size = UDim2.new(1, -10, 0, 40)
+backroomTeleportButton.Position = UDim2.new(0, 5, 0, 30)
+backroomTeleportButton.Text = "传送等候厅"
+backroomTeleportButton.BackgroundColor3 = Color3.fromRGB(60, 180, 100)  -- 绿色
+backroomTeleportButton.TextColor3 = Color3.fromRGB(255, 255, 255)
+backroomTeleportButton.Font = Enum.Font.SourceSansSemibold
+backroomTeleportButton.TextSize = 14
+backroomTeleportButton.TextWrapped = true
+backroomTeleportButton.AutoButtonColor = false
+backroomTeleportButton.Parent = mainFrame
+
+-- 添加圆角
+local teleportCorner = Instance.new("UICorner")
+teleportCorner.CornerRadius = UDim.new(0, 5)
+teleportCorner.Parent = backroomTeleportButton
+
+-- 状态显示（缩小后）
+local statusLabel = Instance.new("TextLabel")
+statusLabel.Name = "StatusLabel"
+statusLabel.Size = UDim2.new(1, -10, 1, -10)
+statusLabel.Position = UDim2.new(0, 5, 0, 5)
+statusLabel.BackgroundTransparency = 1
+statusLabel.Text = "Expert\n点击展开"
+statusLabel.TextColor3 = Color3.fromRGB(200, 200, 220)
+statusLabel.TextSize = 12
+statusLabel.TextWrapped = true
+statusLabel.Visible = false
+statusLabel.Parent = mainFrame
+
+-- 变量
+local isMinimized = false
+local isZoomed = false  -- 新增：缩放状态
+local originalSize = mainFrame.Size
+local originalPosition = mainFrame.Position  -- 保存原始位置
+local minimizedSize = UDim2.new(0, 80, 0, 40)  -- 更小的缩小模式
+local zoomedSize = UDim2.new(0, 140, 0, 130)  -- 放大后的尺寸（高度调整为130）
+
+-- 等候厅坐标
+local backroomLocation = {
+    X = 163.15,
+    Y = 9,
+    Z = 955.4
+}
+
+-- 按钮悬停效果函数
+local function setupButtonHover(button)
+    local originalColor = button.BackgroundColor3
+
+    button.MouseEnter:Connect(function()
+        local tween = TweenService:Create(button, TweenInfo.new(0.2), {
+            BackgroundColor3 = Color3.fromRGB(
+                math.min(255, originalColor.R * 255 + 30),
+                math.min(255, originalColor.G * 255 + 30),
+                math.min(255, originalColor.B * 255 + 30)
+            )
+        })
+        tween:Play()
+    end)
+
+    button.MouseLeave:Connect(function()
+        local tween = TweenService:Create(button, TweenInfo.new(0.2), {
+            BackgroundColor3 = originalColor
+        })
+        tween:Play()
+    end)
+end
+
+-- 应用悬停效果
+setupButtonHover(backroomTeleportButton)
+setupButtonHover(zoomBtn)
+setupButtonHover(minimizeBtn)
+setupButtonHover(closeBtn)
+
+-- 执行等候厅传送
+local function performBackroomTeleport()
+    local character = player.Character
+    if not character then 
+        print("[Expert] 错误: 角色不存在")
+        return false
+    end
+    
+    local humanoidRootPart = character:FindFirstChild("HumanoidRootPart")
+    if not humanoidRootPart then 
+        print("[Expert] 错误: 找不到HumanoidRootPart")
+        return false
+    end
+    
+    -- 传送到等候厅
+    local teleportPos = Vector3.new(
+        backroomLocation.X,
+        backroomLocation.Y,
+        backroomLocation.Z
+    )
+    
+    humanoidRootPart.CFrame = CFrame.new(teleportPos)
+    
+    -- 更新按钮文本
+    if not isMinimized then
+        backroomTeleportButton.Text = "✅ 已传送等候厅"
+        -- 3秒后恢复原文本
+        task.wait(3)
+        backroomTeleportButton.Text = "传送等候厅"
+    end
+    
+    -- 如果处于缩小模式，更新状态
+    if isMinimized then
+        statusLabel.Text = "✅ 已传送等候厅"
+        task.wait(3)
+        statusLabel.Text = "Expert\n点击展开"
+    end
+    
+    print(string.format("[Expert] 已传送到等候厅 (X:%.2f, Y:%.2f, Z:%.2f)", 
+        backroomLocation.X, backroomLocation.Y, backroomLocation.Z))
+    
+    return true
+end
+
+-- 缩放功能（修复版）
+zoomBtn.MouseButton1Click:Connect(function()
+    isZoomed = not isZoomed
+
+    if isZoomed then
+        -- 放大界面，保持当前位置不变
+        local currentPos = mainFrame.Position
+        local tween = TweenService:Create(mainFrame, TweenInfo.new(0.3), {
+            Size = zoomedSize,
+            Position = currentPos
+        })
+        tween:Play()
+
+        zoomBtn.Text = "⏺️"
+        zoomBtn.BackgroundColor3 = Color3.fromRGB(80, 140, 220)
+
+        -- 放大后更新文本大小
+        if not isMinimized then
+            backroomTeleportButton.TextSize = 15
+            title.TextSize = 15
+        end
+    else
+        -- 缩小到原始大小，保持当前位置不变
+        local currentPos = mainFrame.Position
+        local tween = TweenService:Create(mainFrame, TweenInfo.new(0.3), {
+            Size = originalSize,
+            Position = currentPos
+        })
+        tween:Play()
+
+        zoomBtn.Text = "⬅️"
+        zoomBtn.BackgroundColor3 = Color3.fromRGB(60, 100, 180)
+
+        -- 恢复原始文本大小
+        if not isMinimized then
+            backroomTeleportButton.TextSize = 14
+            title.TextSize = 14
+        end
+    end
+end)
+
+-- 缩小功能（修复版）
+minimizeBtn.MouseButton1Click:Connect(function()
+    isMinimized = not isMinimized
+
+    if isMinimized then
+        -- 缩小动画，保持当前位置
+        local currentPos = mainFrame.Position
+        local tween = TweenService:Create(mainFrame, TweenInfo.new(0.3), {
+            Size = minimizedSize,
+            Position = currentPos
+        })
+        tween:Play()
+
+        tween.Completed:Wait()  -- 等待动画完成
+
+        backroomTeleportButton.Visible = false
+        statusLabel.Visible = true
+        minimizeBtn.Text = "+"
+        title.Text = "🎯"
+        statusLabel.Text = "Expert\n点击展开"
+        
+    else
+        -- 恢复显示
+        backroomTeleportButton.Visible = true
+        statusLabel.Visible = false
+        minimizeBtn.Text = "_"
+        title.Text = "Expert"
+
+        -- 恢复大小（根据当前缩放状态），保持当前位置
+        local currentPos = mainFrame.Position
+        local targetSize = isZoomed and zoomedSize or originalSize
+        
+        local tween = TweenService:Create(mainFrame, TweenInfo.new(0.3), {
+            Size = targetSize,
+            Position = currentPos
+        })
+        tween:Play()
+    end
+end)
+
+-- 关闭功能
+closeBtn.MouseButton1Click:Connect(function()
+    -- 淡出动画
+    local tween = TweenService:Create(mainFrame, TweenInfo.new(0.3), {
+        BackgroundTransparency = 0.8,
+        Position = mainFrame.Position + UDim2.new(0, 0, 0, -20)
+    })
+    tween:Play()
+
+    tween.Completed:Wait()  -- 等待动画完成
+    screenGui:Destroy()
+    isRunning = false
+end)
+
+-- 等候厅传送按钮功能
+backroomTeleportButton.MouseButton1Click:Connect(function()
+    performBackroomTeleport()
+end)
+
+-- 快捷键（修复版）
+UserInputService.InputBegan:Connect(function(input, gameProcessed)
+    if gameProcessed then return end
+
+    -- B键：触发等候厅传送
+    if input.KeyCode == Enum.KeyCode.B then
+        performBackroomTeleport()
+    end
+
+    -- M键：缩小/放大（修复版）
+    if input.KeyCode == Enum.KeyCode.M then
+        isMinimized = not isMinimized
+
+        if isMinimized then
+            local currentPos = mainFrame.Position
+            local tween = TweenService:Create(mainFrame, TweenInfo.new(0.3), {
+                Size = minimizedSize,
+                Position = currentPos
+            })
+            tween:Play()
+
+            tween.Completed:Wait()
+
+            backroomTeleportButton.Visible = false
+            statusLabel.Visible = true
+            minimizeBtn.Text = "+"
+            title.Text = "🎯"
+            statusLabel.Text = "Expert\n点击展开"
+            
+        else
+            backroomTeleportButton.Visible = true
+            statusLabel.Visible = false
+            minimizeBtn.Text = "_"
+            title.Text = "Expert"
+
+            -- 恢复大小（根据当前缩放状态），保持当前位置
+            local currentPos = mainFrame.Position
+            local targetSize = isZoomed and zoomedSize or originalSize
+            
+            local tween = TweenService:Create(mainFrame, TweenInfo.new(0.3), {
+                Size = targetSize,
+                Position = currentPos
+            })
+            tween:Play()
+        end
+    end
+
+    -- Z键：触发缩放（修复版）
+    if input.KeyCode == Enum.KeyCode.Z then
+        isZoomed = not isZoomed
+
+        if isZoomed then
+            -- 放大界面，保持当前位置
+            local currentPos = mainFrame.Position
+            local tween = TweenService:Create(mainFrame, TweenInfo.new(0.3), {
+                Size = zoomedSize,
+                Position = currentPos
+            })
+            tween:Play()
+
+            zoomBtn.Text = "▶️"
+            zoomBtn.BackgroundColor3 = Color3.fromRGB(80, 140, 220)
+
+            -- 放大后更新文本大小
+            if not isMinimized then
+                backroomTeleportButton.TextSize = 15
+                title.TextSize = 15
+            end
+        else
+            -- 缩小到原始大小，保持当前位置
+            local currentPos = mainFrame.Position
+            local tween = TweenService:Create(mainFrame, TweenInfo.new(0.3), {
+                Size = originalSize,
+                Position = currentPos
+            })
+            tween:Play()
+
+            zoomBtn.Text = "⏸️"
+            zoomBtn.BackgroundColor3 = Color3.fromRGB(60, 100, 180)
+
+            -- 恢复原始文本大小
+            if not isMinimized then
+                backroomTeleportButton.TextSize = 14
+                title.TextSize = 14
+            end
+        end
+    end
+end)
+
+-- 初始淡入动画（修复版）
+local originalPosition = UDim2.new(0.02, 0, 0.3, 0)  -- 明确定义原始位置
+mainFrame.BackgroundTransparency = 1
+mainFrame.Position = originalPosition + UDim2.new(0, 0, 0, -30)
+
+task.wait(0.1)
+
+local fadeInTween = TweenService:Create(mainFrame, TweenInfo.new(0.5), {
+    BackgroundTransparency = 0.2,
+    Position = originalPosition
+})
+fadeInTween:Play()
+
+print("=== Expert脚本已加载 ===")
+print(string.format("等候厅坐标: X:%.2f, Y:%.2f, Z:%.2f", 
+    backroomLocation.X, backroomLocation.Y, backroomLocation.Z))
+print("快捷键指南:")
+print("  B键 - 传送到等候厅")
+print("  M键 - 缩小/放大界面")
+print("  Z键 - 缩放界面")
+print("状态: 就绪")
+
+game:GetService("StarterGui"):SetCore("SendNotification", {
+    Title = "Expert",
+    Text = "等候厅传送脚本已加载",
+    Icon = "rbxassetid://14550088217",
+    Duration = 5,
+    Position = UDim2.new(0, 20, 1, -50)
+})
