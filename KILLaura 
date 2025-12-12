@@ -48,7 +48,7 @@ titleCorner.CornerRadius = UDim.new(0, 6)
 titleCorner.Parent = titleBar
 
 local title = Instance.new("TextLabel")
-title.Text = "killaura"
+title.Text = "Monster"
 title.Size = UDim2.new(1, -80, 1, 0)
 title.Position = UDim2.new(0, 5, 0, 0)
 title.BackgroundTransparency = 1
@@ -206,7 +206,7 @@ statusLabel.Name = "StatusLabel"
 statusLabel.Size = UDim2.new(1, -10, 1, -10)
 statusLabel.Position = UDim2.new(0, 5, 0, 5)
 statusLabel.BackgroundTransparency = 1
-statusLabel.Text = "killaura\n点击展开"
+statusLabel.Text = "Monster\n点击展开"
 statusLabel.TextColor3 = Color3.fromRGB(200, 200, 220)
 statusLabel.TextSize = 12
 statusLabel.TextWrapped = true
@@ -347,7 +347,7 @@ minimizeBtn.MouseButton1Click:Connect(function()
         if isComboActive then
             statusLabel.Text = "killaura\n运行中"
         else
-            statusLabel.Text = "killaura\n已关闭"
+            statusLabel.Text = "Monster\n已关闭"
         end
     else
         -- 恢复显示
@@ -357,7 +357,7 @@ minimizeBtn.MouseButton1Click:Connect(function()
         theaterTeleportButton.Visible = true
         statusLabel.Visible = false
         minimizeBtn.Text = "_"
-        title.Text = "killaura"
+        title.Text = "Monster"
 
         -- 恢复大小（根据当前缩放状态），保持当前位置不变
         local currentPos = mainFrame.Position
@@ -400,7 +400,7 @@ comboButton.MouseButton1Click:Connect(function()
         comboButton.BackgroundColor3 = Color3.fromRGB(180, 60, 60)
         currentTarget = nil
         if isMinimized then
-            statusLabel.Text = "killaura\n已关闭"
+            statusLabel.Text = "Monster\n已关闭"
         end
     end
 end)
@@ -691,7 +691,7 @@ UserInputService.InputBegan:Connect(function(input, gameProcessed)
             comboButton.BackgroundColor3 = Color3.fromRGB(180, 60, 60)
             currentTarget = nil
             if isMinimized then
-                statusLabel.Text = "killaura\n已关闭"
+                statusLabel.Text = "Monster\n已关闭"
             end
         end
     end
@@ -748,7 +748,7 @@ UserInputService.InputBegan:Connect(function(input, gameProcessed)
             theaterTeleportButton.Visible = true
             statusLabel.Visible = false
             minimizeBtn.Text = "_"
-            title.Text = "killaura"
+            title.Text = "Monster"
 
             -- 恢复大小（根据当前缩放状态），保持当前位置
             local currentPos = mainFrame.Position
@@ -822,7 +822,7 @@ local fadeInTween = TweenService:Create(mainFrame, TweenInfo.new(0.5), {
 })
 fadeInTween:Play()
 
-print("=== killaura脚本已加载 ===")
+print("=== Monster脚本已加载 ===")
 print("工厂传送点:")
 for i, loc in ipairs(factoryLocations) do
     print(string.format("  %d. X:%.2f, Y:%.2f, Z:%.2f", i, loc.X, loc.Y, loc.Z))
