@@ -1,4 +1,4 @@
--- 极简自瞄+传送+攻击脚本 - 完整版（四合一功能）
+-- 极简自瞄+传送+攻击脚本 - 完整版（五合一功能） 
 local Players = game:GetService("Players")
 local UserInputService = game:GetService("UserInputService")
 local RunService = game:GetService("RunService")
@@ -10,6 +10,19 @@ local player = Players.LocalPlayer
 local isRunning = true
 local camera = Workspace.CurrentCamera
 
+-- ESP相关变量
+local espEnabled = false
+local espFolder = Instance.new("Folder")
+espFolder.Name = "ESP"
+espFolder.Parent = game.CoreGui
+
+-- 颜色定义
+local espColors = {
+    team = Color3.fromRGB(0, 255, 0),      -- 队友绿色
+    enemy = Color3.fromRGB(255, 0, 0),     -- 敌人红色
+    neutral = Color3.fromRGB(255, 255, 0)  -- 中立黄色
+}
+
 -- 创建最小化UI
 local screenGui = Instance.new("ScreenGui")
 screenGui.Name = "SimpleAimbotGUI"
@@ -18,8 +31,8 @@ screenGui.Parent = player:WaitForChild("PlayerGui")
 
 local mainFrame = Instance.new("Frame")
 mainFrame.Name = "MainFrame"
-mainFrame.Size = UDim2.new(0, 120, 0, 210)  -- 增加高度以容纳四个按钮
-mainFrame.Position = UDim2.new(0.02, 0, 0.3, 0)  -- 改为固定位置，而不是使用AnchorPoint
+mainFrame.Size = UDim2.new(0, 120, 0, 255)  -- 增加高度以容纳五个按钮
+mainFrame.Position = UDim2.new(0.02, 0, 0.3, 0)
 mainFrame.BackgroundColor3 = Color3.fromRGB(40, 40, 55)
 mainFrame.BackgroundTransparency = 0.2
 mainFrame.BorderSizePixel = 1
@@ -58,7 +71,7 @@ title.Font = Enum.Font.SourceSansSemibold
 title.TextSize = 14
 title.Parent = titleBar
 
--- 控制按钮容器（现在有3个按钮）
+-- 控制按钮容器
 local controlButtons = Instance.new("Frame")
 controlButtons.Name = "ControlButtons"
 controlButtons.Size = UDim2.new(0, 75, 1, 0)
@@ -66,7 +79,7 @@ controlButtons.Position = UDim2.new(1, -75, 0, 0)
 controlButtons.BackgroundTransparency = 1
 controlButtons.Parent = titleBar
 
--- 缩放按钮（新增）
+-- 缩放按钮
 local zoomBtn = Instance.new("TextButton")
 zoomBtn.Name = "ZoomButton"
 zoomBtn.Size = UDim2.new(0, 25, 0, 25)
@@ -104,7 +117,7 @@ closeBtn.TextSize = 16
 closeBtn.AutoButtonColor = false
 closeBtn.Parent = controlButtons
 
--- 三个合一按钮
+-- 四个功能按钮
 local comboButton = Instance.new("TextButton")
 comboButton.Name = "ComboButton"
 comboButton.Size = UDim2.new(1, -10, 0, 40)
@@ -118,7 +131,6 @@ comboButton.TextWrapped = true
 comboButton.AutoButtonColor = false
 comboButton.Parent = mainFrame
 
--- 添加圆角
 local comboCorner = Instance.new("UICorner")
 comboCorner.CornerRadius = UDim.new(0, 5)
 comboCorner.Parent = comboButton
@@ -137,12 +149,11 @@ cycleTeleportButton.TextWrapped = true
 cycleTeleportButton.AutoButtonColor = false
 cycleTeleportButton.Parent = mainFrame
 
--- 添加圆角
 local teleportCorner = Instance.new("UICorner")
 teleportCorner.CornerRadius = UDim.new(0, 5)
 teleportCorner.Parent = cycleTeleportButton
 
--- 工厂地图自动管道传送功能
+-- 工厂传送按钮
 local factoryLocations = {
     {X = 314.57, Y = 10.58, Z = 350.95},
     {X = 387, Y = 7.48, Z = 331.22},
@@ -152,13 +163,12 @@ local factoryLocations = {
     {X = 358.95, Y = 18, Z = 436.84}
 }
 
--- 工厂传送按钮
 local factoryTeleportButton = Instance.new("TextButton")
 factoryTeleportButton.Name = "FactoryTeleportButton"
 factoryTeleportButton.Size = UDim2.new(1, -10, 0, 40)
 factoryTeleportButton.Position = UDim2.new(0, 5, 0, 120)
 factoryTeleportButton.Text = "工厂自动管道"
-factoryTeleportButton.BackgroundColor3 = Color3.fromRGB(180, 100, 60)  -- 橙色
+factoryTeleportButton.BackgroundColor3 = Color3.fromRGB(180, 100, 60)
 factoryTeleportButton.TextColor3 = Color3.fromRGB(255, 255, 255)
 factoryTeleportButton.Font = Enum.Font.SourceSansSemibold
 factoryTeleportButton.TextSize = 14
@@ -166,12 +176,11 @@ factoryTeleportButton.TextWrapped = true
 factoryTeleportButton.AutoButtonColor = false
 factoryTeleportButton.Parent = mainFrame
 
--- 添加圆角
 local factoryCorner = Instance.new("UICorner")
 factoryCorner.CornerRadius = UDim.new(0, 5)
 factoryCorner.Parent = factoryTeleportButton
 
--- 剧院地图传送功能
+-- 剧院传送按钮
 local theaterLocations = {
     {X = -15.25, Y = 87.42, Z = -455.5},
     {X = 13.54, Y = 94.18, Z = -531.25},
@@ -181,13 +190,12 @@ local theaterLocations = {
     {X = 33.67, Y = 60.16, Z = -472}
 }
 
--- 剧院传送按钮
 local theaterTeleportButton = Instance.new("TextButton")
 theaterTeleportButton.Name = "TheaterTeleportButton"
 theaterTeleportButton.Size = UDim2.new(1, -10, 0, 40)
 theaterTeleportButton.Position = UDim2.new(0, 5, 0, 165)
 theaterTeleportButton.Text = "剧院自动管道"
-theaterTeleportButton.BackgroundColor3 = Color3.fromRGB(100, 60, 180)  -- 紫色
+theaterTeleportButton.BackgroundColor3 = Color3.fromRGB(100, 60, 180)
 theaterTeleportButton.TextColor3 = Color3.fromRGB(255, 255, 255)
 theaterTeleportButton.Font = Enum.Font.SourceSansSemibold
 theaterTeleportButton.TextSize = 14
@@ -195,12 +203,29 @@ theaterTeleportButton.TextWrapped = true
 theaterTeleportButton.AutoButtonColor = false
 theaterTeleportButton.Parent = mainFrame
 
--- 添加圆角
 local theaterCorner = Instance.new("UICorner")
 theaterCorner.CornerRadius = UDim.new(0, 5)
 theaterCorner.Parent = theaterTeleportButton
 
--- 状态显示（缩小后）
+-- ESP按钮
+local espButton = Instance.new("TextButton")
+espButton.Name = "ESPButton"
+espButton.Size = UDim2.new(1, -10, 0, 40)
+espButton.Position = UDim2.new(0, 5, 0, 210)
+espButton.Text = "ESP\n透视显示"
+espButton.BackgroundColor3 = Color3.fromRGB(60, 180, 100)  -- 绿色
+espButton.TextColor3 = Color3.fromRGB(255, 255, 255)
+espButton.Font = Enum.Font.SourceSansSemibold
+espButton.TextSize = 14
+espButton.TextWrapped = true
+espButton.AutoButtonColor = false
+espButton.Parent = mainFrame
+
+local espCorner = Instance.new("UICorner")
+espCorner.CornerRadius = UDim.new(0, 5)
+espCorner.Parent = espButton
+
+-- 状态显示
 local statusLabel = Instance.new("TextLabel")
 statusLabel.Name = "StatusLabel"
 statusLabel.Size = UDim2.new(1, -10, 1, -10)
@@ -214,45 +239,40 @@ statusLabel.Visible = false
 statusLabel.Parent = mainFrame
 
 -- 变量
-local isComboActive = false  -- 三合一状态
-local maxDistance = 200  -- 固定搜索距离
-local teleportHeight = 0  -- 固定传送高度
+local isComboActive = false
+local maxDistance = 200
+local teleportHeight = 0
 local currentTarget = nil
 local lastAttackTime = 0
-local attackRate = 4  -- 固定攻击频率
+local attackRate = 4
 local isMinimized = false
-local isZoomed = false  -- 新增：缩放状态
+local isZoomed = false
 local originalSize = mainFrame.Size
-local originalPosition = mainFrame.Position  -- 保存原始位置
-local minimizedSize = UDim2.new(0, 80, 0, 40)  -- 更小的缩小模式
-local zoomedSize = UDim2.new(0, 140, 0, 230)  -- 放大后的尺寸
-local ignoreHealthThreshold = 5  -- 忽略血量低于此值的玩家
+local originalPosition = mainFrame.Position
+local minimizedSize = UDim2.new(0, 80, 0, 40)
+local zoomedSize = UDim2.new(0, 140, 0, 270)  -- 调整放大尺寸
+local ignoreHealthThreshold = 5
 
 -- 传送相关变量
-local cycleTeleportIndex = 1  -- 当前传送的玩家索引
-local factoryTeleportIndex = 1  -- 工厂传送索引
-local theaterTeleportIndex = 1  -- 剧院传送索引
+local cycleTeleportIndex = 1
+local factoryTeleportIndex = 1
+local theaterTeleportIndex = 1
+
+-- ESP存储表
+local espObjects = {}
 
 -- 按钮悬停效果函数
 local function setupButtonHover(button)
     local originalColor = button.BackgroundColor3
-
     button.MouseEnter:Connect(function()
-        local tween = TweenService:Create(button, TweenInfo.new(0.2), {
-            BackgroundColor3 = Color3.fromRGB(
-                math.min(255, originalColor.R * 255 + 30),
-                math.min(255, originalColor.G * 255 + 30),
-                math.min(255, originalColor.B * 255 + 30)
-            )
-        })
-        tween:Play()
+        button.BackgroundColor3 = Color3.fromRGB(
+            math.min(originalColor.R * 255 * 1.2, 255),
+            math.min(originalColor.G * 255 * 1.2, 255),
+            math.min(originalColor.B * 255 * 1.2, 255)
+        ) / 255
     end)
-
     button.MouseLeave:Connect(function()
-        local tween = TweenService:Create(button, TweenInfo.new(0.2), {
-            BackgroundColor3 = originalColor
-        })
-        tween:Play()
+        button.BackgroundColor3 = originalColor
     end)
 end
 
@@ -261,147 +281,83 @@ setupButtonHover(comboButton)
 setupButtonHover(cycleTeleportButton)
 setupButtonHover(factoryTeleportButton)
 setupButtonHover(theaterTeleportButton)
+setupButtonHover(espButton)
 setupButtonHover(zoomBtn)
 setupButtonHover(minimizeBtn)
 setupButtonHover(closeBtn)
 
--- 缩放功能（修复版）
+-- 缩放功能
 zoomBtn.MouseButton1Click:Connect(function()
     isZoomed = not isZoomed
-
     if isZoomed then
-        -- 放大界面，保持当前位置不变
-        local currentPos = mainFrame.Position
-        local tween = TweenService:Create(mainFrame, TweenInfo.new(0.3), {
-            Size = zoomedSize
-        })
-        tween:Play()
-
-        zoomBtn.Text = "⏺️"
-        zoomBtn.BackgroundColor3 = Color3.fromRGB(80, 140, 220)
-
-        -- 放大后更新文本大小
-        if not isMinimized then
-            comboButton.TextSize = 15
-            cycleTeleportButton.TextSize = 15
-            factoryTeleportButton.TextSize = 15
-            theaterTeleportButton.TextSize = 15
-            title.TextSize = 15
-        end
+        mainFrame:TweenSize(zoomedSize, Enum.EasingDirection.Out, Enum.EasingStyle.Quad, 0.3, true)
+        zoomBtn.Text = "⏺"
     else
-        -- 缩小到原始大小，保持当前位置不变
-        local currentPos = mainFrame.Position
-        local tween = TweenService:Create(mainFrame, TweenInfo.new(0.3), {
-            Size = originalSize
-        })
-        tween:Play()
-
-        zoomBtn.Text = "⬅️"
-        zoomBtn.BackgroundColor3 = Color3.fromRGB(60, 100, 180)
-
-        -- 恢复原始文本大小
-        if not isMinimized then
-            comboButton.TextSize = 14
-            cycleTeleportButton.TextSize = 14
-            factoryTeleportButton.TextSize = 14
-            theaterTeleportButton.TextSize = 14
-            title.TextSize = 14
-        end
+        mainFrame:TweenSize(originalSize, Enum.EasingDirection.Out, Enum.EasingStyle.Quad, 0.3, true)
+        zoomBtn.Text = "⏺️"
     end
 end)
 
--- 缩小功能（修复版）
+-- 缩小功能
 minimizeBtn.MouseButton1Click:Connect(function()
     isMinimized = not isMinimized
-
     if isMinimized then
-        -- 保存当前位置
-        originalPosition = mainFrame.Position
-        
-        -- 计算缩小后的位置（保持当前位置，但调整以适应新大小）
-        local currentPos = mainFrame.Position
-        local minimizedPos = UDim2.new(
-            currentPos.X.Scale,
-            currentPos.X.Offset,
-            currentPos.Y.Scale,
-            currentPos.Y.Offset
-        )
-        
-        -- 缩小动画，保持当前位置
-        local tween = TweenService:Create(mainFrame, TweenInfo.new(0.3), {
-            Size = minimizedSize,
-            Position = minimizedPos
-        })
-        tween:Play()
-
-        tween.Completed:Wait()  -- 等待动画完成
-
         comboButton.Visible = false
         cycleTeleportButton.Visible = false
         factoryTeleportButton.Visible = false
         theaterTeleportButton.Visible = false
+        espButton.Visible = false
         statusLabel.Visible = true
+        mainFrame:TweenSize(minimizedSize, Enum.EasingDirection.Out, Enum.EasingStyle.Quad, 0.3, true)
         minimizeBtn.Text = "+"
-        title.Text = "🎯"
-
-        if isComboActive then
-            statusLabel.Text = "killaura\n运行中"
-        else
-            statusLabel.Text = "killaura\n已关闭"
-        end
     else
-        -- 恢复显示
         comboButton.Visible = true
         cycleTeleportButton.Visible = true
         factoryTeleportButton.Visible = true
         theaterTeleportButton.Visible = true
+        espButton.Visible = true
         statusLabel.Visible = false
+        mainFrame:TweenSize(isZoomed and zoomedSize or originalSize, Enum.EasingDirection.Out, Enum.EasingStyle.Quad, 0.3, true)
         minimizeBtn.Text = "_"
-        title.Text = "killaura"
-
-        -- 恢复大小（根据当前缩放状态），保持当前位置不变
-        local currentPos = mainFrame.Position
-        local targetSize = isZoomed and zoomedSize or originalSize
-        
-        local tween = TweenService:Create(mainFrame, TweenInfo.new(0.3), {
-            Size = targetSize,
-            Position = currentPos
-        })
-        tween:Play()
     end
 end)
 
 -- 关闭功能
 closeBtn.MouseButton1Click:Connect(function()
-    -- 淡出动画
     local tween = TweenService:Create(mainFrame, TweenInfo.new(0.3), {
         BackgroundTransparency = 0.8,
         Position = mainFrame.Position + UDim2.new(0, 0, 0, -20)
     })
     tween:Play()
-
-    tween.Completed:Wait()  -- 等待动画完成
+    tween.Completed:Wait()
     screenGui:Destroy()
+    espFolder:Destroy()
     isRunning = false
 end)
 
 -- 三合一按钮功能
 comboButton.MouseButton1Click:Connect(function()
     isComboActive = not isComboActive
-
     if isComboActive then
-        comboButton.Text = "🟢 开启\n杀戮光环"
-        comboButton.BackgroundColor3 = Color3.fromRGB(60, 180, 80)
-        if isMinimized then
-            statusLabel.Text = "killaura\n运行中"
-        end
+        comboButton.BackgroundColor3 = Color3.fromRGB(60, 180, 60)
+        comboButton.Text = "killaura\n[ON]"
     else
-        comboButton.Text = "🔴 关闭\n杀戮光环"
         comboButton.BackgroundColor3 = Color3.fromRGB(180, 60, 60)
-        currentTarget = nil
-        if isMinimized then
-            statusLabel.Text = "killaura\n已关闭"
-        end
+        comboButton.Text = "killaura\n[OFF]"
+    end
+end)
+
+-- ESP按钮功能
+espButton.MouseButton1Click:Connect(function()
+    espEnabled = not espEnabled
+    if espEnabled then
+        espButton.BackgroundColor3 = Color3.fromRGB(30, 150, 70)
+        espButton.Text = "ESP透视\n[ON]"
+        createESPForAllPlayers()
+    else
+        espButton.BackgroundColor3 = Color3.fromRGB(60, 180, 100)
+        espButton.Text = "ESP透视\n[OFF]"
+        clearESP()
     end
 end)
 
@@ -411,119 +367,223 @@ local function getPlayerHealth(targetCharacter)
     if humanoid then
         return humanoid.Health
     end
-    return 100  -- 如果找不到Humanoid，默认返回100
+    return 100
 end
 
--- 获取所有有效玩家列表（忽略血量低于5的）
+-- 获取所有有效玩家列表
 local function getValidPlayers()
     local validPlayers = {}
-
-    for _, otherPlayer in ipairs(Players:GetPlayers()) do
+    for _, otherPlayer in pairs(Players:GetPlayers()) do
         if otherPlayer ~= player and otherPlayer.Character then
-            local otherRoot = otherPlayer.Character:FindFirstChild("HumanoidRootPart")
-            if otherRoot then
-                -- 检查玩家血量
-                local health = getPlayerHealth(otherPlayer.Character)
+            local humanoid = otherPlayer.Character:FindFirstChild("Humanoid")
+            if humanoid and humanoid.Health > ignoreHealthThreshold then
+                table.insert(validPlayers, otherPlayer)
+            end
+        end
+    end
+    return validPlayers
+end
 
-                -- 忽略血量低于阈值的玩家
-                if health >= ignoreHealthThreshold then
-                    table.insert(validPlayers, {
-                        Player = otherPlayer,
-                        Character = otherPlayer.Character,
-                        RootPart = otherRoot,
-                        Health = health
-                    })
+-- 获取最近玩家
+local function getNearestPlayer()
+    local character = player.Character
+    if not character then return nil end
+    
+    local validPlayers = getValidPlayers()
+    local nearestPlayer = nil
+    local nearestDistance = math.huge
+    local rootPart = character:FindFirstChild("HumanoidRootPart")
+    
+    if not rootPart then return nil end
+    
+    for _, otherPlayer in pairs(validPlayers) do
+        local otherCharacter = otherPlayer.Character
+        if otherCharacter then
+            local otherRoot = otherCharacter:FindFirstChild("HumanoidRootPart")
+            if otherRoot then
+                local distance = (rootPart.Position - otherRoot.Position).Magnitude
+                if distance < maxDistance and distance < nearestDistance then
+                    nearestDistance = distance
+                    nearestPlayer = otherPlayer
                 end
             end
         end
     end
-
-    return validPlayers
+    
+    return nearestPlayer
 end
 
--- 获取最近玩家（忽略血量低于5的）
-local function getNearestPlayer()
+-- 创建ESP显示
+local function createESP(player)
+    if espObjects[player] then
+        return
+    end
+    
     local character = player.Character
-    if not character then return nil end
+    if not character then return end
+    
+    local espTable = {}
+    
+    -- 创建高亮框
+    local highlight = Instance.new("Highlight")
+    highlight.Name = player.Name .. "_ESP"
+    highlight.Adornee = character
+    highlight.DepthMode = Enum.HighlightDepthMode.AlwaysOnTop
+    highlight.FillTransparency = 0.8
+    highlight.OutlineTransparency = 0
+    highlight.Parent = espFolder
+    
+    -- 设置颜色
+    local teamColor = espColors.enemy  -- 默认敌人红色
+    if player.Team and player.Team == player.Team then
+        teamColor = espColors.team  -- 队友绿色
+    end
+    
+    highlight.FillColor = teamColor
+    highlight.OutlineColor = teamColor
+    
+    -- 创建距离文本
+    local distanceText = Instance.new("BillboardGui")
+    distanceText.Name = player.Name .. "_Distance"
+    distanceText.Adornee = character:FindFirstChild("Head") or character:FindFirstChild("HumanoidRootPart")
+    distanceText.Size = UDim2.new(0, 200, 0, 50)
+    distanceText.StudsOffset = Vector3.new(0, 3, 0)
+    distanceText.AlwaysOnTop = true
+    distanceText.Enabled = true
+    distanceText.Parent = espFolder
+    
+    local textLabel = Instance.new("TextLabel")
+    textLabel.Size = UDim2.new(1, 0, 1, 0)
+    textLabel.BackgroundTransparency = 1
+    textLabel.TextColor3 = teamColor
+    textLabel.TextStrokeTransparency = 0.5
+    textLabel.TextStrokeColor3 = Color3.fromRGB(0, 0, 0)
+    textLabel.Font = Enum.Font.SourceSansBold
+    textLabel.TextSize = 18
+    textLabel.Text = player.Name
+    textLabel.Parent = distanceText
+    
+    espTable.highlight = highlight
+    espTable.distanceText = distanceText
+    espTable.textLabel = textLabel
+    espObjects[player] = espTable
+    
+    -- 玩家角色变化时更新
+    player.CharacterAdded:Connect(function(newChar)
+        task.wait(0.5)
+        if espEnabled and espObjects[player] then
+            espObjects[player].highlight.Adornee = newChar
+            local adornment = newChar:FindFirstChild("Head") or newChar:FindFirstChild("HumanoidRootPart")
+            if adornment then
+                espObjects[player].distanceText.Adornee = adornment
+            end
+        end
+    end)
+end
 
-    local rootPart = character:FindFirstChild("HumanoidRootPart")
-    if not rootPart then return nil end
-
-    local myPos = rootPart.Position
-    local nearestPlayer = nil
-    local nearestDistance = maxDistance
-
-    local validPlayers = getValidPlayers()
-
-    for _, targetInfo in ipairs(validPlayers) do
-        local distance = (targetInfo.RootPart.Position - myPos).Magnitude
-        if distance <= nearestDistance then
-            nearestDistance = distance
-            nearestPlayer = {
-                Player = targetInfo.Player,
-                Character = targetInfo.Character,
-                Distance = distance,
-                Position = targetInfo.RootPart.Position,
-                Health = targetInfo.Health
-            }
+-- 为所有玩家创建ESP
+local function createESPForAllPlayers()
+    clearESP()
+    
+    for _, otherPlayer in pairs(Players:GetPlayers()) do
+        if otherPlayer ~= player then
+            if otherPlayer.Character then
+                createESP(otherPlayer)
+            end
+            otherPlayer.CharacterAdded:Connect(function()
+                if espEnabled then
+                    task.wait(0.5)
+                    createESP(otherPlayer)
+                end
+            end)
         end
     end
+end
 
-    return nearestPlayer
+-- 清除ESP
+local function clearESP()
+    for playerName, espTable in pairs(espObjects) do
+        if espTable.highlight then
+            espTable.highlight:Destroy()
+        end
+        if espTable.distanceText then
+            espTable.distanceText:Destroy()
+        end
+    end
+    espObjects = {}
+end
+
+-- 更新ESP距离
+local function updateESP()
+    if not espEnabled then return end
+    
+    local character = player.Character
+    if not character then return end
+    
+    local rootPart = character:FindFirstChild("HumanoidRootPart")
+    if not rootPart then return end
+    
+    for otherPlayer, espTable in pairs(espObjects) do
+        if otherPlayer and otherPlayer.Character then
+            local otherRoot = otherPlayer.Character:FindFirstChild("HumanoidRootPart")
+            if otherRoot and espTable.textLabel then
+                local distance = (rootPart.Position - otherRoot.Position).Magnitude
+                local health = getPlayerHealth(otherPlayer.Character)
+                
+                -- 更新文本显示
+                espTable.textLabel.Text = string.format("%s\n%d HP | %dm", 
+                    otherPlayer.Name, 
+                    math.floor(health), 
+                    math.floor(distance))
+                
+                -- 根据距离调整颜色
+                if distance < 20 then
+                    espTable.textLabel.TextColor3 = Color3.fromRGB(255, 0, 0)
+                elseif distance < 50 then
+                    espTable.textLabel.TextColor3 = Color3.fromRGB(255, 165, 0)
+                else
+                    espTable.textLabel.TextColor3 = espTable.textLabel.TextColor3
+                end
+            end
+        end
+    end
 end
 
 -- 执行轮流传送
 local function performCycleTeleport()
     local character = player.Character
     if not character then return end
-
-    local humanoidRootPart = character:FindFirstChild("HumanoidRootPart")
-    if not humanoidRootPart then return end
-
-    -- 获取有效玩家列表
+    
+    local rootPart = character:FindFirstChild("HumanoidRootPart")
+    if not rootPart then return end
+    
     local validPlayers = getValidPlayers()
-
     if #validPlayers == 0 then
-        if isMinimized then
-            statusLabel.Text = "无有效玩家"
-        else
-            cycleTeleportButton.Text = "无有效玩家"
-            -- 3秒后恢复原文本
-            task.wait(3)
-            cycleTeleportButton.Text = "轮流传送\n下一个玩家"
-        end
+        cycleTeleportButton.Text = "无有效玩家"
+        task.wait(1)
+        cycleTeleportButton.Text = "轮流传送\n下一个玩家"
         return
     end
-
-    -- 确保索引在有效范围内
+    
+    local targetPlayer = validPlayers[cycleTeleportIndex]
+    if targetPlayer and targetPlayer.Character then
+        local targetRoot = targetPlayer.Character:FindFirstChild("HumanoidRootPart")
+        if targetRoot then
+            rootPart.CFrame = CFrame.new(
+                targetRoot.Position.X,
+                targetRoot.Position.Y + teleportHeight,
+                targetRoot.Position.Z
+            )
+            
+            cycleTeleportButton.Text = "传送至: " .. string.sub(targetPlayer.Name, 1, 8)
+            task.wait(1)
+            cycleTeleportButton.Text = "轮流传送\n下一个玩家"
+        end
+    end
+    
+    cycleTeleportIndex = cycleTeleportIndex + 1
     if cycleTeleportIndex > #validPlayers then
         cycleTeleportIndex = 1
-    end
-
-    local targetInfo = validPlayers[cycleTeleportIndex]
-
-    if targetInfo and targetInfo.RootPart then
-        -- 传送到目标位置
-        local teleportPos = targetInfo.RootPart.Position + Vector3.new(0, teleportHeight * 4, 0)
-        humanoidRootPart.CFrame = CFrame.new(teleportPos)
-
-        -- 更新按钮显示
-        if not isMinimized then
-            cycleTeleportButton.Text = string.format("传送至\n%s", targetInfo.Player.Name)
-        end
-
-        -- 更新索引到下一个玩家
-        cycleTeleportIndex = cycleTeleportIndex + 1
-        if cycleTeleportIndex > #validPlayers then
-            cycleTeleportIndex = 1
-        end
-
-        -- 如果处于缩小模式，更新状态
-        if isMinimized then
-            statusLabel.Text = string.format("传送至\n%s", targetInfo.Player.Name)
-        end
-
-        return targetInfo
     end
 end
 
@@ -531,126 +591,90 @@ end
 local function performFactoryTeleport()
     local character = player.Character
     if not character then return end
-
-    local humanoidRootPart = character:FindFirstChild("HumanoidRootPart")
-    if not humanoidRootPart then return end
-
-    -- 获取当前位置
-    local currentLocation = factoryLocations[factoryTeleportIndex]
-
-    if currentLocation then
-        -- 传送到指定位置
-        local teleportPos = Vector3.new(
-            currentLocation.X,
-            currentLocation.Y,
-            currentLocation.Z
-        )
-        humanoidRootPart.CFrame = CFrame.new(teleportPos)
-
-        -- 更新按钮显示当前位置
-        factoryTeleportButton.Text = string.format("工厂传送\n%d/%d", 
-            factoryTeleportIndex, #factoryLocations)
-
-        -- 更新索引到下一个位置
-        factoryTeleportIndex = factoryTeleportIndex + 1
-        if factoryTeleportIndex > #factoryLocations then
-            factoryTeleportIndex = 1
-        end
-
-        return true
+    
+    local rootPart = character:FindFirstChild("HumanoidRootPart")
+    if not rootPart then return end
+    
+    local location = factoryLocations[factoryTeleportIndex]
+    if location then
+        rootPart.CFrame = CFrame.new(location.X, location.Y, location.Z)
+        
+        factoryTeleportButton.Text = string.format("工厂传送 %d/%d", factoryTeleportIndex, #factoryLocations)
+        task.wait(1)
+        factoryTeleportButton.Text = "工厂自动管道"
     end
-
-    return false
+    
+    factoryTeleportIndex = factoryTeleportIndex + 1
+    if factoryTeleportIndex > #factoryLocations then
+        factoryTeleportIndex = 1
+    end
 end
 
 -- 执行剧院传送
 local function performTheaterTeleport()
     local character = player.Character
     if not character then return end
-
-    local humanoidRootPart = character:FindFirstChild("HumanoidRootPart")
-    if not humanoidRootPart then return end
-
-    -- 获取当前位置
-    local currentLocation = theaterLocations[theaterTeleportIndex]
-
-    if currentLocation then
-        -- 传送到指定位置
-        local teleportPos = Vector3.new(
-            currentLocation.X,
-            currentLocation.Y,
-            currentLocation.Z
-        )
-        humanoidRootPart.CFrame = CFrame.new(teleportPos)
-
-        -- 更新按钮显示当前位置
-        theaterTeleportButton.Text = string.format("剧院传送\n%d/%d", 
-            theaterTeleportIndex, #theaterLocations)
-
-        -- 更新索引到下一个位置
-        theaterTeleportIndex = theaterTeleportIndex + 1
-        if theaterTeleportIndex > #theaterLocations then
-            theaterTeleportIndex = 1
-        end
-
-        return true
+    
+    local rootPart = character:FindFirstChild("HumanoidRootPart")
+    if not rootPart then return end
+    
+    local location = theaterLocations[theaterTeleportIndex]
+    if location then
+        rootPart.CFrame = CFrame.new(location.X, location.Y, location.Z)
+        
+        theaterTeleportButton.Text = string.format("剧院传送 %d/%d", theaterTeleportIndex, #theaterLocations)
+        task.wait(1)
+        theaterTeleportButton.Text = "剧院自动管道"
     end
-
-    return false
+    
+    theaterTeleportIndex = theaterTeleportIndex + 1
+    if theaterTeleportIndex > #theaterLocations then
+        theaterTeleportIndex = 1
+    end
 end
 
 -- 执行三合一功能
 local function performCombo()
     if not isComboActive then return false end
-
-    local target = getNearestPlayer()
-    currentTarget = target
-
-    if target then
-        -- 显示目标血量（仅限缩小模式）
-        if isMinimized then
-            statusLabel.Text = string.format("killaura\n%s HP:%.0f", 
-                target.Player.Name, target.Health)
-        end
-
-        -- 1. 自瞄（瞄准头部）
-        local head = target.Character:FindFirstChild("Head")
-        local aimPosition = head and head.Position or target.Position
-
-        local cameraCFrame = camera.CFrame
-        local targetDirection = (aimPosition - cameraCFrame.Position).Unit
-        local currentLook = cameraCFrame.LookVector
-        local smoothedDirection = currentLook:Lerp(targetDirection, 0.5)
-        camera.CFrame = CFrame.new(cameraCFrame.Position, cameraCFrame.Position + smoothedDirection)
-
-        -- 2. 传送（到目标位置，高度为0）
-        local character = player.Character
-        if character then
-            local humanoidRootPart = character:FindFirstChild("HumanoidRootPart")
-            if humanoidRootPart then
-                local teleportPos = target.Position + Vector3.new(0, teleportHeight * 4, 0)
-                humanoidRootPart.CFrame = CFrame.new(teleportPos)
-            end
-        end
-
-        -- 3. 攻击（自动左键）
-        local currentTime = tick()
-        if currentTime - lastAttackTime >= (1 / attackRate) then
-            pcall(function()
-                VirtualInputManager:SendMouseButtonEvent(0, 0, 0, true, game, 1)
-                task.wait(0.05)
-                VirtualInputManager:SendMouseButtonEvent(0, 0, 0, false, game, 1)
-            end)
-            lastAttackTime = currentTime
-        end
-
-        return true
-    else
-        if isMinimized then
-            statusLabel.Text = "killaura\n无有效目标"
-        end
-        return false
+    
+    local character = player.Character
+    if not character then return false end
+    
+    local rootPart = character:FindFirstChild("HumanoidRootPart")
+    if not rootPart then return false end
+    
+    local nearestPlayer = getNearestPlayer()
+    if not nearestPlayer then return false end
+    
+    local targetCharacter = nearestPlayer.Character
+    if not targetCharacter then return false end
+    
+    local targetRoot = targetCharacter:FindFirstChild("HumanoidRootPart")
+    if not targetRoot then return false end
+    
+    -- 1. 传送
+    rootPart.CFrame = CFrame.new(
+        targetRoot.Position.X,
+        targetRoot.Position.Y + teleportHeight,
+        targetRoot.Position.Z
+    )
+    
+    -- 2. 自瞄
+    camera.CFrame = CFrame.lookAt(camera.CFrame.Position, targetRoot.Position)
+    
+    -- 3. 攻击
+    local currentTime = tick()
+    if currentTime - lastAttackTime >= (1 / attackRate) then
+        VirtualInputManager:SendMouseButtonEvent(0, 0, 0, true, game, 0)
+        task.wait(0.05)
+        VirtualInputManager:SendMouseButtonEvent(0, 0, 0, false, game, 0)
+        lastAttackTime = currentTime
     end
+    
+    currentTarget = nearestPlayer
+    comboButton.Text = "killaura\n锁定: " .. string.sub(nearestPlayer.Name, 1, 8)
+    
+    return true
 end
 
 -- 按钮点击事件
@@ -669,148 +693,64 @@ end)
 -- 主循环
 RunService.Heartbeat:Connect(function()
     if not isRunning then return end
+    
+    -- 更新ESP
+    updateESP()
+    
+    -- 执行三合一功能
     performCombo()
 end)
 
--- 快捷键（修复版）
+-- 快捷键
 UserInputService.InputBegan:Connect(function(input, gameProcessed)
     if gameProcessed then return end
-
-    -- 空格键：开关三合一
-    if input.KeyCode == Enum.KeyCode.Space then
+    
+    if input.KeyCode == Enum.KeyCode.RightControl then
         isComboActive = not isComboActive
-
         if isComboActive then
-            comboButton.Text = "🟢 开启\n杀戮光环"
-            comboButton.BackgroundColor3 = Color3.fromRGB(60, 180, 80)
-            if isMinimized then
-                statusLabel.Text = "killaura\n运行中"
-            end
+            comboButton.BackgroundColor3 = Color3.fromRGB(60, 180, 60)
+            comboButton.Text = "killaura\n[ON]"
         else
-            comboButton.Text = "🔴 关闭\n杀戮光环"
             comboButton.BackgroundColor3 = Color3.fromRGB(180, 60, 60)
-            currentTarget = nil
-            if isMinimized then
-                statusLabel.Text = "killaura\n已关闭"
-            end
+            comboButton.Text = "killaura\n[OFF]"
         end
-    end
-
-    -- T键：触发轮流传送
-    if input.KeyCode == Enum.KeyCode.T then
-        performCycleTeleport()
-    end
-
-    -- F键：触发工厂传送
-    if input.KeyCode == Enum.KeyCode.F then
-        performFactoryTeleport()
-    end
-
-    -- V键：触发剧院传送
-    if input.KeyCode == Enum.KeyCode.V then
-        performTheaterTeleport()
-    end
-
-    -- M键：缩小/放大（修复版）
-    if input.KeyCode == Enum.KeyCode.M then
-        isMinimized = not isMinimized
-
-        if isMinimized then
-            -- 保存当前位置
-            originalPosition = mainFrame.Position
-            
-            local currentPos = mainFrame.Position
-            local tween = TweenService:Create(mainFrame, TweenInfo.new(0.3), {
-                Size = minimizedSize,
-                Position = currentPos
-            })
-            tween:Play()
-
-            tween.Completed:Wait()
-
-            comboButton.Visible = false
-            cycleTeleportButton.Visible = false
-            factoryTeleportButton.Visible = false
-            theaterTeleportButton.Visible = false
-            statusLabel.Visible = true
-            minimizeBtn.Text = "+"
-            title.Text = "渔炒鱼"
-
-            if isComboActive then
-                statusLabel.Text = "killaura\n运行中"
-            else
-                statusLabel.Text = "killaura\n已关闭"
-            end
+    elseif input.KeyCode == Enum.KeyCode.Insert then
+        espEnabled = not espEnabled
+        if espEnabled then
+            espButton.BackgroundColor3 = Color3.fromRGB(30, 150, 70)
+            espButton.Text = "ESP透视\n[ON]"
+            createESPForAllPlayers()
         else
-            comboButton.Visible = true
-            cycleTeleportButton.Visible = true
-            factoryTeleportButton.Visible = true
-            theaterTeleportButton.Visible = true
-            statusLabel.Visible = false
-            minimizeBtn.Text = "_"
-            title.Text = "killaura"
-
-            -- 恢复大小（根据当前缩放状态），保持当前位置
-            local currentPos = mainFrame.Position
-            local targetSize = isZoomed and zoomedSize or originalSize
-            
-            local tween = TweenService:Create(mainFrame, TweenInfo.new(0.3), {
-                Size = targetSize,
-                Position = currentPos
-            })
-            tween:Play()
-        end
-    end
-
-    -- Z键：触发缩放（修复版）
-    if input.KeyCode == Enum.KeyCode.Z then
-        isZoomed = not isZoomed
-
-        if isZoomed then
-            -- 放大界面，保持当前位置
-            local currentPos = mainFrame.Position
-            local tween = TweenService:Create(mainFrame, TweenInfo.new(0.3), {
-                Size = zoomedSize,
-                Position = currentPos
-            })
-            tween:Play()
-
-            zoomBtn.Text = "▶️"
-            zoomBtn.BackgroundColor3 = Color3.fromRGB(80, 140, 220)
-
-            -- 放大后更新文本大小
-            if not isMinimized then
-                comboButton.TextSize = 15
-                cycleTeleportButton.TextSize = 15
-                factoryTeleportButton.TextSize = 15
-                theaterTeleportButton.TextSize = 15
-                title.TextSize = 15
-            end
-        else
-            -- 缩小到原始大小，保持当前位置
-            local currentPos = mainFrame.Position
-            local tween = TweenService:Create(mainFrame, TweenInfo.new(0.3), {
-                Size = originalSize,
-                Position = currentPos
-            })
-            tween:Play()
-
-            zoomBtn.Text = "⏸️"
-            zoomBtn.BackgroundColor3 = Color3.fromRGB(60, 100, 180)
-
-            -- 恢复原始文本大小
-            if not isMinimized then
-                comboButton.TextSize = 14
-                cycleTeleportButton.TextSize = 14
-                factoryTeleportButton.TextSize = 14
-                theaterTeleportButton.TextSize = 14
-                title.TextSize = 14
-            end
+            espButton.BackgroundColor3 = Color3.fromRGB(60, 180, 100)
+            espButton.Text = "ESP透视\n[OFF]"
+            clearESP()
         end
     end
 end)
 
--- 初始淡入动画（修复版）
+-- 玩家加入和离开时更新ESP
+Players.PlayerAdded:Connect(function(newPlayer)
+    if espEnabled then
+        newPlayer.CharacterAdded:Connect(function()
+            task.wait(0.5)
+            createESP(newPlayer)
+        end)
+    end
+end)
+
+Players.PlayerRemoving:Connect(function(leavingPlayer)
+    if espObjects[leavingPlayer] then
+        if espObjects[leavingPlayer].highlight then
+            espObjects[leavingPlayer].highlight:Destroy()
+        end
+        if espObjects[leavingPlayer].distanceText then
+            espObjects[leavingPlayer].distanceText:Destroy()
+        end
+        espObjects[leavingPlayer] = nil
+    end
+end)
+
+-- 初始淡入动画
 mainFrame.BackgroundTransparency = 1
 mainFrame.Position = originalPosition + UDim2.new(0, 0, 0, -30)
 
@@ -822,20 +762,344 @@ local fadeInTween = TweenService:Create(mainFrame, TweenInfo.new(0.5), {
 })
 fadeInTween:Play()
 
-print("=== killaura脚本已加载 ===")
-print("工厂传送点:")
-for i, loc in ipairs(factoryLocations) do
-    print(string.format("  %d. X:%.2f, Y:%.2f, Z:%.2f", i, loc.X, loc.Y, loc.Z))
-end
-print("剧院传送点:")
-for i, loc in ipairs(theaterLocations) do
-    print(string.format("  %d. X:%.2f, Y:%.2f, Z=%.2f", i, loc.X, loc.Y, loc.Z))
-end
-
 game:GetService("StarterGui"):SetCore("SendNotification", {
     Title = "Cheating",
-    Text = "成功入侵PB",
+    Text = "成功加载ESP功能",
     Icon = "rbxassetid://14550088217",
     Duration = 8,
+    Position = UDim2.new(0, 20, 1, -50)
+})
+-- ==================== 添加ESP功能 ====================
+-- 在现有脚本的最后添加以下代码
+
+-- ESP变量
+local espEnabled = false
+local espFolder = Instance.new("Folder")
+espFolder.Name = "ESP"
+espFolder.Parent = game.CoreGui
+
+-- 颜色定义
+local espColors = {
+    team = Color3.fromRGB(0, 255, 0),      -- 队友绿色
+    enemy = Color3.fromRGB(255, 0, 0),     -- 敌人红色
+    neutral = Color3.fromRGB(255, 255, 0)  -- 中立黄色
+}
+
+-- ESP存储表
+local espObjects = {}
+
+-- 创建ESP按钮（添加到现有按钮下方）
+local espButton = Instance.new("TextButton")
+espButton.Name = "ESPButton"
+espButton.Size = UDim2.new(1, -10, 0, 40)
+espButton.Position = UDim2.new(0, 5, 0, 210)  -- 调整这个位置让它显示在正确位置
+espButton.Text = "ESP透视\n[OFF]"
+espButton.BackgroundColor3 = Color3.fromRGB(60, 180, 100)  -- 绿色
+espButton.TextColor3 = Color3.fromRGB(255, 255, 255)
+espButton.Font = Enum.Font.SourceSansSemibold
+espButton.TextSize = 14
+espButton.TextWrapped = true
+espButton.AutoButtonColor = false
+espButton.Parent = mainFrame
+
+-- 添加圆角
+local espCorner = Instance.new("UICorner")
+espCorner.CornerRadius = UDim.new(0, 5)
+espCorner.Parent = espButton
+
+-- 调整mainFrame大小以适应新按钮（如果之前大小不够）
+mainFrame.Size = UDim2.new(0, 120, 0, 255)
+
+-- 更新缩小和放大的尺寸
+minimizedSize = UDim2.new(0, 80, 0, 40)
+zoomedSize = UDim2.new(0, 140, 0, 270)
+
+-- 为ESP按钮添加悬停效果
+local function setupESPButtonHover(button)
+    local originalColor = button.BackgroundColor3
+    button.MouseEnter:Connect(function()
+        button.BackgroundColor3 = Color3.fromRGB(
+            math.min(originalColor.R * 255 * 1.2, 255),
+            math.min(originalColor.G * 255 * 1.2, 255),
+            math.min(originalColor.B * 255 * 1.2, 255)
+        ) / 255
+    end)
+    button.MouseLeave:Connect(function()
+        button.BackgroundColor3 = originalColor
+    end)
+end
+
+setupESPButtonHover(espButton)
+
+-- 创建ESP显示
+local function createESP(player)
+    if espObjects[player] then
+        return
+    end
+    
+    local character = player.Character
+    if not character then return end
+    
+    -- 等待角色完全加载
+    task.wait(0.5)
+    
+    local espTable = {}
+    
+    -- 创建高亮框
+    local highlight = Instance.new("Highlight")
+    highlight.Name = player.Name .. "_ESP"
+    highlight.Adornee = character
+    highlight.DepthMode = Enum.HighlightDepthMode.AlwaysOnTop
+    highlight.FillTransparency = 0.85
+    highlight.OutlineTransparency = 0.1
+    highlight.FillColor = Color3.fromRGB(255, 0, 0)  -- 红色
+    highlight.OutlineColor = Color3.fromRGB(255, 255, 255)  -- 白色边框
+    highlight.Parent = espFolder
+    
+    -- 创建距离文本
+    local distanceText = Instance.new("BillboardGui")
+    distanceText.Name = player.Name .. "_Distance"
+    local adornment = character:FindFirstChild("Head") or character:FindFirstChild("HumanoidRootPart")
+    if adornment then
+        distanceText.Adornee = adornment
+    end
+    distanceText.Size = UDim2.new(0, 200, 0, 50)
+    distanceText.StudsOffset = Vector3.new(0, 3.5, 0)
+    distanceText.AlwaysOnTop = true
+    distanceText.Enabled = true
+    distanceText.Parent = espFolder
+    
+    local textLabel = Instance.new("TextLabel")
+    textLabel.Size = UDim2.new(1, 0, 1, 0)
+    textLabel.BackgroundTransparency = 1
+    textLabel.TextColor3 = Color3.fromRGB(255, 255, 255)  -- 白色文字
+    textLabel.TextStrokeTransparency = 0.3
+    textLabel.TextStrokeColor3 = Color3.fromRGB(0, 0, 0)
+    textLabel.Font = Enum.Font.SourceSansBold
+    textLabel.TextSize = 16
+    textLabel.Text = player.Name
+    textLabel.Parent = distanceText
+    
+    espTable.highlight = highlight
+    espTable.distanceText = distanceText
+    espTable.textLabel = textLabel
+    espObjects[player] = espTable
+    
+    -- 玩家角色变化时更新
+    player.CharacterAdded:Connect(function(newChar)
+        task.wait(0.5)
+        if espEnabled and espObjects[player] then
+            espObjects[player].highlight.Adornee = newChar
+            local newAdornment = newChar:FindFirstChild("Head") or newChar:FindFirstChild("HumanoidRootPart")
+            if newAdornment then
+                espObjects[player].distanceText.Adornee = newAdornment
+            end
+        end
+    end)
+end
+
+-- 为所有玩家创建ESP
+local function createESPForAllPlayers()
+    -- 先清除旧的ESP
+    for playerName, espTable in pairs(espObjects) do
+        if espTable.highlight then
+            espTable.highlight:Destroy()
+        end
+        if espTable.distanceText then
+            espTable.distanceText:Destroy()
+        end
+    end
+    espObjects = {}
+    
+    -- 为新玩家创建ESP
+    for _, otherPlayer in pairs(Players:GetPlayers()) do
+        if otherPlayer ~= player then
+            if otherPlayer.Character then
+                createESP(otherPlayer)
+            end
+            otherPlayer.CharacterAdded:Connect(function()
+                if espEnabled then
+                    createESP(otherPlayer)
+                end
+            end)
+        end
+    end
+end
+
+-- 清除ESP
+local function clearESP()
+    for playerName, espTable in pairs(espObjects) do
+        if espTable.highlight then
+            espTable.highlight:Destroy()
+        end
+        if espTable.distanceText then
+            espTable.distanceText:Destroy()
+        end
+    end
+    espObjects = {}
+end
+
+-- 更新ESP距离
+local function updateESP()
+    if not espEnabled then return end
+    
+    local character = player.Character
+    if not character then return end
+    
+    local rootPart = character:FindFirstChild("HumanoidRootPart")
+    if not rootPart then return end
+    
+    for otherPlayer, espTable in pairs(espObjects) do
+        if otherPlayer and otherPlayer.Character and espTable.textLabel then
+            local otherRoot = otherPlayer.Character:FindFirstChild("HumanoidRootPart")
+            if otherRoot then
+                local distance = (rootPart.Position - otherRoot.Position).Magnitude
+                local health = 100
+                local humanoid = otherPlayer.Character:FindFirstChild("Humanoid")
+                if humanoid then
+                    health = math.floor(humanoid.Health)
+                end
+                
+                -- 更新文本显示
+                espTable.textLabel.Text = string.format("%s\n%d HP | %dm", 
+                    otherPlayer.Name, 
+                    health, 
+                    math.floor(distance))
+                
+                -- 根据血量调整颜色
+                if health < 30 then
+                    espTable.highlight.FillColor = Color3.fromRGB(255, 255, 0)  -- 黄色
+                    espTable.highlight.OutlineColor = Color3.fromRGB(255, 255, 0)
+                elseif health < 60 then
+                    espTable.highlight.FillColor = Color3.fromRGB(255, 165, 0)  -- 橙色
+                    espTable.highlight.OutlineColor = Color3.fromRGB(255, 165, 0)
+                else
+                    espTable.highlight.FillColor = Color3.fromRGB(255, 0, 0)    -- 红色
+                    espTable.highlight.OutlineColor = Color3.fromRGB(255, 255, 255)
+                end
+            end
+        end
+    end
+end
+
+-- ESP按钮点击事件
+espButton.MouseButton1Click:Connect(function()
+    espEnabled = not espEnabled
+    if espEnabled then
+        espButton.BackgroundColor3 = Color3.fromRGB(30, 150, 70)  -- 深绿色
+        espButton.Text = "ESP透视\n[ON]"
+        createESPForAllPlayers()
+        print("ESP功能已启用")
+    else
+        espButton.BackgroundColor3 = Color3.fromRGB(60, 180, 100)  -- 亮绿色
+        espButton.Text = "ESP透视\n[OFF]"
+        clearESP()
+        print("ESP功能已禁用")
+    end
+end)
+
+-- 更新主循环以包含ESP更新
+local originalHeartbeat = RunService.Heartbeat:Connect(function() end) -- 保存原始连接
+originalHeartbeat:Disconnect() -- 断开原始连接
+
+-- 重新连接主循环（包含ESP更新）
+RunService.Heartbeat:Connect(function()
+    if not isRunning then return end
+    
+    -- 更新ESP
+    updateESP()
+    
+    -- 原有的三合一功能
+    if not isComboActive then return end
+    
+    local character = player.Character
+    if not character then return end
+    
+    local rootPart = character:FindFirstChild("HumanoidRootPart")
+    if not rootPart then return end
+    
+    local nearestPlayer = getNearestPlayer()
+    if not nearestPlayer then 
+        comboButton.Text = "killaura\n无目标"
+        return 
+    end
+    
+    local targetCharacter = nearestPlayer.Character
+    if not targetCharacter then return end
+    
+    local targetRoot = targetCharacter:FindFirstChild("HumanoidRootPart")
+    if not targetRoot then return end
+    
+    -- 1. 传送
+    rootPart.CFrame = CFrame.new(
+        targetRoot.Position.X,
+        targetRoot.Position.Y + teleportHeight,
+        targetRoot.Position.Z
+    )
+    
+    -- 2. 自瞄
+    camera.CFrame = CFrame.lookAt(camera.CFrame.Position, targetRoot.Position)
+    
+    -- 3. 攻击
+    local currentTime = tick()
+    if currentTime - lastAttackTime >= (1 / attackRate) then
+        VirtualInputManager:SendMouseButtonEvent(0, 0, 0, true, game, 0)
+        task.wait(0.05)
+        VirtualInputManager:SendMouseButtonEvent(0, 0, 0, false, game, 0)
+        lastAttackTime = currentTime
+    end
+    
+    currentTarget = nearestPlayer
+    comboButton.Text = "killaura\n锁定: " .. string.sub(nearestPlayer.Name, 1, 8)
+end)
+
+-- 玩家加入和离开时更新ESP
+Players.PlayerAdded:Connect(function(newPlayer)
+    if espEnabled then
+        newPlayer.CharacterAdded:Connect(function()
+            task.wait(0.5)
+            createESP(newPlayer)
+        end)
+    end
+end)
+
+Players.PlayerRemoving:Connect(function(leavingPlayer)
+    if espObjects[leavingPlayer] then
+        if espObjects[leavingPlayer].highlight then
+            espObjects[leavingPlayer].highlight:Destroy()
+        end
+        if espObjects[leavingPlayer].distanceText then
+            espObjects[leavingPlayer].distanceText:Destroy()
+        end
+        espObjects[leavingPlayer] = nil
+    end
+end)
+
+-- 添加快捷键支持（Insert键开关ESP）
+UserInputService.InputBegan:Connect(function(input, gameProcessed)
+    if gameProcessed then return end
+    
+    if input.KeyCode == Enum.KeyCode.Insert then
+        espEnabled = not espEnabled
+        if espEnabled then
+            espButton.BackgroundColor3 = Color3.fromRGB(30, 150, 70)
+            espButton.Text = "ESP透视\n[ON]"
+            createESPForAllPlayers()
+            print("Insert键：ESP功能已启用")
+        else
+            espButton.BackgroundColor3 = Color3.fromRGB(60, 180, 100)
+            espButton.Text = "ESP透视\n[OFF]"
+            clearESP()
+            print("Insert键：ESP功能已禁用")
+        end
+    end
+end)
+
+
+game:GetService("StarterGui"):SetCore("SendNotification", {
+    Title = "ESP功能",
+    Text = "ESP透视已成功加载！按Insert键开关",
+    Icon = "rbxassetid://14550088217",
+    Duration = 5,
     Position = UDim2.new(0, 20, 1, -50)
 })
