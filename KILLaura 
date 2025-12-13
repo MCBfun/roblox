@@ -1108,8 +1108,8 @@ end)
 
 
 game:GetService("StarterGui"):SetCore("SendNotification", {
-    Title = "ESP功能",
-    Text = "ESP透视已成功加载！按Insert键开关",
+    Title = "Green Monster",
+    Text = "已入侵服务器",
     Icon = "rbxassetid://14550088217",
     Duration = 5,
     Position = UDim2.new(0, 20, 1, -50)
