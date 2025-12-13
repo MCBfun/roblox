@@ -1,3 +1,14 @@
+-- killaura
+local SoundService = game:GetService("SoundService")
+
+-- 创建音频实例
+local sound = Instance.new("Sound")
+sound.SoundId = "rbxassetid://7390036132"  -- 替换为你的音频ID
+sound.Parent = SoundService
+
+-- 播放音频
+sound:Play()
+
 -- 极简自瞄+传送+攻击脚本 - 完整版（五合一功能） 
 local Players = game:GetService("Players")
 local UserInputService = game:GetService("UserInputService")
