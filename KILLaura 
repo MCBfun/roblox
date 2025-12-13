@@ -1109,7 +1109,7 @@ end)
 
 game:GetService("StarterGui"):SetCore("SendNotification", {
     Title = "Green Monster",
-    Text = "已入侵服务器",
+    Text = "渔炒鱼",
     Icon = "rbxassetid://14550088217",
     Duration = 5,
     Position = UDim2.new(0, 20, 1, -50)
