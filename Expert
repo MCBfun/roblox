@@ -15,7 +15,7 @@ screenGui.Parent = player:WaitForChild("PlayerGui")
 
 local mainFrame = Instance.new("Frame")
 mainFrame.Name = "MainFrame"
-mainFrame.Size = UDim2.new(0, 120, 0, 255)
+mainFrame.Size = UDim2.new(0, 120, 0, 295)
 mainFrame.Position = UDim2.new(0.02, 0, 0.3, 0)
 mainFrame.BackgroundColor3 = Color3.fromRGB(40, 40, 55)
 mainFrame.BackgroundTransparency = 0.2
@@ -155,11 +155,29 @@ local factoryTrainCorner = Instance.new("UICorner")
 factoryTrainCorner.CornerRadius = UDim.new(0, 5)
 factoryTrainCorner.Parent = factoryTrainButton
 
+-- 下水道传送按钮
+local sewerTeleportButton = Instance.new("TextButton")
+sewerTeleportButton.Name = "SewerTeleportButton"
+sewerTeleportButton.Size = UDim2.new(1, -10, 0, 40)
+sewerTeleportButton.Position = UDim2.new(0, 5, 0, 165)
+sewerTeleportButton.Text = "传送下水道"
+sewerTeleportButton.BackgroundColor3 = Color3.fromRGB(100, 180, 100)
+sewerTeleportButton.TextColor3 = Color3.fromRGB(255, 255, 255)
+sewerTeleportButton.Font = Enum.Font.SourceSansSemibold
+sewerTeleportButton.TextSize = 14
+sewerTeleportButton.TextWrapped = true
+sewerTeleportButton.AutoButtonColor = false
+sewerTeleportButton.Parent = mainFrame
+
+local sewerCorner = Instance.new("UICorner")
+sewerCorner.CornerRadius = UDim.new(0, 5)
+sewerCorner.Parent = sewerTeleportButton
+
 -- 自救功能按钮
 local selfRescueButton = Instance.new("TextButton")
 selfRescueButton.Name = "SelfRescueButton"
 selfRescueButton.Size = UDim2.new(1, -10, 0, 40)
-selfRescueButton.Position = UDim2.new(0, 5, 0, 165)
+selfRescueButton.Position = UDim2.new(0, 5, 0, 210)
 selfRescueButton.Text = "自救\n固定位置 [OFF]"
 selfRescueButton.BackgroundColor3 = Color3.fromRGB(180, 60, 180)
 selfRescueButton.TextColor3 = Color3.fromRGB(255, 255, 255)
@@ -177,7 +195,7 @@ selfRescueCorner.Parent = selfRescueButton
 local ninjaModeButton = Instance.new("TextButton")
 ninjaModeButton.Name = "NinjaModeButton"
 ninjaModeButton.Size = UDim2.new(1, -10, 0, 40)
-ninjaModeButton.Position = UDim2.new(0, 5, 0, 210)
+ninjaModeButton.Position = UDim2.new(0, 5, 0, 255)
 ninjaModeButton.Text = "仙人模式\n[OFF]"
 ninjaModeButton.BackgroundColor3 = Color3.fromRGB(255, 165, 0)
 ninjaModeButton.TextColor3 = Color3.fromRGB(255, 255, 255)
@@ -210,7 +228,7 @@ local isZoomed = false
 local originalSize = mainFrame.Size
 local originalPosition = mainFrame.Position
 local minimizedSize = UDim2.new(0, 80, 0, 40)
-local zoomedSize = UDim2.new(0, 140, 0, 265)
+local zoomedSize = UDim2.new(0, 140, 0, 305)
 
 -- 自救功能相关变量
 local isSelfRescueActive = false
@@ -230,6 +248,7 @@ local ninjaModeConnection = nil
 local backroomLocation = {X = 163.15, Y = 9, Z = 955.4}
 local theaterTrainLocation = {X = -5.4, Y = 73, Z = -145.3}
 local factoryTrainLocation = {X = 300, Y = 17, Z = 475}
+local sewerLocation = {X = 356, Y = 528, Z = -179}
 
 -- 按钮悬停效果函数
 local function setupButtonHover(button)
@@ -255,6 +274,7 @@ end
 setupButtonHover(backroomTeleportButton)
 setupButtonHover(theaterTrainButton)
 setupButtonHover(factoryTrainButton)
+setupButtonHover(sewerTeleportButton)
 setupButtonHover(selfRescueButton)
 setupButtonHover(ninjaModeButton)
 setupButtonHover(zoomBtn)
@@ -390,6 +410,11 @@ local function performFactoryTrainTeleport()
     return performTeleport(factoryTrainLocation, factoryTrainButton, "工厂火车")
 end
 
+-- 执行下水道传送
+local function performSewerTeleport()
+    return performTeleport(sewerLocation, sewerTeleportButton, "下水道")
+end
+
 -- 仙人模式功能
 local function startNinjaMode()
     if isNinjaModeActive then return end
@@ -448,6 +473,7 @@ end
 backroomTeleportButton.MouseButton1Click:Connect(performBackroomTeleport)
 theaterTrainButton.MouseButton1Click:Connect(performTheaterTrainTeleport)
 factoryTrainButton.MouseButton1Click:Connect(performFactoryTrainTeleport)
+sewerTeleportButton.MouseButton1Click:Connect(performSewerTeleport)
 selfRescueButton.MouseButton1Click:Connect(function()
     if isSelfRescueActive then stopSelfRescue() else startSelfRescue() end
 end)
@@ -470,6 +496,7 @@ zoomBtn.MouseButton1Click:Connect(function()
             backroomTeleportButton.TextSize = 15
             theaterTrainButton.TextSize = 15
             factoryTrainButton.TextSize = 15
+            sewerTeleportButton.TextSize = 15
             selfRescueButton.TextSize = 15
             ninjaModeButton.TextSize = 15
             title.TextSize = 15
@@ -486,6 +513,7 @@ zoomBtn.MouseButton1Click:Connect(function()
             backroomTeleportButton.TextSize = 14
             theaterTrainButton.TextSize = 14
             factoryTrainButton.TextSize = 14
+            sewerTeleportButton.TextSize = 14
             selfRescueButton.TextSize = 14
             ninjaModeButton.TextSize = 14
             title.TextSize = 14
@@ -506,6 +534,7 @@ minimizeBtn.MouseButton1Click:Connect(function()
         backroomTeleportButton.Visible = false
         theaterTrainButton.Visible = false
         factoryTrainButton.Visible = false
+        sewerTeleportButton.Visible = false
         selfRescueButton.Visible = false
         ninjaModeButton.Visible = false
         statusLabel.Visible = true
@@ -522,6 +551,7 @@ minimizeBtn.MouseButton1Click:Connect(function()
         backroomTeleportButton.Visible = true
         theaterTrainButton.Visible = true
         factoryTrainButton.Visible = true
+        sewerTeleportButton.Visible = true
         selfRescueButton.Visible = true
         ninjaModeButton.Visible = true
         statusLabel.Visible = false
@@ -556,6 +586,7 @@ UserInputService.InputBegan:Connect(function(input, gameProcessed)
     if input.KeyCode == Enum.KeyCode.B then performBackroomTeleport()
     elseif input.KeyCode == Enum.KeyCode.T then performTheaterTrainTeleport()
     elseif input.KeyCode == Enum.KeyCode.F then performFactoryTrainTeleport()
+    elseif input.KeyCode == Enum.KeyCode.S then performSewerTeleport()
     elseif input.KeyCode == Enum.KeyCode.R then
         if isSelfRescueActive then stopSelfRescue() else startSelfRescue() end
     elseif input.KeyCode == Enum.KeyCode.N then
@@ -572,6 +603,7 @@ UserInputService.InputBegan:Connect(function(input, gameProcessed)
             backroomTeleportButton.Visible = false
             theaterTrainButton.Visible = false
             factoryTrainButton.Visible = false
+            sewerTeleportButton.Visible = false
             selfRescueButton.Visible = false
             ninjaModeButton.Visible = false
             statusLabel.Visible = true
@@ -588,6 +620,7 @@ UserInputService.InputBegan:Connect(function(input, gameProcessed)
             backroomTeleportButton.Visible = true
             theaterTrainButton.Visible = true
             factoryTrainButton.Visible = true
+            sewerTeleportButton.Visible = true
             selfRescueButton.Visible = true
             ninjaModeButton.Visible = true
             statusLabel.Visible = false
@@ -614,6 +647,7 @@ UserInputService.InputBegan:Connect(function(input, gameProcessed)
                 backroomTeleportButton.TextSize = 15
                 theaterTrainButton.TextSize = 15
                 factoryTrainButton.TextSize = 15
+                sewerTeleportButton.TextSize = 15
                 selfRescueButton.TextSize = 15
                 ninjaModeButton.TextSize = 15
                 title.TextSize = 15
@@ -630,6 +664,7 @@ UserInputService.InputBegan:Connect(function(input, gameProcessed)
                 backroomTeleportButton.TextSize = 14
                 theaterTrainButton.TextSize = 14
                 factoryTrainButton.TextSize = 14
+                sewerTeleportButton.TextSize = 14
                 selfRescueButton.TextSize = 14
                 ninjaModeButton.TextSize = 14
                 title.TextSize = 14
@@ -671,7 +706,7 @@ fadeInTween:Play()
 
 game:GetService("StarterGui"):SetCore("SendNotification", {
     Title = "Expert",
-    Text = "脚本已加载 - B/T/F/R/N/M/Z键",
+    Text = "脚本已加载 - B/T/F/S/R/N/M/Z键",
     Icon = "rbxassetid://14550088217",
     Duration = 5,
     Position = UDim2.new(0, 20, 1, -50)
