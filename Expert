@@ -1,3 +1,13 @@
+-- Expert
+local SoundService = game:GetService("SoundService")
+
+-- 创建音频实例
+local sound = Instance.new("Sound")
+sound.SoundId = "rbxassetid://7390036132"  -- 替换为你的音频ID
+sound.Parent = SoundService
+
+-- 播放音频
+sound:Play()
 -- Expert - 等候厅传送脚本
 local Players = game:GetService("Players")
 local UserInputService = game:GetService("UserInputService")
