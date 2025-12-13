@@ -1,14 +1,3 @@
--- 最简单的音频播放脚本
-local SoundService = game:GetService("SoundService")
-
--- 创建音频实例
-local sound = Instance.new("Sound")
-sound.SoundId = "rbxassetid://7390036132"  -- 替换为你的音频ID
-sound.Parent = SoundService
-
--- 播放音频
-sound:Play()
-
 -- 极简自瞄+传送+攻击脚本 - 完整版（四合一功能）
 local Players = game:GetService("Players")
 local UserInputService = game:GetService("UserInputService")
@@ -59,7 +48,7 @@ titleCorner.CornerRadius = UDim.new(0, 6)
 titleCorner.Parent = titleBar
 
 local title = Instance.new("TextLabel")
-title.Text = "Monster"
+title.Text = "killaura"
 title.Size = UDim2.new(1, -80, 1, 0)
 title.Position = UDim2.new(0, 5, 0, 0)
 title.BackgroundTransparency = 1
@@ -217,7 +206,7 @@ statusLabel.Name = "StatusLabel"
 statusLabel.Size = UDim2.new(1, -10, 1, -10)
 statusLabel.Position = UDim2.new(0, 5, 0, 5)
 statusLabel.BackgroundTransparency = 1
-statusLabel.Text = "Monster\n点击展开"
+statusLabel.Text = "killaura\n点击展开"
 statusLabel.TextColor3 = Color3.fromRGB(200, 200, 220)
 statusLabel.TextSize = 12
 statusLabel.TextWrapped = true
@@ -226,11 +215,11 @@ statusLabel.Parent = mainFrame
 
 -- 变量
 local isComboActive = false  -- 三合一状态
-local maxDistance = 300  -- 固定搜索距离
-local teleportHeight = -0.7  -- 固定传送高度
+local maxDistance = 200  -- 固定搜索距离
+local teleportHeight = 0  -- 固定传送高度
 local currentTarget = nil
 local lastAttackTime = 0
-local attackRate = 2  -- 4秒一次攻击（原来是每秒4次）
+local attackRate = 4  -- 固定攻击频率
 local isMinimized = false
 local isZoomed = false  -- 新增：缩放状态
 local originalSize = mainFrame.Size
@@ -243,10 +232,6 @@ local ignoreHealthThreshold = 5  -- 忽略血量低于此值的玩家
 local cycleTeleportIndex = 1  -- 当前传送的玩家索引
 local factoryTeleportIndex = 1  -- 工厂传送索引
 local theaterTeleportIndex = 1  -- 剧院传送索引
-
--- 攻击计数器（新增）
-local attackCount = 0
-local attackTeleportDelay = 0.1  -- 攻击后传送的延迟时间（秒）
 
 -- 按钮悬停效果函数
 local function setupButtonHover(button)
@@ -332,7 +317,7 @@ minimizeBtn.MouseButton1Click:Connect(function()
     if isMinimized then
         -- 保存当前位置
         originalPosition = mainFrame.Position
-
+        
         -- 计算缩小后的位置（保持当前位置，但调整以适应新大小）
         local currentPos = mainFrame.Position
         local minimizedPos = UDim2.new(
@@ -341,7 +326,7 @@ minimizeBtn.MouseButton1Click:Connect(function()
             currentPos.Y.Scale,
             currentPos.Y.Offset
         )
-
+        
         -- 缩小动画，保持当前位置
         local tween = TweenService:Create(mainFrame, TweenInfo.new(0.3), {
             Size = minimizedSize,
@@ -360,9 +345,9 @@ minimizeBtn.MouseButton1Click:Connect(function()
         title.Text = "🎯"
 
         if isComboActive then
-            statusLabel.Text = string.format("攻击传送\n%d次", attackCount)
+            statusLabel.Text = "killaura\n运行中"
         else
-            statusLabel.Text = "Monster\n已关闭"
+            statusLabel.Text = "killaura\n已关闭"
         end
     else
         -- 恢复显示
@@ -372,12 +357,12 @@ minimizeBtn.MouseButton1Click:Connect(function()
         theaterTeleportButton.Visible = true
         statusLabel.Visible = false
         minimizeBtn.Text = "_"
-        title.Text = "Monster"
+        title.Text = "killaura"
 
         -- 恢复大小（根据当前缩放状态），保持当前位置不变
         local currentPos = mainFrame.Position
         local targetSize = isZoomed and zoomedSize or originalSize
-
+        
         local tween = TweenService:Create(mainFrame, TweenInfo.new(0.3), {
             Size = targetSize,
             Position = currentPos
@@ -405,18 +390,17 @@ comboButton.MouseButton1Click:Connect(function()
     isComboActive = not isComboActive
 
     if isComboActive then
-        comboButton.Text = "🟢 开启\n攻击传送"
+        comboButton.Text = "🟢 开启\n杀戮光环"
         comboButton.BackgroundColor3 = Color3.fromRGB(60, 180, 80)
         if isMinimized then
-            statusLabel.Text = string.format("攻击传送\n%d次", attackCount)
+            statusLabel.Text = "killaura\n运行中"
         end
     else
-        comboButton.Text = "🔴 关闭\n攻击传送"
+        comboButton.Text = "🔴 关闭\n杀戮光环"
         comboButton.BackgroundColor3 = Color3.fromRGB(180, 60, 60)
         currentTarget = nil
-        attackCount = 0  -- 重置攻击计数器
         if isMinimized then
-            statusLabel.Text = "Monster\n已关闭"
+            statusLabel.Text = "killaura\n已关闭"
         end
     end
 end)
@@ -615,7 +599,7 @@ local function performTheaterTeleport()
     return false
 end
 
--- 执行攻击传送功能（修改版）
+-- 执行三合一功能
 local function performCombo()
     if not isComboActive then return false end
 
@@ -623,9 +607,10 @@ local function performCombo()
     currentTarget = target
 
     if target then
-        -- 显示目标血量和攻击计数（仅限缩小模式）
+        -- 显示目标血量（仅限缩小模式）
         if isMinimized then
-            statusLabel.Text = string.format("攻击传送\n%d次", attackCount)
+            statusLabel.Text = string.format("killaura\n%s HP:%.0f", 
+                target.Player.Name, target.Health)
         end
 
         -- 1. 自瞄（瞄准头部）
@@ -638,44 +623,31 @@ local function performCombo()
         local smoothedDirection = currentLook:Lerp(targetDirection, 0.5)
         camera.CFrame = CFrame.new(cameraCFrame.Position, cameraCFrame.Position + smoothedDirection)
 
-        -- 3. 攻击（自动左键）和传送
+        -- 2. 传送（到目标位置，高度为0）
+        local character = player.Character
+        if character then
+            local humanoidRootPart = character:FindFirstChild("HumanoidRootPart")
+            if humanoidRootPart then
+                local teleportPos = target.Position + Vector3.new(0, teleportHeight * 4, 0)
+                humanoidRootPart.CFrame = CFrame.new(teleportPos)
+            end
+        end
+
+        -- 3. 攻击（自动左键）
         local currentTime = tick()
         if currentTime - lastAttackTime >= (1 / attackRate) then
-            -- 执行攻击
             pcall(function()
                 VirtualInputManager:SendMouseButtonEvent(0, 0, 0, true, game, 1)
                 task.wait(0.05)
                 VirtualInputManager:SendMouseButtonEvent(0, 0, 0, false, game, 1)
             end)
-            
-            -- 增加攻击计数
-            attackCount = attackCount + 0.125
-            
-            -- 在攻击后延迟传送
-            task.wait(attackTeleportDelay)
-            
-            -- 2. 传送（到目标位置，高度为0）
-            local character = player.Character
-            if character then
-                local humanoidRootPart = character:FindFirstChild("HumanoidRootPart")
-                if humanoidRootPart then
-                    local teleportPos = target.Position + Vector3.new(0, teleportHeight * 4, 0)
-                    humanoidRootPart.CFrame = CFrame.new(teleportPos)
-                end
-            end
-            
             lastAttackTime = currentTime
-            
-            -- 更新按钮显示攻击次数
-            if not isMinimized then
-                comboButton.Text = string.format("🟢 攻击传送\n%d次", attackCount)
-            end
         end
 
         return true
     else
         if isMinimized then
-            statusLabel.Text = "攻击传送\n无目标"
+            statusLabel.Text = "killaura\n无有效目标"
         end
         return false
     end
@@ -704,23 +676,22 @@ end)
 UserInputService.InputBegan:Connect(function(input, gameProcessed)
     if gameProcessed then return end
 
-    -- 空格键：开关攻击传送
+    -- 空格键：开关三合一
     if input.KeyCode == Enum.KeyCode.Space then
         isComboActive = not isComboActive
 
         if isComboActive then
-            comboButton.Text = "🟢 开启\n攻击传送"
+            comboButton.Text = "🟢 开启\n杀戮光环"
             comboButton.BackgroundColor3 = Color3.fromRGB(60, 180, 80)
             if isMinimized then
-                statusLabel.Text = string.format("攻击传送\n%d次", attackCount)
+                statusLabel.Text = "killaura\n运行中"
             end
         else
-            comboButton.Text = "🔴 关闭\n攻击传送"
+            comboButton.Text = "🔴 关闭\n杀戮光环"
             comboButton.BackgroundColor3 = Color3.fromRGB(180, 60, 60)
             currentTarget = nil
-            attackCount = 0  -- 重置攻击计数器
             if isMinimized then
-                statusLabel.Text = "Monster\n已关闭"
+                statusLabel.Text = "killaura\n已关闭"
             end
         end
     end
@@ -747,7 +718,7 @@ UserInputService.InputBegan:Connect(function(input, gameProcessed)
         if isMinimized then
             -- 保存当前位置
             originalPosition = mainFrame.Position
-
+            
             local currentPos = mainFrame.Position
             local tween = TweenService:Create(mainFrame, TweenInfo.new(0.3), {
                 Size = minimizedSize,
@@ -766,9 +737,9 @@ UserInputService.InputBegan:Connect(function(input, gameProcessed)
             title.Text = "渔炒鱼"
 
             if isComboActive then
-                statusLabel.Text = string.format("攻击传送\n%d次", attackCount)
+                statusLabel.Text = "killaura\n运行中"
             else
-                statusLabel.Text = "攻击传送\n已关闭"
+                statusLabel.Text = "killaura\n已关闭"
             end
         else
             comboButton.Visible = true
@@ -777,12 +748,12 @@ UserInputService.InputBegan:Connect(function(input, gameProcessed)
             theaterTeleportButton.Visible = true
             statusLabel.Visible = false
             minimizeBtn.Text = "_"
-            title.Text = "Monster"
+            title.Text = "killaura"
 
             -- 恢复大小（根据当前缩放状态），保持当前位置
             local currentPos = mainFrame.Position
             local targetSize = isZoomed and zoomedSize or originalSize
-
+            
             local tween = TweenService:Create(mainFrame, TweenInfo.new(0.3), {
                 Size = targetSize,
                 Position = currentPos
@@ -851,8 +822,7 @@ local fadeInTween = TweenService:Create(mainFrame, TweenInfo.new(0.5), {
 })
 fadeInTween:Play()
 
-print("=== Monster脚本已加载 ===")
-print("新功能: 攻击传送 - 每次攻击后都会传送到目标位置")
+print("=== killaura脚本已加载 ===")
 print("工厂传送点:")
 for i, loc in ipairs(factoryLocations) do
     print(string.format("  %d. X:%.2f, Y:%.2f, Z:%.2f", i, loc.X, loc.Y, loc.Z))
@@ -863,9 +833,9 @@ for i, loc in ipairs(theaterLocations) do
 end
 
 game:GetService("StarterGui"):SetCore("SendNotification", {
-    Title = "Monster",
-    Text = "已入侵艾登服务器",
-    Icon = "rbxassetid://111253731477608",
+    Title = "Cheating",
+    Text = "成功入侵PB",
+    Icon = "rbxassetid://14550088217",
     Duration = 8,
     Position = UDim2.new(0, 20, 1, -50)
 })
