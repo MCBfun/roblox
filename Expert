@@ -146,7 +146,7 @@ local theaterFactoryButton = Instance.new("TextButton")
 theaterFactoryButton.Name = "TheaterFactoryButton"
 theaterFactoryButton.Size = UDim2.new(1, -10, 0, 40)
 theaterFactoryButton.Position = UDim2.new(0, 5, 0, 75)
-theaterFactoryButton.Text = "剧院|工厂"
+theaterFactoryButton.Text = "传送剧院工厂"
 theaterFactoryButton.BackgroundColor3 = Color3.fromRGB(35, 35, 40)  -- 改为深灰色
 theaterFactoryButton.TextColor3 = Color3.fromRGB(220, 220, 220)  -- 改为浅灰色
 theaterFactoryButton.Font = Enum.Font.SourceSansSemibold
@@ -164,7 +164,7 @@ local sewerTeleportButton = Instance.new("TextButton")
 sewerTeleportButton.Name = "SewerTeleportButton"
 sewerTeleportButton.Size = UDim2.new(1, -10, 0, 40)
 sewerTeleportButton.Position = UDim2.new(0, 5, 0, 120)
-sewerTeleportButton.Text = "下水道"
+sewerTeleportButton.Text = "传送下水道"
 sewerTeleportButton.BackgroundColor3 = Color3.fromRGB(35, 35, 40)  -- 改为深灰色
 sewerTeleportButton.TextColor3 = Color3.fromRGB(220, 220, 220)  -- 改为浅灰色
 sewerTeleportButton.Font = Enum.Font.SourceSansSemibold
@@ -200,7 +200,7 @@ local ninjaModeButton = Instance.new("TextButton")
 ninjaModeButton.Name = "NinjaModeButton"
 ninjaModeButton.Size = UDim2.new(1, -10, 0, 40)
 ninjaModeButton.Position = UDim2.new(0, 5, 0, 210)
-ninjaModeButton.Text = "仙人模式\n[关]"
+ninjaModeButton.Text = "仙人模式 [关]"
 ninjaModeButton.BackgroundColor3 = Color3.fromRGB(35, 35, 40)  -- 改为深灰色
 ninjaModeButton.TextColor3 = Color3.fromRGB(220, 220, 220)  -- 改为浅灰色
 ninjaModeButton.Font = Enum.Font.SourceSansSemibold
@@ -293,7 +293,7 @@ local function startSelfRescue()
     savedPosition = humanoidRootPart.Position
     savedCFrame = humanoidRootPart.CFrame
     isSelfRescueActive = true
-    selfRescueButton.Text = "自救\n固定位置 [开]"
+    selfRescueButton.Text = "固定位置 [开]"
 
     local bodyPosition = Instance.new("BodyPosition")
     bodyPosition.Name = "ExpertSelfRescuePosition"
@@ -331,7 +331,7 @@ local function startSelfRescue()
         end
     end)
     
-    if isMinimized then statusLabel.Text = "🔒 已固定位置" end
+    if isMinimized then statusLabel.Text = "已固定位置" end
     return true
 end
 
@@ -357,7 +357,7 @@ local function stopSelfRescue()
         end
     end
     
-    selfRescueButton.Text = "自救\n固定位置 [关]"
+    selfRescueButton.Text = "固定位置 [关]"
     if isMinimized then statusLabel.Text = "Expert\n点击展开" end
     savedPosition = nil
     savedCFrame = nil
@@ -394,17 +394,17 @@ end
 
 -- 执行等候厅传送
 local function performBackroomTeleport()
-    return performTeleport(backroomLocation, backroomTeleportButton, "等候厅")
+    return performTeleport(backroomLocation, backroomTeleportButton, "传送等候厅")
 end
 
 -- 执行剧院|工厂传送（Y-297）
 local function performTheaterFactoryTeleport()
-    return performTeleport(theaterFactoryLocation, theaterFactoryButton, "剧院|工厂")
+    return performTeleport(theaterFactoryLocation, theaterFactoryButton, "传送剧院工厂")
 end
 
 -- 执行下水道传送
 local function performSewerTeleport()
-    return performTeleport(sewerLocation, sewerTeleportButton, "下水道")
+    return performTeleport(sewerLocation, sewerTeleportButton, "传送下水道")
 end
 
 -- 仙人模式功能
@@ -421,7 +421,7 @@ local function startNinjaMode()
     originalJumpPower = humanoid.JumpPower
     isNinjaModeActive = true
     infiniteJumpEnabled = true
-    ninjaModeButton.Text = "仙人模式\n[开]"
+    ninjaModeButton.Text = "仙人模式[开]"
     
     humanoid.WalkSpeed = originalWalkSpeed * ninjaModeMultiplier
     humanoid.JumpPower = originalJumpPower * 3
@@ -432,7 +432,7 @@ local function startNinjaMode()
         end
     end)
     
-    if isMinimized then statusLabel.Text = "⚡ 仙人模式" end
+    if isMinimized then statusLabel.Text = "仙人模式" end
     return true
 end
 
@@ -455,7 +455,7 @@ local function stopNinjaMode()
         end
     end
     
-    ninjaModeButton.Text = "仙人模式\n[关]"
+    ninjaModeButton.Text = "仙人模式[关]"
     if isMinimized then statusLabel.Text = "Expert\n点击展开" end
 end
 
@@ -509,9 +509,9 @@ minimizeBtn.MouseButton1Click:Connect(function()
         minimizeBtn.Text = "+"
         title.Text = "⚔"
         if isSelfRescueActive then
-            statusLabel.Text = "🔒 固定位置"
+            statusLabel.Text = "固定位置"
         elseif isNinjaModeActive then
-            statusLabel.Text = "⚡ 仙人模式"
+            statusLabel.Text = "仙人模式"
         else
             statusLabel.Text = "Expert\n点击展开"
         end
