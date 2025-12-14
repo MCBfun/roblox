@@ -1,682 +1,592 @@
--- ================================
--- 紧凑版高级验证系统 v3.4 - 小型自定义图片版 + 黑名单系统
--- 作者：渔妙鱼 | B站：作者B站？
--- ================================
+-- Expert
+local SoundService = game:GetService("SoundService")
 
+-- 创建音频实例
+local sound = Instance.new("Sound")
+sound.SoundId = "rbxassetid://7390036132"  -- 替换为你的音频ID
+sound.Parent = SoundService
+
+-- 播放音频
+sound:Play()
+-- Expert - 等候厅传送脚本
 local Players = game:GetService("Players")
-local TweenService = game:GetService("TweenService")
+local UserInputService = game:GetService("UserInputService")
 local RunService = game:GetService("RunService")
-local Lighting = game:GetService("Lighting")
+local TweenService = game:GetService("TweenService")
 
--- 确保玩家存在
-repeat RunService.Heartbeat:Wait() until Players.LocalPlayer
-local Player = Players.LocalPlayer
-local Gui = Player:WaitForChild("PlayerGui")
+local player = Players.LocalPlayer
+local isRunning = true
 
--- 创建景深模糊效果
-local DepthOfField = Instance.new("DepthOfFieldEffect")
-DepthOfField.FarIntensity = 0
-DepthOfField.NearIntensity = 0
-DepthOfField.InFocusRadius = 0
-DepthOfField.Parent = Lighting
+-- 创建最小化UI
+local screenGui = Instance.new("ScreenGui")
+screenGui.Name = "ExpertGUI"
+screenGui.ResetOnSpawn = false
+screenGui.Parent = player:WaitForChild("PlayerGui")
 
--- ================================
--- 黑名单系统核心配置
--- ================================
-local BlacklistSystem = {}
--- 黑名单玩家ID列表（填写需要封禁的玩家ID，区分大小写）
-BlacklistSystem.BannedIDs = {
-    "awa",
-    "Cheater007",
-    "Hacker999",
-    -- 可继续添加需要封禁的ID
-}
+local mainFrame = Instance.new("Frame")
+mainFrame.Name = "MainFrame"
+mainFrame.Size = UDim2.new(0, 120, 0, 295)
+mainFrame.Position = UDim2.new(0.02, 0, 0.3, 0)
+mainFrame.BackgroundColor3 = Color3.fromRGB(25, 25, 30)  -- 改为深灰色
+mainFrame.BackgroundTransparency = 0.1
+mainFrame.BorderSizePixel = 1
+mainFrame.BorderColor3 = Color3.fromRGB(60, 60, 70)  -- 改为深灰色边框
+mainFrame.Active = true
+mainFrame.Draggable = true
+mainFrame.ClipsDescendants = true
+mainFrame.Parent = screenGui
 
--- 检测玩家是否在黑名单
-function BlacklistSystem:isBanned(player)
-    local playerId = player.Name or player.UserId -- 可选择按用户名或用户ID检测
-    for _, bannedId in ipairs(self.BannedIDs) do
-        if playerId == bannedId or tostring(player.UserId) == bannedId then
-            return true
+-- 圆角效果
+local uiCorner = Instance.new("UICorner")
+uiCorner.CornerRadius = UDim.new(0, 6)
+uiCorner.Parent = mainFrame
+
+-- 标题栏
+local titleBar = Instance.new("Frame")
+titleBar.Name = "TitleBar"
+titleBar.Size = UDim2.new(1, 0, 0, 25)
+titleBar.BackgroundColor3 = Color3.fromRGB(20, 20, 25)  -- 改为深灰色
+titleBar.BorderSizePixel = 0
+titleBar.Parent = mainFrame
+
+-- 标题栏圆角
+local titleCorner = Instance.new("UICorner")
+titleCorner.CornerRadius = UDim.new(0, 6)
+titleCorner.Parent = titleBar
+
+local title = Instance.new("TextLabel")
+title.Text = "Expert"
+title.Size = UDim2.new(1, -80, 1, 0)
+title.Position = UDim2.new(0, 5, 0, 0)
+title.BackgroundTransparency = 1
+title.TextColor3 = Color3.fromRGB(220, 220, 220)  -- 改为浅灰色
+title.TextXAlignment = Enum.TextXAlignment.Left
+title.Font = Enum.Font.SourceSansSemibold
+title.TextSize = 14
+title.Parent = titleBar
+
+-- 控制按钮容器
+local controlButtons = Instance.new("Frame")
+controlButtons.Name = "ControlButtons"
+controlButtons.Size = UDim2.new(0, 75, 1, 0)
+controlButtons.Position = UDim2.new(1, -75, 0, 0)
+controlButtons.BackgroundTransparency = 1
+controlButtons.Parent = titleBar
+
+-- 缩放按钮
+local zoomBtn = Instance.new("TextButton")
+zoomBtn.Name = "ZoomButton"
+zoomBtn.Size = UDim2.new(0, 25, 0, 25)
+zoomBtn.Position = UDim2.new(0, 0, 0, 0)
+zoomBtn.Text = "⏺️"
+zoomBtn.BackgroundColor3 = Color3.fromRGB(40, 40, 45)  -- 改为深灰色
+zoomBtn.TextColor3 = Color3.fromRGB(220, 220, 220)  -- 改为浅灰色
+zoomBtn.Font = Enum.Font.SourceSansBold
+zoomBtn.TextSize = 14
+zoomBtn.AutoButtonColor = false
+zoomBtn.Parent = controlButtons
+
+local zoomCorner = Instance.new("UICorner")
+zoomCorner.CornerRadius = UDim.new(0, 4)
+zoomCorner.Parent = zoomBtn
+
+-- 缩小按钮
+local minimizeBtn = Instance.new("TextButton")
+minimizeBtn.Name = "MinimizeButton"
+minimizeBtn.Size = UDim2.new(0, 25, 0, 25)
+minimizeBtn.Position = UDim2.new(0, 25, 0, 0)
+minimizeBtn.Text = "_"
+minimizeBtn.BackgroundColor3 = Color3.fromRGB(40, 40, 45)  -- 改为深灰色
+minimizeBtn.TextColor3 = Color3.fromRGB(220, 220, 220)  -- 改为浅灰色
+minimizeBtn.Font = Enum.Font.SourceSansBold
+minimizeBtn.TextSize = 16
+minimizeBtn.AutoButtonColor = false
+minimizeBtn.Parent = controlButtons
+
+local minimizeCorner = Instance.new("UICorner")
+minimizeCorner.CornerRadius = UDim.new(0, 4)
+minimizeCorner.Parent = minimizeBtn
+
+-- 关闭按钮
+local closeBtn = Instance.new("TextButton")
+closeBtn.Size = UDim2.new(0, 25, 0, 25)
+closeBtn.Position = UDim2.new(0, 50, 0, 0)
+closeBtn.Text = "×"
+closeBtn.BackgroundColor3 = Color3.fromRGB(45, 35, 35)  -- 改为深灰色偏红
+closeBtn.TextColor3 = Color3.fromRGB(220, 220, 220)  -- 改为浅灰色
+closeBtn.Font = Enum.Font.SourceSansBold
+closeBtn.TextSize = 16
+closeBtn.AutoButtonColor = false
+closeBtn.Parent = controlButtons
+
+local closeCorner = Instance.new("UICorner")
+closeCorner.CornerRadius = UDim.new(0, 4)
+closeCorner.Parent = closeBtn
+
+-- 等候厅传送按钮
+local backroomTeleportButton = Instance.new("TextButton")
+backroomTeleportButton.Name = "BackroomTeleportButton"
+backroomTeleportButton.Size = UDim2.new(1, -10, 0, 40)
+backroomTeleportButton.Position = UDim2.new(0, 5, 0, 30)
+backroomTeleportButton.Text = "传送等候厅"
+backroomTeleportButton.BackgroundColor3 = Color3.fromRGB(35, 35, 40)  -- 改为深灰色
+backroomTeleportButton.TextColor3 = Color3.fromRGB(220, 220, 220)  -- 改为浅灰色
+backroomTeleportButton.Font = Enum.Font.SourceSansSemibold
+backroomTeleportButton.TextSize = 14
+backroomTeleportButton.TextWrapped = true
+backroomTeleportButton.AutoButtonColor = false
+backroomTeleportButton.Parent = mainFrame
+
+local teleportCorner = Instance.new("UICorner")
+teleportCorner.CornerRadius = UDim.new(0, 5)
+teleportCorner.Parent = backroomTeleportButton
+
+-- 剧院|工厂火车传送按钮（合并）
+local theaterFactoryButton = Instance.new("TextButton")
+theaterFactoryButton.Name = "TheaterFactoryButton"
+theaterFactoryButton.Size = UDim2.new(1, -10, 0, 40)
+theaterFactoryButton.Position = UDim2.new(0, 5, 0, 75)
+theaterFactoryButton.Text = "万能传送"
+theaterFactoryButton.BackgroundColor3 = Color3.fromRGB(35, 35, 40)  -- 改为深灰色
+theaterFactoryButton.TextColor3 = Color3.fromRGB(220, 220, 220)  -- 改为浅灰色
+theaterFactoryButton.Font = Enum.Font.SourceSansSemibold
+theaterFactoryButton.TextSize = 14
+theaterFactoryButton.TextWrapped = true
+theaterFactoryButton.AutoButtonColor = false
+theaterFactoryButton.Parent = mainFrame
+
+local theaterFactoryCorner = Instance.new("UICorner")
+theaterFactoryCorner.CornerRadius = UDim.new(0, 5)
+theaterFactoryCorner.Parent = theaterFactoryButton
+
+-- 下水道传送按钮
+local sewerTeleportButton = Instance.new("TextButton")
+sewerTeleportButton.Name = "SewerTeleportButton"
+sewerTeleportButton.Size = UDim2.new(1, -10, 0, 40)
+sewerTeleportButton.Position = UDim2.new(0, 5, 0, 120)
+sewerTeleportButton.Text = "传送下水道"
+sewerTeleportButton.BackgroundColor3 = Color3.fromRGB(35, 35, 40)  -- 改为深灰色
+sewerTeleportButton.TextColor3 = Color3.fromRGB(220, 220, 220)  -- 改为浅灰色
+sewerTeleportButton.Font = Enum.Font.SourceSansSemibold
+sewerTeleportButton.TextSize = 14
+sewerTeleportButton.TextWrapped = true
+sewerTeleportButton.AutoButtonColor = false
+sewerTeleportButton.Parent = mainFrame
+
+local sewerCorner = Instance.new("UICorner")
+sewerCorner.CornerRadius = UDim.new(0, 5)
+sewerCorner.Parent = sewerTeleportButton
+
+-- 自救功能按钮
+local selfRescueButton = Instance.new("TextButton")
+selfRescueButton.Name = "SelfRescueButton"
+selfRescueButton.Size = UDim2.new(1, -10, 0, 40)
+selfRescueButton.Position = UDim2.new(0, 5, 0, 165)
+selfRescueButton.Text = "固定位置 [关]"
+selfRescueButton.BackgroundColor3 = Color3.fromRGB(35, 35, 40)  -- 改为深灰色
+selfRescueButton.TextColor3 = Color3.fromRGB(220, 220, 220)  -- 改为浅灰色
+selfRescueButton.Font = Enum.Font.SourceSansSemibold
+selfRescueButton.TextSize = 14
+selfRescueButton.TextWrapped = true
+selfRescueButton.AutoButtonColor = false
+selfRescueButton.Parent = mainFrame
+
+local selfRescueCorner = Instance.new("UICorner")
+selfRescueCorner.CornerRadius = UDim.new(0, 5)
+selfRescueCorner.Parent = selfRescueButton
+
+-- 仙人模式按钮
+local ninjaModeButton = Instance.new("TextButton")
+ninjaModeButton.Name = "NinjaModeButton"
+ninjaModeButton.Size = UDim2.new(1, -10, 0, 40)
+ninjaModeButton.Position = UDim2.new(0, 5, 0, 210)
+ninjaModeButton.Text = "仙人模式 [关]"
+ninjaModeButton.BackgroundColor3 = Color3.fromRGB(35, 35, 40)  -- 改为深灰色
+ninjaModeButton.TextColor3 = Color3.fromRGB(220, 220, 220)  -- 改为浅灰色
+ninjaModeButton.Font = Enum.Font.SourceSansSemibold
+ninjaModeButton.TextSize = 14
+ninjaModeButton.TextWrapped = true
+ninjaModeButton.AutoButtonColor = false
+ninjaModeButton.Parent = mainFrame
+
+local ninjaModeCorner = Instance.new("UICorner")
+ninjaModeCorner.CornerRadius = UDim.new(0, 5)
+ninjaModeCorner.Parent = ninjaModeButton
+
+-- 状态显示（缩小后）
+local statusLabel = Instance.new("TextLabel")
+statusLabel.Name = "StatusLabel"
+statusLabel.Size = UDim2.new(1, -10, 1, -10)
+statusLabel.Position = UDim2.new(0, 5, 0, 5)
+statusLabel.BackgroundTransparency = 1
+statusLabel.Text = "Expert\n点击展开"
+statusLabel.TextColor3 = Color3.fromRGB(180, 180, 180)  -- 改为灰色
+statusLabel.TextSize = 12
+statusLabel.TextWrapped = true
+statusLabel.Visible = false
+statusLabel.Parent = mainFrame
+
+-- 变量
+local isMinimized = false
+local isZoomed = false
+local originalSize = mainFrame.Size
+local originalPosition = mainFrame.Position
+local minimizedSize = UDim2.new(0, 80, 0, 40)
+local zoomedSize = UDim2.new(0, 140, 0, 305)
+
+-- 自救功能相关变量
+local isSelfRescueActive = false
+local selfRescueConnection = nil
+local savedPosition = nil
+local savedCFrame = nil
+
+-- 仙人模式相关变量
+local isNinjaModeActive = false
+local originalWalkSpeed = 16
+local originalJumpPower = 50
+local ninjaModeMultiplier = 2.5
+local infiniteJumpEnabled = false
+local ninjaModeConnection = nil
+
+-- 坐标定义
+local backroomLocation = {X = 163.15, Y = 9, Z = 955.4}
+local theaterFactoryLocation = {X = 0, Y = -297, Z = 0}  -- Y-297位置
+local sewerLocation = {X = 356, Y = 528, Z = -179}
+
+-- 按钮悬停效果函数（黑白风格）
+local function setupButtonHover(button)
+    local originalColor = button.BackgroundColor3
+    local originalTextColor = button.TextColor3
+    button.MouseEnter:Connect(function()
+        button.BackgroundColor3 = Color3.fromRGB(
+            math.min(originalColor.R * 255 + 15, 55),
+            math.min(originalColor.G * 255 + 15, 55),
+            math.min(originalColor.B * 255 + 15, 55)
+        ) / 255
+        button.TextColor3 = Color3.fromRGB(240, 240, 240)  -- 更亮的灰色
+    end)
+    button.MouseLeave:Connect(function()
+        button.BackgroundColor3 = originalColor
+        button.TextColor3 = originalTextColor
+    end)
+end
+
+setupButtonHover(backroomTeleportButton)
+setupButtonHover(theaterFactoryButton)
+setupButtonHover(sewerTeleportButton)
+setupButtonHover(selfRescueButton)
+setupButtonHover(ninjaModeButton)
+setupButtonHover(zoomBtn)
+setupButtonHover(minimizeBtn)
+setupButtonHover(closeBtn)
+
+-- 自救功能
+local function startSelfRescue()
+    if isSelfRescueActive then return end
+    
+    local character = player.Character
+    if not character then return false end
+
+    local humanoidRootPart = character:FindFirstChild("HumanoidRootPart")
+    if not humanoidRootPart then return false end
+
+    savedPosition = humanoidRootPart.Position
+    savedCFrame = humanoidRootPart.CFrame
+    isSelfRescueActive = true
+    selfRescueButton.Text = "固定位置 [开]"
+
+    local bodyPosition = Instance.new("BodyPosition")
+    bodyPosition.Name = "ExpertSelfRescuePosition"
+    bodyPosition.P = 100000
+    bodyPosition.D = 1000
+    bodyPosition.MaxForce = Vector3.new(math.huge, math.huge, math.huge)
+    bodyPosition.Position = savedPosition
+    bodyPosition.Parent = humanoidRootPart
+
+    local humanoid = character:FindFirstChild("Humanoid")
+    if humanoid then
+        humanoid.WalkSpeed = 0
+        humanoid.JumpPower = 0
+    end
+
+    selfRescueConnection = RunService.Heartbeat:Connect(function()
+        if not isSelfRescueActive or not character or character.Parent == nil then
+            stopSelfRescue()
+            return
+        end
+        local currentRootPart = character:FindFirstChild("HumanoidRootPart")
+        if not currentRootPart then return end
+        currentRootPart.CFrame = savedCFrame
+        local existingBodyPosition = currentRootPart:FindFirstChild("ExpertSelfRescuePosition")
+        if existingBodyPosition then
+            existingBodyPosition.Position = savedPosition
+        else
+            local newBodyPosition = Instance.new("BodyPosition")
+            newBodyPosition.Name = "ExpertSelfRescuePosition"
+            newBodyPosition.P = 100000
+            newBodyPosition.D = 1000
+            newBodyPosition.MaxForce = Vector3.new(math.huge, math.huge, math.huge)
+            newBodyPosition.Position = savedPosition
+            newBodyPosition.Parent = currentRootPart
+        end
+    end)
+    
+    if isMinimized then statusLabel.Text = "🔒 已固定位置" end
+    return true
+end
+
+local function stopSelfRescue()
+    if not isSelfRescueActive then return end
+    isSelfRescueActive = false
+    if selfRescueConnection then
+        selfRescueConnection:Disconnect()
+        selfRescueConnection = nil
+    end
+    
+    local character = player.Character
+    if character then
+        local humanoidRootPart = character:FindFirstChild("HumanoidRootPart")
+        if humanoidRootPart then
+            local bodyPosition = humanoidRootPart:FindFirstChild("ExpertSelfRescuePosition")
+            if bodyPosition then bodyPosition:Destroy() end
+        end
+        local humanoid = character:FindFirstChild("Humanoid")
+        if humanoid then
+            humanoid.WalkSpeed = 16
+            humanoid.JumpPower = 50
         end
     end
-    return false
+    
+    selfRescueButton.Text = "固定位置 [关]"
+    if isMinimized then statusLabel.Text = "Expert\n点击展开" end
+    savedPosition = nil
+    savedCFrame = nil
 end
 
--- 显示封禁提示并禁用UI
-function BlacklistSystem:showBanUI(parentGui)
-    local BanScreen = Instance.new("ScreenGui")
-    BanScreen.Name = "BanScreen"
-    BanScreen.ResetOnSpawn = false
-    BanScreen.Parent = parentGui
+-- 通用传送函数
+local function performTeleport(location, button, locationName)
+    if isSelfRescueActive then stopSelfRescue() end
+    
+    local character = player.Character
+    if not character then return false end
 
-    local BanContainer = Instance.new("Frame")
-    BanContainer.Size = UDim2.new(0, 300, 0, 200)
-    BanContainer.Position = UDim2.new(0.5, -150, 0.5, -100)
-    BanContainer.BackgroundColor3 = Color3.fromRGB(30, 10, 10)
-    BanContainer.BackgroundTransparency = 0.1
-    BanContainer.ClipsDescendants = true
-    BanContainer.Parent = BanScreen
+    local humanoidRootPart = character:FindFirstChild("HumanoidRootPart")
+    if not humanoidRootPart then return false end
 
-    local BanCorner = Instance.new("UICorner")
-    BanCorner.CornerRadius = UDim.new(0, 12)
-    BanCorner.Parent = BanContainer
+    local teleportPos = Vector3.new(location.X, location.Y, location.Z)
+    humanoidRootPart.CFrame = CFrame.new(teleportPos)
 
-    local BanTitle = Instance.new("TextLabel")
-    BanTitle.Size = UDim2.new(1, 0, 0, 40)
-    BanTitle.Position = UDim2.new(0, 0, 0, 20)
-    BanTitle.BackgroundTransparency = 1
-    BanTitle.Text = "🚫 你已被封禁"
-    BanTitle.TextColor3 = Color3.fromRGB(255, 80, 80)
-    BanTitle.TextSize = 22
-    BanTitle.Font = Enum.Font.GothamBold
-    BanTitle.Parent = BanContainer
+    if not isMinimized and button then
+        local originalText = button.Text
+        button.Text = "✅ 已传送"
+        task.wait(2)
+        button.Text = originalText
+    end
 
-    local BanText = Instance.new("TextLabel")
-    BanText.Size = UDim2.new(0.9, 0, 0, 60)
-    BanText.Position = UDim2.new(0.05, 0, 0, 70)
-    BanText.BackgroundTransparency = 1
-    BanText.Text = "你已被加入黑名单，无法使用此脚本"
-    BanText.TextColor3 = Color3.fromRGB(220, 220, 220)
-    BanText.TextSize = 14
-    BanText.Font = Enum.Font.Gotham
-    BanText.TextWrapped = true
-    BanText.Parent = BanContainer
+    if isMinimized then
+        statusLabel.Text = "✅ 已传送" .. locationName
+        task.wait(2)
+        statusLabel.Text = "Expert\n点击展开"
+    end
 
-    local CloseBanBtn = Instance.new("TextButton")
-    CloseBanBtn.Size = UDim2.new(0, 24, 0, 24)
-    CloseBanBtn.Position = UDim2.new(1, -28, 0, 8)
-    CloseBanBtn.BackgroundColor3 = Color3.fromRGB(50, 20, 20)
-    CloseBanBtn.Text = "×"
-    CloseBanBtn.TextColor3 = Color3.fromRGB(220, 220, 220)
-    CloseBanBtn.TextSize = 16
-    CloseBanBtn.Font = Enum.Font.GothamBold
-    CloseBanBtn.Parent = BanContainer
+    return true
+end
 
-    local CloseBanCorner = Instance.new("UICorner")
-    CloseBanCorner.CornerRadius = UDim.new(0.5, 0)
-    CloseBanCorner.Parent = CloseBanBtn
+-- 执行等候厅传送
+local function performBackroomTeleport()
+    return performTeleport(backroomLocation, backroomTeleportButton, "等候厅传送")
+end
 
-    CloseBanBtn.MouseButton1Click:Connect(function()
-        BanScreen:Destroy()
-        game:GetService("Players").LocalPlayer:Kick("😂") -- 可选：直接踢出游戏
+-- 执行剧院|工厂传送（Y-297）
+local function performTheaterFactoryTeleport()
+    return performTeleport(theaterFactoryLocation, theaterFactoryButton, "万能传送")
+end
+
+-- 执行下水道传送
+local function performSewerTeleport()
+    return performTeleport(sewerLocation, sewerTeleportButton, "下水道")
+end
+
+-- 仙人模式功能
+local function startNinjaMode()
+    if isNinjaModeActive then return end
+    
+    local character = player.Character
+    if not character then return false end
+
+    local humanoid = character:FindFirstChild("Humanoid")
+    if not humanoid then return false end
+
+    originalWalkSpeed = humanoid.WalkSpeed
+    originalJumpPower = humanoid.JumpPower
+    isNinjaModeActive = true
+    infiniteJumpEnabled = true
+    ninjaModeButton.Text = "仙人模式\n[开]"
+    
+    humanoid.WalkSpeed = originalWalkSpeed * ninjaModeMultiplier
+    humanoid.JumpPower = originalJumpPower * 3
+
+    ninjaModeConnection = UserInputService.JumpRequest:Connect(function()
+        if infiniteJumpEnabled and character and character:FindFirstChild("Humanoid") then
+            character.Humanoid:ChangeState(Enum.HumanoidStateType.Jumping)
+        end
     end)
+    
+    if isMinimized then statusLabel.Text = "⚡ 仙人模式" end
+    return true
+end
 
-    -- 启用模糊效果
-    local blurTween = TweenService:Create(DepthOfField, TweenInfo.new(0.8), {
-        FarIntensity = 1,
-        NearIntensity = 0.8,
-        InFocusRadius = 20
+local function stopNinjaMode()
+    if not isNinjaModeActive then return end
+    isNinjaModeActive = false
+    infiniteJumpEnabled = false
+    
+    if ninjaModeConnection then
+        ninjaModeConnection:Disconnect()
+        ninjaModeConnection = nil
+    end
+    
+    local character = player.Character
+    if character then
+        local humanoid = character:FindFirstChild("Humanoid")
+        if humanoid then
+            humanoid.WalkSpeed = originalWalkSpeed
+            humanoid.JumpPower = originalJumpPower
+        end
+    end
+    
+    ninjaModeButton.Text = "仙人模式\n[关]"
+    if isMinimized then statusLabel.Text = "Expert\n点击展开" end
+end
+
+-- 按钮点击事件
+backroomTeleportButton.MouseButton1Click:Connect(performBackroomTeleport)
+theaterFactoryButton.MouseButton1Click:Connect(performTheaterFactoryTeleport)
+sewerTeleportButton.MouseButton1Click:Connect(performSewerTeleport)
+selfRescueButton.MouseButton1Click:Connect(function()
+    if isSelfRescueActive then stopSelfRescue() else startSelfRescue() end
+end)
+ninjaModeButton.MouseButton1Click:Connect(function()
+    if isNinjaModeActive then stopNinjaMode() else startNinjaMode() end
+end)
+
+-- 缩放功能
+zoomBtn.MouseButton1Click:Connect(function()
+    isZoomed = not isZoomed
+    if isZoomed then
+        local currentPos = mainFrame.Position
+        local tween = TweenService:Create(mainFrame, TweenInfo.new(0.3), {
+            Size = zoomedSize, Position = currentPos
+        })
+        tween:Play()
+        zoomBtn.Text = "⏺"
+    else
+        local currentPos = mainFrame.Position
+        local tween = TweenService:Create(mainFrame, TweenInfo.new(0.3), {
+            Size = originalSize, Position = currentPos
+        })
+        tween:Play()
+        zoomBtn.Text = "⏺️"
+    end
+end)
+
+-- 缩小功能
+minimizeBtn.MouseButton1Click:Connect(function()
+    isMinimized = not isMinimized
+    if isMinimized then
+        local currentPos = mainFrame.Position
+        local tween = TweenService:Create(mainFrame, TweenInfo.new(0.3), {
+            Size = minimizedSize, Position = currentPos
+        })
+        tween:Play()
+        tween.Completed:Wait()
+        backroomTeleportButton.Visible = false
+        theaterFactoryButton.Visible = false
+        sewerTeleportButton.Visible = false
+        selfRescueButton.Visible = false
+        ninjaModeButton.Visible = false
+        statusLabel.Visible = true
+        minimizeBtn.Text = "+"
+        title.Text = "⚔"
+        if isSelfRescueActive then
+            statusLabel.Text = "🔒 固定位置"
+        elseif isNinjaModeActive then
+            statusLabel.Text = "⚡ 仙人模式"
+        else
+            statusLabel.Text = "Expert\n点击展开"
+        end
+    else
+        backroomTeleportButton.Visible = true
+        theaterFactoryButton.Visible = true
+        sewerTeleportButton.Visible = true
+        selfRescueButton.Visible = true
+        ninjaModeButton.Visible = true
+        statusLabel.Visible = false
+        minimizeBtn.Text = "_"
+        title.Text = "Expert"
+        local currentPos = mainFrame.Position
+        local targetSize = isZoomed and zoomedSize or originalSize
+        local tween = TweenService:Create(mainFrame, TweenInfo.new(0.3), {
+            Size = targetSize, Position = currentPos
+        })
+        tween:Play()
+    end
+end)
+
+-- 关闭功能
+closeBtn.MouseButton1Click:Connect(function()
+    if isSelfRescueActive then stopSelfRescue() end
+    if isNinjaModeActive then stopNinjaMode() end
+    local tween = TweenService:Create(mainFrame, TweenInfo.new(0.3), {
+        BackgroundTransparency = 0.8,
+        Position = mainFrame.Position + UDim2.new(0, 0, 0, -20)
     })
-    blurTween:Play()
+    tween:Play()
+    tween.Completed:Wait()
+    screenGui:Destroy()
+    isRunning = false
+end)
 
-    return BanScreen
-end
+-- 快捷键
+UserInputService.InputBegan:Connect(function(input, gameProcessed)
+    if gameProcessed then return end
+    if input.KeyCode == Enum.KeyCode.B then performBackroomTeleport()
+    elseif input.KeyCode == Enum.KeyCode.T then performTheaterFactoryTeleport()
+    elseif input.KeyCode == Enum.KeyCode.S then performSewerTeleport()
+    elseif input.KeyCode == Enum.KeyCode.R then
+        if isSelfRescueActive then stopSelfRescue() else startSelfRescue() end
+    elseif input.KeyCode == Enum.KeyCode.N then
+        if isNinjaModeActive then stopNinjaMode() else startNinjaMode() end
+    end
+end)
 
--- 先检测黑名单，若被封禁则直接显示提示
-if BlacklistSystem:isBanned(Player) then
-    BlacklistSystem:showBanUI(Gui)
-    -- 终止后续脚本执行
-    return
-end
+-- 角色重生处理
+player.CharacterAdded:Connect(function(character)
+    if isSelfRescueActive then stopSelfRescue() end
+    if isNinjaModeActive then
+        task.wait(0.5)
+        if isNinjaModeActive then
+            local humanoid = character:FindFirstChild("Humanoid")
+            if humanoid then
+                humanoid.WalkSpeed = originalWalkSpeed * ninjaModeMultiplier
+                humanoid.JumpPower = originalJumpPower * 3
+                if ninjaModeConnection then ninjaModeConnection:Disconnect() end
+                ninjaModeConnection = UserInputService.JumpRequest:Connect(function()
+                    if infiniteJumpEnabled and character and character:FindFirstChild("Humanoid") then
+                        character.Humanoid:ChangeState(Enum.HumanoidStateType.Jumping)
+                    end
+                end)
+            end
+        end
+    end
+end)
 
--- ================================
--- 小型紧凑UI创建
--- ================================
-local ScreenGui = Instance.new("ScreenGui")
-ScreenGui.Name = "SmallAuthSystem"
-ScreenGui.ResetOnSpawn = false
-ScreenGui.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
-ScreenGui.IgnoreGuiInset = false
-
--- 小型主容器（更小更居中）
-local MainContainer = Instance.new("Frame")
-MainContainer.Size = UDim2.new(0, 260, 0, 320)  -- 更小的尺寸
-MainContainer.Position = UDim2.new(0.5, -130, 0.5, -160)  -- 更居中
-MainContainer.BackgroundColor3 = Color3.fromRGB(20, 20, 30)
-MainContainer.BackgroundTransparency = 0.1
-MainContainer.BorderSizePixel = 0
-MainContainer.ClipsDescendants = true
-MainContainer.Parent = ScreenGui
-
--- 添加圆角
-local MainCorner = Instance.new("UICorner")
-MainCorner.CornerRadius = UDim.new(0, 12)
-MainCorner.Parent = MainContainer
-
--- 添加玻璃态效果
-local GlassEffect = Instance.new("Frame")
-GlassEffect.Size = UDim2.new(1, 0, 1, 0)
-GlassEffect.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
-GlassEffect.BackgroundTransparency = 0.96
-GlassEffect.BorderSizePixel = 0
-GlassEffect.ZIndex = 0
-GlassEffect.Parent = MainContainer
-
--- 简洁顶部条
-local TopBar = Instance.new("Frame")
-TopBar.Size = UDim2.new(1, 0, 0, 2)  -- 更细
-TopBar.Position = UDim2.new(0, 0, 0, 0)
-TopBar.BackgroundColor3 = Color3.fromRGB(0, 150, 220)
-TopBar.BorderSizePixel = 0
-TopBar.Parent = MainContainer
-
--- 标题区域（更紧凑）
-local Header = Instance.new("Frame")
-Header.Size = UDim2.new(1, 0, 0, 80)  -- 更矮
-Header.Position = UDim2.new(0, 0, 0, 5)
-Header.BackgroundTransparency = 1
-Header.Parent = MainContainer
-
--- 小型自定义图片徽标
-local CustomLogo = Instance.new("Frame")
-CustomLogo.Size = UDim2.new(0, 50, 0, 50)  -- 更小的图片尺寸
-CustomLogo.Position = UDim2.new(0.5, -25, 0, 0)
-CustomLogo.BackgroundTransparency = 1
-CustomLogo.Parent = Header
-
--- 小型图片容器
-local LogoImage = Instance.new("ImageLabel")
-LogoImage.Size = UDim2.new(1, 0, 1, 0)
-LogoImage.BackgroundTransparency = 1
-LogoImage.Image = "rbxassetid://98446998103932"  -- 你的自定义图片ID
-LogoImage.ScaleType = Enum.ScaleType.Fit
-LogoImage.ImageColor3 = Color3.fromRGB(255, 255, 255)
-LogoImage.Parent = CustomLogo
-
--- 添加圆角
-local ImageCorner = Instance.new("UICorner")
-ImageCorner.CornerRadius = UDim.new(0, 8)
-ImageCorner.Parent = LogoImage
-
--- 添加发光边框
-local ImageStroke = Instance.new("UIStroke")
-ImageStroke.Color = Color3.fromRGB(0, 180, 255)
-ImageStroke.Thickness = 1.5  -- 更细的边框
-ImageStroke.Transparency = 0.5
-ImageStroke.Parent = LogoImage
-
--- 标题（字体稍小）
-local Title = Instance.new("TextLabel")
-Title.Size = UDim2.new(1, 0, 0, 22)
-Title.Position = UDim2.new(0, 0, 0.7, 0)
-Title.BackgroundTransparency = 1
-Title.Text = "验证系统"
-Title.TextColor3 = Color3.fromRGB(240, 240, 255)
-Title.TextSize = 18  -- 更小的字体
-Title.Font = Enum.Font.GothamBold
-Title.TextStrokeColor3 = Color3.fromRGB(0, 50, 100)
-Title.TextStrokeTransparency = 0.8
-Title.Parent = Header
-
-local Author = Instance.new("TextLabel")
-Author.Size = UDim2.new(1, 0, 0, 16)
-Author.Position = UDim2.new(0, 0, 0.95, 0)
-Author.BackgroundTransparency = 1
-Author.Text = "作者B站？"
-Author.TextColor3 = Color3.fromRGB(170, 180, 200)
-Author.TextSize = 10  -- 更小的字体
-Author.Font = Enum.Font.Gotham
-Author.Parent = Header
-
--- 输入区域（更紧凑）
-local InputSection = Instance.new("Frame")
-InputSection.Size = UDim2.new(0.85, 0, 0, 48)  -- 更矮
-InputSection.Position = UDim2.new(0.075, 0, 0.32, 0)
-InputSection.BackgroundTransparency = 1
-InputSection.Parent = MainContainer
-
-local InputBox = Instance.new("Frame")
-InputBox.Size = UDim2.new(1, 0, 1, 0)
-InputBox.BackgroundColor3 = Color3.fromRGB(30, 30, 40)
-InputBox.BackgroundTransparency = 0.1
-InputBox.Parent = InputSection
-
-local InputBoxCorner = Instance.new("UICorner")
-InputBoxCorner.CornerRadius = UDim.new(0, 6)
-InputBoxCorner.Parent = InputBox
-
-local InputBoxStroke = Instance.new("UIStroke")
-InputBoxStroke.Color = Color3.fromRGB(50, 60, 80)
-InputBoxStroke.Thickness = 1
-InputBoxStroke.Parent = InputBox
-
-local KeyInput = Instance.new("TextBox")
-KeyInput.Size = UDim2.new(0.9, 0, 0.8, 0)
-KeyInput.Position = UDim2.new(0.05, 0, 0.1, 0)
-KeyInput.BackgroundTransparency = 1
-KeyInput.PlaceholderText = "输入验证密钥..."
-KeyInput.PlaceholderColor3 = Color3.fromRGB(120, 130, 150)
-KeyInput.Text = ""
-KeyInput.TextColor3 = Color3.fromRGB(240, 240, 255)
-KeyInput.TextSize = 14  -- 更小的字体
-KeyInput.Font = Enum.Font.GothamMedium
-KeyInput.ClearTextOnFocus = false
-KeyInput.Parent = InputBox
-
-local InputLine = Instance.new("Frame")
-InputLine.Size = UDim2.new(0, 0, 0, 2)
-InputLine.Position = UDim2.new(0, 0, 1, -2)
-InputLine.BackgroundColor3 = Color3.fromRGB(0, 150, 220)
-InputLine.BorderSizePixel = 0
-InputLine.Parent = InputBox
-
--- 验证按钮（更小）
-local VerifyButton = Instance.new("TextButton")
-VerifyButton.Size = UDim2.new(0.7, 0, 0, 40)  -- 更矮
-VerifyButton.Position = UDim2.new(0.15, 0, 0.52, 0)
-VerifyButton.BackgroundColor3 = Color3.fromRGB(0, 130, 210)
-VerifyButton.AutoButtonColor = false
-VerifyButton.Text = ""
-VerifyButton.Parent = MainContainer
-
-local ButtonCorner = Instance.new("UICorner")
-ButtonCorner.CornerRadius = UDim.new(0, 8)
-ButtonCorner.Parent = VerifyButton
-
-local ButtonGradient = Instance.new("UIGradient")
-ButtonGradient.Color = ColorSequence.new({
-    ColorSequenceKeypoint.new(0, Color3.fromRGB(0, 130, 210)),
-    ColorSequenceKeypoint.new(0.5, Color3.fromRGB(0, 150, 230)),
-    ColorSequenceKeypoint.new(1, Color3.fromRGB(0, 130, 210))
+-- 初始淡入动画
+local originalPosition = UDim2.new(0.02, 0, 0.3, 0)
+mainFrame.BackgroundTransparency = 1
+mainFrame.Position = originalPosition + UDim2.new(0, 0, 0, -30)
+task.wait(0.1)
+local fadeInTween = TweenService:Create(mainFrame, TweenInfo.new(0.5), {
+    BackgroundTransparency = 0.1, Position = originalPosition
 })
-ButtonGradient.Rotation = 90
-ButtonGradient.Parent = VerifyButton
-
-local ButtonLabel = Instance.new("TextLabel")
-ButtonLabel.Size = UDim2.new(1, 0, 1, 0)
-ButtonLabel.BackgroundTransparency = 1
-ButtonLabel.Text = "验证并启动"
-ButtonLabel.TextColor3 = Color3.fromRGB(255, 255, 255)
-ButtonLabel.TextSize = 15  -- 更小的字体
-ButtonLabel.Font = Enum.Font.GothamBold
-ButtonLabel.Parent = VerifyButton
-
-local ButtonIcon = Instance.new("TextLabel")
-ButtonIcon.Size = UDim2.new(0, 18, 0, 18)  -- 更小
-ButtonIcon.Position = UDim2.new(1, -22, 0.5, -9)  -- 调整位置
-ButtonIcon.BackgroundTransparency = 1
-ButtonIcon.Text = "→"
-ButtonIcon.TextColor3 = Color3.fromRGB(255, 255, 255)
-ButtonIcon.TextSize = 14  -- 更小的字体
-ButtonIcon.Font = Enum.Font.GothamBold
-ButtonIcon.Parent = VerifyButton
-
--- 状态显示（更紧凑）
-local StatusArea = Instance.new("Frame")
-StatusArea.Size = UDim2.new(0.85, 0, 0, 45)  -- 更矮
-StatusArea.Position = UDim2.new(0.075, 0, 0.68, 0)
-StatusArea.BackgroundTransparency = 1
-StatusArea.Parent = MainContainer
-
-local StatusBox = Instance.new("Frame")
-StatusBox.Size = UDim2.new(1, 0, 1, 0)
-StatusBox.BackgroundColor3 = Color3.fromRGB(25, 30, 40)
-StatusBox.BackgroundTransparency = 0.8
-StatusBox.Parent = StatusArea
-
-local StatusBoxCorner = Instance.new("UICorner")
-StatusBoxCorner.CornerRadius = UDim.new(0, 6)
-StatusBoxCorner.Parent = StatusBox
-
-local StatusIndicator = Instance.new("Frame")
-StatusIndicator.Size = UDim2.new(0, 8, 0, 8)  -- 更小
-StatusIndicator.Position = UDim2.new(0.05, 0, 0.5, -4)
-StatusIndicator.BackgroundColor3 = Color3.fromRGB(120, 130, 150)
-StatusIndicator.Parent = StatusBox
-
-local StatusIndicatorCorner = Instance.new("UICorner")
-StatusIndicatorCorner.CornerRadius = UDim.new(1, 0)
-StatusIndicatorCorner.Parent = StatusIndicator
-
-local StatusText = Instance.new("TextLabel")
-StatusText.Size = UDim2.new(0.85, 0, 1, 0)
-StatusText.Position = UDim2.new(0.15, 0, 0, 0)
-StatusText.BackgroundTransparency = 1
-StatusText.Text = "等待验证..."
-StatusText.TextColor3 = Color3.fromRGB(170, 180, 200)
-StatusText.TextSize = 12  -- 更小的字体
-StatusText.Font = Enum.Font.GothamMedium
-StatusText.TextXAlignment = Enum.TextXAlignment.Left
-StatusText.Parent = StatusBox
-
--- 底部信息（更小）
-local Footer = Instance.new("Frame")
-Footer.Size = UDim2.new(1, 0, 0, 28)  -- 更矮
-Footer.Position = UDim2.new(0, 0, 1, -28)
-Footer.BackgroundColor3 = Color3.fromRGB(15, 20, 30)
-Footer.BackgroundTransparency = 0.3
-Footer.Parent = MainContainer
-
-local VersionText = Instance.new("TextLabel")
-VersionText.Size = UDim2.new(1, 0, 1, 0)
-VersionText.BackgroundTransparency = 1
-VersionText.Text = "v3.4 | 密钥验证系统"
-VersionText.TextColor3 = Color3.fromRGB(120, 140, 160)
-VersionText.TextSize = 10  -- 更小的字体
-VersionText.Font = Enum.Font.Gotham
-VersionText.Parent = Footer
-
--- 关闭按钮（更小）
-local CloseButton = Instance.new("TextButton")
-CloseButton.Size = UDim2.new(0, 22, 0, 22)  -- 更小
-CloseButton.Position = UDim2.new(1, -26, 0, 6)
-CloseButton.BackgroundColor3 = Color3.fromRGB(40, 45, 55)
-CloseButton.AutoButtonColor = false
-CloseButton.Text = "×"
-CloseButton.TextColor3 = Color3.fromRGB(200, 210, 220)
-CloseButton.TextSize = 16  -- 更小的字体
-CloseButton.Font = Enum.Font.GothamBold
-CloseButton.BorderSizePixel = 0
-CloseButton.Parent = MainContainer
-
-local CloseCorner = Instance.new("UICorner")
-CloseCorner.CornerRadius = UDim.new(0.5, 0)
-CloseCorner.Parent = CloseButton
-
--- 添加小型外发光
-local OuterGlow = Instance.new("ImageLabel")
-OuterGlow.Size = UDim2.new(1, 16, 1, 16)  -- 更小的发光
-OuterGlow.Position = UDim2.new(0, -8, 0, -8)
-OuterGlow.BackgroundTransparency = 1
-OuterGlow.Image = "rbxassetid://5554237733"
-OuterGlow.ImageColor3 = Color3.fromRGB(0, 100, 200)
-OuterGlow.ImageTransparency = 0.85
-OuterGlow.ScaleType = Enum.ScaleType.Slice
-OuterGlow.SliceCenter = Rect.new(23, 23, 277, 277)
-OuterGlow.Parent = MainContainer
-OuterGlow.ZIndex = -1
-
--- ================================
--- 修复的验证系统
--- ================================
-local AuthSystem = {}
-
--- 有效密钥列表
-AuthSystem.ValidKeys = {
-    "渔炒鱼",
-    " ",
-    "SB",
-    "傻逼",
-    "MCBFUN",
-}
-
--- 验证函数
-function AuthSystem:validateKey(input)
-    if not input or type(input) ~= "string" then
-        return false, "请输入有效密钥"
-    end
-
-    local cleaned = input:gsub("%s+", "")
-
-    if cleaned == "" then
-        return false, "密钥不能为空"
-    end
-
-    for _, validKey in ipairs(self.ValidKeys) do
-        if cleaned == validKey then
-            return true, "验证成功！"
-        end
-    end
-
-    return false, "密钥无效"
-end
-
--- 执行脚本
-function AuthSystem:executeScript()
-    local url = "https://github.com/MCBFU/roblox/raw/refs/heads/main/pb.on1"
-
-    local success, err = pcall(function()
-        local scriptContent = game:HttpGet(url, true)
-        if scriptContent then
-            loadstring(scriptContent)()
-        else
-            error("无法获取脚本内容")
-        end
-    end)
-
-    return success, err
-end
-
--- ================================
--- 景深模糊效果控制
--- ================================
-local function enableDepthBlur()
-    local blurTween = TweenService:Create(DepthOfField, TweenInfo.new(0.8), {
-        FarIntensity = 0.8,
-        NearIntensity = 0.5,
-        InFocusRadius = 50
-    })
-    blurTween:Play()
-    return blurTween
-end
-
-local function disableDepthBlur()
-    local blurTween = TweenService:Create(DepthOfField, TweenInfo.new(0.8), {
-        FarIntensity = 0,
-        NearIntensity = 0,
-        InFocusRadius = 0
-    })
-    blurTween:Play()
-    return blurTween
-end
-
--- ================================
--- 动画工具
--- ================================
-local function createTween(obj, props, time)
-    local tween = TweenService:Create(obj, TweenInfo.new(time or 0.3), props)
-    return tween
-end
-
--- ================================
--- 显示UI并初始化
--- ================================
-ScreenGui.Parent = Gui
-
--- 启用景深模糊
-enableDepthBlur()
-
--- 播放入场动画（更居中）
-local entranceTween = createTween(MainContainer, {
-    Position = UDim2.new(0.5, -130, 0.5, -160),
-    BackgroundTransparency = 0.1
-}, 0.5)
-
-entranceTween:Play()
-
--- 打印调试信息
-
--- ================================
--- 交互效果
--- ================================
-
--- 输入框效果
-KeyInput.Focused:Connect(function()
-    createTween(InputLine, {
-        Size = UDim2.new(1, 0, 0, 2)
-    }):Play()
-
-    createTween(InputBox, {
-        BackgroundColor3 = Color3.fromRGB(35, 35, 45)
-    }):Play()
-end)
-
-KeyInput.FocusLost:Connect(function()
-    createTween(InputLine, {
-        Size = UDim2.new(0, 0, 0, 2)
-    }):Play()
-
-    createTween(InputBox, {
-        BackgroundColor3 = Color3.fromRGB(30, 30, 40)
-    }):Play()
-end)
-
--- 验证按钮效果
-VerifyButton.MouseEnter:Connect(function()
-    createTween(VerifyButton, {
-        BackgroundColor3 = Color3.fromRGB(0, 150, 230),
-        Size = UDim2.new(0.72, 0, 0, 42)
-    }, 0.2):Play()
-
-    createTween(ButtonIcon, {
-        Position = UDim2.new(1, -20, 0.5, -9)
-    }, 0.3):Play()
-end)
-
-VerifyButton.MouseLeave:Connect(function()
-    createTween(VerifyButton, {
-        BackgroundColor3 = Color3.fromRGB(0, 130, 210),
-        Size = UDim2.new(0.7, 0, 0, 40)
-    }, 0.2):Play()
-
-    createTween(ButtonIcon, {
-        Position = UDim2.new(1, -22, 0.5, -9)
-    }, 0.3):Play()
-end)
-
--- 关闭按钮效果
-CloseButton.MouseEnter:Connect(function()
-    createTween(CloseButton, {
-        BackgroundColor3 = Color3.fromRGB(50, 55, 65),
-        Rotation = 90,
-        Size = UDim2.new(0, 24, 0, 24)
-    }, 0.3):Play()
-end)
-
-CloseButton.MouseLeave:Connect(function()
-    createTween(CloseButton, {
-        BackgroundColor3 = Color3.fromRGB(40, 45, 55),
-        Rotation = 0,
-        Size = UDim2.new(0, 22, 0, 22)
-    }, 0.3):Play()
-end)
-
--- ================================
--- 主验证功能
--- ================================
-local function updateStatus(text, color)
-    StatusText.Text = text
-    StatusText.TextColor3 = color
-    StatusIndicator.BackgroundColor3 = color
-end
-
-VerifyButton.MouseButton1Click:Connect(function()
-    local input = KeyInput.Text
-
-    if input == "" then
-        updateStatus("请输入密钥", Color3.fromRGB(255, 150, 50))
-        return
-    end
-
-    -- 显示验证中状态
-    updateStatus("正在验证...", Color3.fromRGB(100, 200, 255))
-    ButtonLabel.Text = "验证中..."
-
-    -- 旋转动画
-    local spinConnection
-    local spinAngle = 0
-    spinConnection = RunService.Heartbeat:Connect(function(delta)
-        spinAngle = spinAngle + delta * 360
-        StatusIndicator.Rotation = spinAngle
-    end)
-
-    wait(0.8)
-
-    if spinConnection then
-        spinConnection:Disconnect()
-        StatusIndicator.Rotation = 0
-    end
-
-    -- 验证密钥
-    local isValid, message = AuthSystem:validateKey(input)
-
-    if isValid then
-        updateStatus("✅ " .. message, Color3.fromRGB(100, 255, 100))
-
-        -- 按钮状态更新
-        ButtonLabel.Text = "启动中..."
-        ButtonIcon.Text = "✓"
-
-        wait(0.5)
-
-        -- 执行脚本
-        updateStatus("加载脚本中...", Color3.fromRGB(150, 220, 100))
-
-        local success, err = AuthSystem:executeScript()
-
-        if success then
-            updateStatus("脚本启动成功！", Color3.fromRGB(100, 255, 100))
-
-            -- 淡出效果并移除模糊
-            createTween(MainContainer, {
-                BackgroundTransparency = 1,
-                Position = UDim2.new(0.5, -130, 0.5, -120)
-            }, 0.8):Play()
-
-            disableDepthBlur()
-
-            wait(1)
-            ScreenGui:Destroy()
-        else
-            updateStatus("脚本错误: " .. tostring(err), Color3.fromRGB(255, 100, 100))
-            ButtonLabel.Text = "验证并启动"
-            ButtonIcon.Text = "→"
-        end
-    else
-        updateStatus("❌ " .. message, Color3.fromRGB(255, 100, 100))
-        ButtonLabel.Text = "验证并启动"
-        ButtonIcon.Text = "→"
-
-        -- 错误震动效果
-        createTween(MainContainer, {
-            Position = UDim2.new(0.5, -130 + math.random(-4, 4), 0.5, -160)
-        }, 0.1):Play()
-
-        wait(0.1)
-
-        createTween(MainContainer, {
-            Position = UDim2.new(0.5, -130, 0.5, -160)
-        }, 0.1):Play()
-    end
-end)
-
--- 回车键验证
-KeyInput.FocusLost:Connect(function(enterPressed)
-    if enterPressed then
-        VerifyButton:Click()
-    end
-end)
-
--- 关闭系统
-CloseButton.MouseButton1Click:Connect(function()
-    createTween(MainContainer, {
-        BackgroundTransparency = 1,
-        Position = UDim2.new(0.5, -130, 0.5, -180)
-    }, 0.5):Play()
-
-    disableDepthBlur()
-
-    wait(0.8)
-    ScreenGui:Destroy()
-end)
-
--- 自动聚焦
-wait(0.5)
-KeyInput:CaptureFocus()
-
--- 设置初始状态
-updateStatus("等待验证密钥...", Color3.fromRGB(170, 180, 200))
-
--- 确保UI显示
-coroutine.wrap(function()
-    wait(1)
-    if ScreenGui and ScreenGui.Parent then
-        print("✅ 小型UI显示正常")
-        print("✅ 图片尺寸已缩小")
-        print("✅ 窗口更加居中紧凑")
-        print("✅ 黑名单系统加载完成")
-    else
-        print("❌ UI未显示")
-    end
-end)()
+fadeInTween:Play()
