@@ -66,7 +66,7 @@ function BlacklistSystem:showBanUI(parentGui)
     BanTitle.Size = UDim2.new(1, 0, 0, 40)
     BanTitle.Position = UDim2.new(0, 0, 0, 20)
     BanTitle.BackgroundTransparency = 1
-    BanTitle.Text = "🚫 您已被封禁"
+    BanTitle.Text = "🚫 你已被封禁"
     BanTitle.TextColor3 = Color3.fromRGB(255, 80, 80)
     BanTitle.TextSize = 22
     BanTitle.Font = Enum.Font.GothamBold
@@ -76,7 +76,7 @@ function BlacklistSystem:showBanUI(parentGui)
     BanText.Size = UDim2.new(0.9, 0, 0, 60)
     BanText.Position = UDim2.new(0.05, 0, 0, 70)
     BanText.BackgroundTransparency = 1
-    BanText.Text = "您的账号因违规操作被加入黑名单，无法使用本验证系统。"
+    BanText.Text = "你已被加入黑名单，无法使用此脚本"
     BanText.TextColor3 = Color3.fromRGB(220, 220, 220)
     BanText.TextSize = 14
     BanText.Font = Enum.Font.Gotham
@@ -99,7 +99,7 @@ function BlacklistSystem:showBanUI(parentGui)
 
     CloseBanBtn.MouseButton1Click:Connect(function()
         BanScreen:Destroy()
-        game:GetService("Players").LocalPlayer:Kick("您已被封禁，无法进入游戏") -- 可选：直接踢出游戏
+        game:GetService("Players").LocalPlayer:Kick("😂") -- 可选：直接踢出游戏
     end)
 
     -- 启用模糊效果
