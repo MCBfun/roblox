@@ -535,9 +535,3 @@ local fadeInTween = TweenService:Create(mainFrame, TweenInfo.new(0.5), {
     Position = originalPosition
 })
 fadeInTween:Play()
-
-game:GetService("StarterGui"):SetCore("SendNotification", {
-    Title = "KillAura",
-    Text = "脚本已加载\n右键: 开关杀戮光环",
-    Duration = 3
-})
