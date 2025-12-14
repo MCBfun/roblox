@@ -421,7 +421,7 @@ local function startNinjaMode()
     originalJumpPower = humanoid.JumpPower
     isNinjaModeActive = true
     infiniteJumpEnabled = true
-    ninjaModeButton.Text = "仙人模式\n[开]"
+    ninjaModeButton.Text = "仙人模式 [开]"
     
     humanoid.WalkSpeed = originalWalkSpeed * ninjaModeMultiplier
     humanoid.JumpPower = originalJumpPower * 3
@@ -455,7 +455,7 @@ local function stopNinjaMode()
         end
     end
     
-    ninjaModeButton.Text = "仙人模式\n[关]"
+    ninjaModeButton.Text = "仙人模式 [关]"
     if isMinimized then statusLabel.Text = "Expert\n点击展开" end
 end
 
