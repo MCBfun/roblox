@@ -27,10 +27,10 @@ local mainFrame = Instance.new("Frame")
 mainFrame.Name = "MainFrame"
 mainFrame.Size = UDim2.new(0, 120, 0, 295)
 mainFrame.Position = UDim2.new(0.02, 0, 0.3, 0)
-mainFrame.BackgroundColor3 = Color3.fromRGB(40, 40, 55)
-mainFrame.BackgroundTransparency = 0.2
+mainFrame.BackgroundColor3 = Color3.fromRGB(25, 25, 30)  -- 改为深灰色
+mainFrame.BackgroundTransparency = 0.1
 mainFrame.BorderSizePixel = 1
-mainFrame.BorderColor3 = Color3.fromRGB(80, 80, 100)
+mainFrame.BorderColor3 = Color3.fromRGB(60, 60, 70)  -- 改为深灰色边框
 mainFrame.Active = true
 mainFrame.Draggable = true
 mainFrame.ClipsDescendants = true
@@ -45,7 +45,7 @@ uiCorner.Parent = mainFrame
 local titleBar = Instance.new("Frame")
 titleBar.Name = "TitleBar"
 titleBar.Size = UDim2.new(1, 0, 0, 25)
-titleBar.BackgroundColor3 = Color3.fromRGB(30, 30, 45)
+titleBar.BackgroundColor3 = Color3.fromRGB(20, 20, 25)  -- 改为深灰色
 titleBar.BorderSizePixel = 0
 titleBar.Parent = mainFrame
 
@@ -59,7 +59,7 @@ title.Text = "Expert"
 title.Size = UDim2.new(1, -80, 1, 0)
 title.Position = UDim2.new(0, 5, 0, 0)
 title.BackgroundTransparency = 1
-title.TextColor3 = Color3.fromRGB(255, 255, 255)
+title.TextColor3 = Color3.fromRGB(220, 220, 220)  -- 改为浅灰色
 title.TextXAlignment = Enum.TextXAlignment.Left
 title.Font = Enum.Font.SourceSansSemibold
 title.TextSize = 14
@@ -79,12 +79,16 @@ zoomBtn.Name = "ZoomButton"
 zoomBtn.Size = UDim2.new(0, 25, 0, 25)
 zoomBtn.Position = UDim2.new(0, 0, 0, 0)
 zoomBtn.Text = "⏺️"
-zoomBtn.BackgroundColor3 = Color3.fromRGB(60, 100, 180)
-zoomBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
+zoomBtn.BackgroundColor3 = Color3.fromRGB(40, 40, 45)  -- 改为深灰色
+zoomBtn.TextColor3 = Color3.fromRGB(220, 220, 220)  -- 改为浅灰色
 zoomBtn.Font = Enum.Font.SourceSansBold
 zoomBtn.TextSize = 14
 zoomBtn.AutoButtonColor = false
 zoomBtn.Parent = controlButtons
+
+local zoomCorner = Instance.new("UICorner")
+zoomCorner.CornerRadius = UDim.new(0, 4)
+zoomCorner.Parent = zoomBtn
 
 -- 缩小按钮
 local minimizeBtn = Instance.new("TextButton")
@@ -92,24 +96,32 @@ minimizeBtn.Name = "MinimizeButton"
 minimizeBtn.Size = UDim2.new(0, 25, 0, 25)
 minimizeBtn.Position = UDim2.new(0, 25, 0, 0)
 minimizeBtn.Text = "_"
-minimizeBtn.BackgroundColor3 = Color3.fromRGB(60, 60, 80)
-minimizeBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
+minimizeBtn.BackgroundColor3 = Color3.fromRGB(40, 40, 45)  -- 改为深灰色
+minimizeBtn.TextColor3 = Color3.fromRGB(220, 220, 220)  -- 改为浅灰色
 minimizeBtn.Font = Enum.Font.SourceSansBold
 minimizeBtn.TextSize = 16
 minimizeBtn.AutoButtonColor = false
 minimizeBtn.Parent = controlButtons
+
+local minimizeCorner = Instance.new("UICorner")
+minimizeCorner.CornerRadius = UDim.new(0, 4)
+minimizeCorner.Parent = minimizeBtn
 
 -- 关闭按钮
 local closeBtn = Instance.new("TextButton")
 closeBtn.Size = UDim2.new(0, 25, 0, 25)
 closeBtn.Position = UDim2.new(0, 50, 0, 0)
 closeBtn.Text = "×"
-closeBtn.BackgroundColor3 = Color3.fromRGB(180, 60, 60)
-closeBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
+closeBtn.BackgroundColor3 = Color3.fromRGB(45, 35, 35)  -- 改为深灰色偏红
+closeBtn.TextColor3 = Color3.fromRGB(220, 220, 220)  -- 改为浅灰色
 closeBtn.Font = Enum.Font.SourceSansBold
 closeBtn.TextSize = 16
 closeBtn.AutoButtonColor = false
 closeBtn.Parent = controlButtons
+
+local closeCorner = Instance.new("UICorner")
+closeCorner.CornerRadius = UDim.new(0, 4)
+closeCorner.Parent = closeBtn
 
 -- 等候厅传送按钮
 local backroomTeleportButton = Instance.new("TextButton")
@@ -117,8 +129,8 @@ backroomTeleportButton.Name = "BackroomTeleportButton"
 backroomTeleportButton.Size = UDim2.new(1, -10, 0, 40)
 backroomTeleportButton.Position = UDim2.new(0, 5, 0, 30)
 backroomTeleportButton.Text = "传送等候厅"
-backroomTeleportButton.BackgroundColor3 = Color3.fromRGB(60, 180, 100)
-backroomTeleportButton.TextColor3 = Color3.fromRGB(255, 255, 255)
+backroomTeleportButton.BackgroundColor3 = Color3.fromRGB(35, 35, 40)  -- 改为深灰色
+backroomTeleportButton.TextColor3 = Color3.fromRGB(220, 220, 220)  -- 改为浅灰色
 backroomTeleportButton.Font = Enum.Font.SourceSansSemibold
 backroomTeleportButton.TextSize = 14
 backroomTeleportButton.TextWrapped = true
@@ -129,50 +141,32 @@ local teleportCorner = Instance.new("UICorner")
 teleportCorner.CornerRadius = UDim.new(0, 5)
 teleportCorner.Parent = backroomTeleportButton
 
--- 剧院火车传送按钮
-local theaterTrainButton = Instance.new("TextButton")
-theaterTrainButton.Name = "TheaterTrainButton"
-theaterTrainButton.Size = UDim2.new(1, -10, 0, 40)
-theaterTrainButton.Position = UDim2.new(0, 5, 0, 75)
-theaterTrainButton.Text = "传送剧院火车"
-theaterTrainButton.BackgroundColor3 = Color3.fromRGB(180, 100, 60)
-theaterTrainButton.TextColor3 = Color3.fromRGB(255, 255, 255)
-theaterTrainButton.Font = Enum.Font.SourceSansSemibold
-theaterTrainButton.TextSize = 14
-theaterTrainButton.TextWrapped = true
-theaterTrainButton.AutoButtonColor = false
-theaterTrainButton.Parent = mainFrame
+-- 剧院|工厂火车传送按钮（合并）
+local theaterFactoryButton = Instance.new("TextButton")
+theaterFactoryButton.Name = "TheaterFactoryButton"
+theaterFactoryButton.Size = UDim2.new(1, -10, 0, 40)
+theaterFactoryButton.Position = UDim2.new(0, 5, 0, 75)
+theaterFactoryButton.Text = "传送到剧院|工厂"
+theaterFactoryButton.BackgroundColor3 = Color3.fromRGB(35, 35, 40)  -- 改为深灰色
+theaterFactoryButton.TextColor3 = Color3.fromRGB(220, 220, 220)  -- 改为浅灰色
+theaterFactoryButton.Font = Enum.Font.SourceSansSemibold
+theaterFactoryButton.TextSize = 14
+theaterFactoryButton.TextWrapped = true
+theaterFactoryButton.AutoButtonColor = false
+theaterFactoryButton.Parent = mainFrame
 
-local theaterTrainCorner = Instance.new("UICorner")
-theaterTrainCorner.CornerRadius = UDim.new(0, 5)
-theaterTrainCorner.Parent = theaterTrainButton
-
--- 工厂火车传送按钮
-local factoryTrainButton = Instance.new("TextButton")
-factoryTrainButton.Name = "FactoryTrainButton"
-factoryTrainButton.Size = UDim2.new(1, -10, 0, 40)
-factoryTrainButton.Position = UDim2.new(0, 5, 0, 120)
-factoryTrainButton.Text = "传送工厂火车"
-factoryTrainButton.BackgroundColor3 = Color3.fromRGB(100, 100, 200)
-factoryTrainButton.TextColor3 = Color3.fromRGB(255, 255, 255)
-factoryTrainButton.Font = Enum.Font.SourceSansSemibold
-factoryTrainButton.TextSize = 14
-factoryTrainButton.TextWrapped = true
-factoryTrainButton.AutoButtonColor = false
-factoryTrainButton.Parent = mainFrame
-
-local factoryTrainCorner = Instance.new("UICorner")
-factoryTrainCorner.CornerRadius = UDim.new(0, 5)
-factoryTrainCorner.Parent = factoryTrainButton
+local theaterFactoryCorner = Instance.new("UICorner")
+theaterFactoryCorner.CornerRadius = UDim.new(0, 5)
+theaterFactoryCorner.Parent = theaterFactoryButton
 
 -- 下水道传送按钮
 local sewerTeleportButton = Instance.new("TextButton")
 sewerTeleportButton.Name = "SewerTeleportButton"
 sewerTeleportButton.Size = UDim2.new(1, -10, 0, 40)
-sewerTeleportButton.Position = UDim2.new(0, 5, 0, 165)
+sewerTeleportButton.Position = UDim2.new(0, 5, 0, 120)
 sewerTeleportButton.Text = "传送下水道"
-sewerTeleportButton.BackgroundColor3 = Color3.fromRGB(100, 180, 100)
-sewerTeleportButton.TextColor3 = Color3.fromRGB(255, 255, 255)
+sewerTeleportButton.BackgroundColor3 = Color3.fromRGB(35, 35, 40)  -- 改为深灰色
+sewerTeleportButton.TextColor3 = Color3.fromRGB(220, 220, 220)  -- 改为浅灰色
 sewerTeleportButton.Font = Enum.Font.SourceSansSemibold
 sewerTeleportButton.TextSize = 14
 sewerTeleportButton.TextWrapped = true
@@ -187,10 +181,10 @@ sewerCorner.Parent = sewerTeleportButton
 local selfRescueButton = Instance.new("TextButton")
 selfRescueButton.Name = "SelfRescueButton"
 selfRescueButton.Size = UDim2.new(1, -10, 0, 40)
-selfRescueButton.Position = UDim2.new(0, 5, 0, 210)
-selfRescueButton.Text = "自救\n固定位置 [OFF]"
-selfRescueButton.BackgroundColor3 = Color3.fromRGB(180, 60, 180)
-selfRescueButton.TextColor3 = Color3.fromRGB(255, 255, 255)
+selfRescueButton.Position = UDim2.new(0, 5, 0, 165)
+selfRescueButton.Text = "自救\n固定位置 [关]"
+selfRescueButton.BackgroundColor3 = Color3.fromRGB(35, 35, 40)  -- 改为深灰色
+selfRescueButton.TextColor3 = Color3.fromRGB(220, 220, 220)  -- 改为浅灰色
 selfRescueButton.Font = Enum.Font.SourceSansSemibold
 selfRescueButton.TextSize = 14
 selfRescueButton.TextWrapped = true
@@ -205,10 +199,10 @@ selfRescueCorner.Parent = selfRescueButton
 local ninjaModeButton = Instance.new("TextButton")
 ninjaModeButton.Name = "NinjaModeButton"
 ninjaModeButton.Size = UDim2.new(1, -10, 0, 40)
-ninjaModeButton.Position = UDim2.new(0, 5, 0, 255)
-ninjaModeButton.Text = "仙人模式\n[OFF]"
-ninjaModeButton.BackgroundColor3 = Color3.fromRGB(255, 165, 0)
-ninjaModeButton.TextColor3 = Color3.fromRGB(255, 255, 255)
+ninjaModeButton.Position = UDim2.new(0, 5, 0, 210)
+ninjaModeButton.Text = "仙人模式\n[关]"
+ninjaModeButton.BackgroundColor3 = Color3.fromRGB(35, 35, 40)  -- 改为深灰色
+ninjaModeButton.TextColor3 = Color3.fromRGB(220, 220, 220)  -- 改为浅灰色
 ninjaModeButton.Font = Enum.Font.SourceSansSemibold
 ninjaModeButton.TextSize = 14
 ninjaModeButton.TextWrapped = true
@@ -226,7 +220,7 @@ statusLabel.Size = UDim2.new(1, -10, 1, -10)
 statusLabel.Position = UDim2.new(0, 5, 0, 5)
 statusLabel.BackgroundTransparency = 1
 statusLabel.Text = "Expert\n点击展开"
-statusLabel.TextColor3 = Color3.fromRGB(200, 200, 220)
+statusLabel.TextColor3 = Color3.fromRGB(180, 180, 180)  -- 改为灰色
 statusLabel.TextSize = 12
 statusLabel.TextWrapped = true
 statusLabel.Visible = false
@@ -256,34 +250,29 @@ local ninjaModeConnection = nil
 
 -- 坐标定义
 local backroomLocation = {X = 163.15, Y = 9, Z = 955.4}
-local theaterTrainLocation = {X = -5.4, Y = 73, Z = -145.3}
-local factoryTrainLocation = {X = 300, Y = 17, Z = 475}
+local theaterFactoryLocation = {X = 0, Y = -297, Z = 0}  -- Y-297位置
 local sewerLocation = {X = 356, Y = 528, Z = -179}
 
--- 按钮悬停效果函数
+-- 按钮悬停效果函数（黑白风格）
 local function setupButtonHover(button)
     local originalColor = button.BackgroundColor3
+    local originalTextColor = button.TextColor3
     button.MouseEnter:Connect(function()
-        local tween = TweenService:Create(button, TweenInfo.new(0.2), {
-            BackgroundColor3 = Color3.fromRGB(
-                math.min(255, originalColor.R * 255 + 30),
-                math.min(255, originalColor.G * 255 + 30),
-                math.min(255, originalColor.B * 255 + 30)
-            )
-        })
-        tween:Play()
+        button.BackgroundColor3 = Color3.fromRGB(
+            math.min(originalColor.R * 255 + 15, 55),
+            math.min(originalColor.G * 255 + 15, 55),
+            math.min(originalColor.B * 255 + 15, 55)
+        ) / 255
+        button.TextColor3 = Color3.fromRGB(240, 240, 240)  -- 更亮的灰色
     end)
     button.MouseLeave:Connect(function()
-        local tween = TweenService:Create(button, TweenInfo.new(0.2), {
-            BackgroundColor3 = originalColor
-        })
-        tween:Play()
+        button.BackgroundColor3 = originalColor
+        button.TextColor3 = originalTextColor
     end)
 end
 
 setupButtonHover(backroomTeleportButton)
-setupButtonHover(theaterTrainButton)
-setupButtonHover(factoryTrainButton)
+setupButtonHover(theaterFactoryButton)
 setupButtonHover(sewerTeleportButton)
 setupButtonHover(selfRescueButton)
 setupButtonHover(ninjaModeButton)
@@ -304,8 +293,7 @@ local function startSelfRescue()
     savedPosition = humanoidRootPart.Position
     savedCFrame = humanoidRootPart.CFrame
     isSelfRescueActive = true
-    selfRescueButton.Text = "自救\n固定位置 [ON]"
-    selfRescueButton.BackgroundColor3 = Color3.fromRGB(150, 30, 150)
+    selfRescueButton.Text = "自救\n固定位置 [开]"
 
     local bodyPosition = Instance.new("BodyPosition")
     bodyPosition.Name = "ExpertSelfRescuePosition"
@@ -369,8 +357,7 @@ local function stopSelfRescue()
         end
     end
     
-    selfRescueButton.Text = "自救\n固定位置 [OFF]"
-    selfRescueButton.BackgroundColor3 = Color3.fromRGB(180, 60, 180)
+    selfRescueButton.Text = "自救\n固定位置 [关]"
     if isMinimized then statusLabel.Text = "Expert\n点击展开" end
     savedPosition = nil
     savedCFrame = nil
@@ -392,13 +379,13 @@ local function performTeleport(location, button, locationName)
     if not isMinimized and button then
         local originalText = button.Text
         button.Text = "✅ 已传送"
-        task.wait(3)
+        task.wait(2)
         button.Text = originalText
     end
 
     if isMinimized then
         statusLabel.Text = "✅ 已传送" .. locationName
-        task.wait(3)
+        task.wait(2)
         statusLabel.Text = "Expert\n点击展开"
     end
 
@@ -410,14 +397,9 @@ local function performBackroomTeleport()
     return performTeleport(backroomLocation, backroomTeleportButton, "等候厅")
 end
 
--- 执行剧院火车传送
-local function performTheaterTrainTeleport()
-    return performTeleport(theaterTrainLocation, theaterTrainButton, "剧院火车")
-end
-
--- 执行工厂火车传送
-local function performFactoryTrainTeleport()
-    return performTeleport(factoryTrainLocation, factoryTrainButton, "工厂火车")
+-- 执行剧院|工厂传送（Y-297）
+local function performTheaterFactoryTeleport()
+    return performTeleport(theaterFactoryLocation, theaterFactoryButton, "剧院|工厂")
 end
 
 -- 执行下水道传送
@@ -439,8 +421,7 @@ local function startNinjaMode()
     originalJumpPower = humanoid.JumpPower
     isNinjaModeActive = true
     infiniteJumpEnabled = true
-    ninjaModeButton.Text = "仙人模式\n[ON]"
-    ninjaModeButton.BackgroundColor3 = Color3.fromRGB(220, 140, 0)
+    ninjaModeButton.Text = "仙人模式\n[开]"
     
     humanoid.WalkSpeed = originalWalkSpeed * ninjaModeMultiplier
     humanoid.JumpPower = originalJumpPower * 3
@@ -474,15 +455,13 @@ local function stopNinjaMode()
         end
     end
     
-    ninjaModeButton.Text = "仙人模式\n[OFF]"
-    ninjaModeButton.BackgroundColor3 = Color3.fromRGB(255, 165, 0)
+    ninjaModeButton.Text = "仙人模式\n[关]"
     if isMinimized then statusLabel.Text = "Expert\n点击展开" end
 end
 
 -- 按钮点击事件
 backroomTeleportButton.MouseButton1Click:Connect(performBackroomTeleport)
-theaterTrainButton.MouseButton1Click:Connect(performTheaterTrainTeleport)
-factoryTrainButton.MouseButton1Click:Connect(performFactoryTrainTeleport)
+theaterFactoryButton.MouseButton1Click:Connect(performTheaterFactoryTeleport)
 sewerTeleportButton.MouseButton1Click:Connect(performSewerTeleport)
 selfRescueButton.MouseButton1Click:Connect(function()
     if isSelfRescueActive then stopSelfRescue() else startSelfRescue() end
@@ -500,34 +479,14 @@ zoomBtn.MouseButton1Click:Connect(function()
             Size = zoomedSize, Position = currentPos
         })
         tween:Play()
-        zoomBtn.Text = "⏺️"
-        zoomBtn.BackgroundColor3 = Color3.fromRGB(80, 140, 220)
-        if not isMinimized then
-            backroomTeleportButton.TextSize = 15
-            theaterTrainButton.TextSize = 15
-            factoryTrainButton.TextSize = 15
-            sewerTeleportButton.TextSize = 15
-            selfRescueButton.TextSize = 15
-            ninjaModeButton.TextSize = 15
-            title.TextSize = 15
-        end
+        zoomBtn.Text = "⏺"
     else
         local currentPos = mainFrame.Position
         local tween = TweenService:Create(mainFrame, TweenInfo.new(0.3), {
             Size = originalSize, Position = currentPos
         })
         tween:Play()
-        zoomBtn.Text = "⬅️"
-        zoomBtn.BackgroundColor3 = Color3.fromRGB(60, 100, 180)
-        if not isMinimized then
-            backroomTeleportButton.TextSize = 14
-            theaterTrainButton.TextSize = 14
-            factoryTrainButton.TextSize = 14
-            sewerTeleportButton.TextSize = 14
-            selfRescueButton.TextSize = 14
-            ninjaModeButton.TextSize = 14
-            title.TextSize = 14
-        end
+        zoomBtn.Text = "⏺️"
     end
 end)
 
@@ -542,14 +501,13 @@ minimizeBtn.MouseButton1Click:Connect(function()
         tween:Play()
         tween.Completed:Wait()
         backroomTeleportButton.Visible = false
-        theaterTrainButton.Visible = false
-        factoryTrainButton.Visible = false
+        theaterFactoryButton.Visible = false
         sewerTeleportButton.Visible = false
         selfRescueButton.Visible = false
         ninjaModeButton.Visible = false
         statusLabel.Visible = true
         minimizeBtn.Text = "+"
-        title.Text = "🎯"
+        title.Text = "⚔"
         if isSelfRescueActive then
             statusLabel.Text = "🔒 固定位置"
         elseif isNinjaModeActive then
@@ -559,8 +517,7 @@ minimizeBtn.MouseButton1Click:Connect(function()
         end
     else
         backroomTeleportButton.Visible = true
-        theaterTrainButton.Visible = true
-        factoryTrainButton.Visible = true
+        theaterFactoryButton.Visible = true
         sewerTeleportButton.Visible = true
         selfRescueButton.Visible = true
         ninjaModeButton.Visible = true
@@ -594,92 +551,12 @@ end)
 UserInputService.InputBegan:Connect(function(input, gameProcessed)
     if gameProcessed then return end
     if input.KeyCode == Enum.KeyCode.B then performBackroomTeleport()
-    elseif input.KeyCode == Enum.KeyCode.T then performTheaterTrainTeleport()
-    elseif input.KeyCode == Enum.KeyCode.F then performFactoryTrainTeleport()
+    elseif input.KeyCode == Enum.KeyCode.T then performTheaterFactoryTeleport()
     elseif input.KeyCode == Enum.KeyCode.S then performSewerTeleport()
     elseif input.KeyCode == Enum.KeyCode.R then
         if isSelfRescueActive then stopSelfRescue() else startSelfRescue() end
     elseif input.KeyCode == Enum.KeyCode.N then
         if isNinjaModeActive then stopNinjaMode() else startNinjaMode() end
-    elseif input.KeyCode == Enum.KeyCode.M then
-        isMinimized = not isMinimized
-        if isMinimized then
-            local currentPos = mainFrame.Position
-            local tween = TweenService:Create(mainFrame, TweenInfo.new(0.3), {
-                Size = minimizedSize, Position = currentPos
-            })
-            tween:Play()
-            tween.Completed:Wait()
-            backroomTeleportButton.Visible = false
-            theaterTrainButton.Visible = false
-            factoryTrainButton.Visible = false
-            sewerTeleportButton.Visible = false
-            selfRescueButton.Visible = false
-            ninjaModeButton.Visible = false
-            statusLabel.Visible = true
-            minimizeBtn.Text = "+"
-            title.Text = "🎯"
-            if isSelfRescueActive then
-                statusLabel.Text = "🔒 固定位置"
-            elseif isNinjaModeActive then
-                statusLabel.Text = "⚡ 仙人模式"
-            else
-                statusLabel.Text = "Expert\n点击展开"
-            end
-        else
-            backroomTeleportButton.Visible = true
-            theaterTrainButton.Visible = true
-            factoryTrainButton.Visible = true
-            sewerTeleportButton.Visible = true
-            selfRescueButton.Visible = true
-            ninjaModeButton.Visible = true
-            statusLabel.Visible = false
-            minimizeBtn.Text = "_"
-            title.Text = "Expert"
-            local currentPos = mainFrame.Position
-            local targetSize = isZoomed and zoomedSize or originalSize
-            local tween = TweenService:Create(mainFrame, TweenInfo.new(0.3), {
-                Size = targetSize, Position = currentPos
-            })
-            tween:Play()
-        end
-    elseif input.KeyCode == Enum.KeyCode.Z then
-        isZoomed = not isZoomed
-        if isZoomed then
-            local currentPos = mainFrame.Position
-            local tween = TweenService:Create(mainFrame, TweenInfo.new(0.3), {
-                Size = zoomedSize, Position = currentPos
-            })
-            tween:Play()
-            zoomBtn.Text = "▶️"
-            zoomBtn.BackgroundColor3 = Color3.fromRGB(80, 140, 220)
-            if not isMinimized then
-                backroomTeleportButton.TextSize = 15
-                theaterTrainButton.TextSize = 15
-                factoryTrainButton.TextSize = 15
-                sewerTeleportButton.TextSize = 15
-                selfRescueButton.TextSize = 15
-                ninjaModeButton.TextSize = 15
-                title.TextSize = 15
-            end
-        else
-            local currentPos = mainFrame.Position
-            local tween = TweenService:Create(mainFrame, TweenInfo.new(0.3), {
-                Size = originalSize, Position = currentPos
-            })
-            tween:Play()
-            zoomBtn.Text = "⏸️"
-            zoomBtn.BackgroundColor3 = Color3.fromRGB(60, 100, 180)
-            if not isMinimized then
-                backroomTeleportButton.TextSize = 14
-                theaterTrainButton.TextSize = 14
-                factoryTrainButton.TextSize = 14
-                sewerTeleportButton.TextSize = 14
-                selfRescueButton.TextSize = 14
-                ninjaModeButton.TextSize = 14
-                title.TextSize = 14
-            end
-        end
     end
 end)
 
@@ -710,14 +587,13 @@ mainFrame.BackgroundTransparency = 1
 mainFrame.Position = originalPosition + UDim2.new(0, 0, 0, -30)
 task.wait(0.1)
 local fadeInTween = TweenService:Create(mainFrame, TweenInfo.new(0.5), {
-    BackgroundTransparency = 0.2, Position = originalPosition
+    BackgroundTransparency = 0.1, Position = originalPosition
 })
 fadeInTween:Play()
 
 game:GetService("StarterGui"):SetCore("SendNotification", {
     Title = "Expert",
-    Text = "脚本已加载 - B/T/F/S/R/N/M/Z键",
-    Icon = "rbxassetid://14550088217",
-    Duration = 5,
+    Text = "脚本已加载 - B/T/S/R/N键",
+    Duration = 3,
     Position = UDim2.new(0, 20, 1, -50)
 })
