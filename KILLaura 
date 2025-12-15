@@ -209,7 +209,7 @@ local minimizedSize = UDim2.new(0, 80, 0, 40)
 local zoomedSize = UDim2.new(0, 140, 0, 165)
 local ignoreHealthThreshold = 5
 local cycleTeleportIndex = 1
-local originalPositionCFrame = nil
+local originalPositionCFrame = nil -- 移除首次判断的依赖
 local isAutoPipeRunning = false
 
 -- 所有管道位置（12个点）
@@ -411,10 +411,8 @@ local function performAutoPipeTeleport()
     local rootPart = character:FindFirstChild("HumanoidRootPart")
     if not rootPart then return end
     
-    -- 保存原位置
-    if not originalPositionCFrame then
-        originalPositionCFrame = rootPart.CFrame
-    end
+    -- 每次执行都重新记录当前原点（核心修复点）
+    originalPositionCFrame = rootPart.CFrame
     
     -- 临时关闭杀戮光环
     local wasComboActive = isComboActive
@@ -426,15 +424,15 @@ local function performAutoPipeTeleport()
     isAutoPipeRunning = true
     autoPipeButton.Text = "传送中..."
     
-    -- 依次传送所有12个管道位置
+    -- 依次传送所有12个管道位置，缩短停留时间到0.05秒（提速核心）
     for i = 1, #allPipeLocations do
         local location = allPipeLocations[i]
         rootPart.CFrame = CFrame.new(location.X, location.Y, location.Z)
         autoPipeButton.Text = string.format("进度: %d/12", i)
-        task.wait(0.2)  -- 每个位置停留0.2秒
+        task.wait(0.05)  -- 从0.2秒改为0.05秒，大幅提升速度
     end
     
-    -- 传送回原点
+    -- 传送回本次执行的原点
     if originalPositionCFrame then
         rootPart.CFrame = originalPositionCFrame
     end
