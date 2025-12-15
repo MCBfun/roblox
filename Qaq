@@ -12,17 +12,11 @@ game:GetService("StarterGui"):SetCore("SendNotification", {
     Duration = 6, -- 显示时长（秒）
     Position = UDim2.new(0, 20, 1, -50) -- 定位到左下角
 })
-game:GetService("StarterGui"):SetCore("SendNotification", {
-    Title = "提示",
-    Text = "刷xp频率已拉满",
-    Icon = "rbxassetid://111253731477608", -- 可选：图标ID（这里用个示例笑脸图标）
-    Duration = 8, -- 显示时长（秒）
-    Position = UDim2.new(0, 20, 1, -50) -- 定位到左下角
-})
+
 while true do
 local args = {
 	37.645815522052395,
-	30
+	10
 }
 game:GetService("Players").LocalPlayer:WaitForChild("PlayerGui"):WaitForChild("GameUI"):WaitForChild("chaseeffect"):WaitForChild("Effect"):WaitForChild("RemoteEvent"):FireServer(unpack(args))
 wait(0.5)
