@@ -7,12 +7,18 @@ sound:Play()
 
 game:GetService("StarterGui"):SetCore("SendNotification", {
     Title = "刷xp已开启",
-    Text = "欢迎使用刷经验",
-    Icon = "rbxassetid://111253731477608", -- 可选：图标ID（这里用个示例笑脸图标）
+    Text = "已降低频率",
+    Icon = "rbxassetid://136830054650037", -- 可选：图标ID（这里用个示例笑脸图标）
     Duration = 6, -- 显示时长（秒）
     Position = UDim2.new(0, 20, 1, -50) -- 定位到左下角
 })
-
+game:GetService("StarterGui"):SetCore("SendNotification", {
+    Title = "别那么没节制!",
+    Text = "下回用刷经验的时候，可别连累到我",
+    Icon = "rbxassetid://136830054650037", -- 可选：图标ID（这里用个示例笑脸图标）
+    Duration = 6, -- 显示时长（秒）
+    Position = UDim2.new(0, 20, 1, -50) -- 定位到左下角
+})
 while true do
 local args = {
 	37.645815522052395,
