@@ -17,6 +17,59 @@ local TweenService = game:GetService("TweenService")
 local player = Players.LocalPlayer
 local isRunning = true
 
+-- ========== 右下角弹窗提示函数 ==========
+local function createNotification(text, color)
+    -- 清除已有提示
+    local existingNotify = player.PlayerGui:FindFirstChild("ExpertNotify")
+    if existingNotify then
+        existingNotify:Destroy()
+    end
+
+    local notifyGui = Instance.new("ScreenGui")
+    notifyGui.Name = "ExpertNotify"
+    notifyGui.Parent = player.PlayerGui
+    notifyGui.IgnoreGuiInset = true
+
+    local notifyFrame = Instance.new("Frame")
+    notifyFrame.Size = UDim2.new(0, 220, 0, 60)
+    notifyFrame.Position = UDim2.new(1, -230, 1, -90)
+    notifyFrame.BackgroundColor3 = Color3.fromRGB(25, 25, 30)
+    notifyFrame.BackgroundTransparency = 0.1
+    notifyFrame.Parent = notifyGui
+    Instance.new("UICorner", notifyFrame).CornerRadius = UDim.new(0, 8)
+    Instance.new("UIStroke", notifyFrame).Color = color or Color3.fromRGB(60, 60, 70)
+
+    local notifyLabel = Instance.new("TextLabel")
+    notifyLabel.Size = UDim2.new(1, -10, 1, -10)
+    notifyLabel.Position = UDim2.new(0, 5, 0, 5)
+    notifyLabel.BackgroundTransparency = 1
+    notifyLabel.Text = text
+    notifyLabel.TextColor3 = Color3.fromRGB(240, 240, 240)
+    notifyLabel.TextSize = 14
+    notifyLabel.TextWrapped = true
+    notifyLabel.Font = Enum.Font.SourceSansSemibold
+    notifyLabel.Parent = notifyFrame
+
+    -- 淡入动画
+    notifyFrame.BackgroundTransparency = 1
+    notifyFrame.Position = UDim2.new(1, -200, 1, -90)
+    TweenService:Create(notifyFrame, TweenInfo.new(0.3), {
+        BackgroundTransparency = 0.1,
+        Position = UDim2.new(1, -230, 1, -90)
+    }):Play()
+
+    -- 3秒后淡出销毁
+    task.wait(3)
+    local fadeTween = TweenService:Create(notifyFrame, TweenInfo.new(0.3), {
+        BackgroundTransparency = 1,
+        Position = UDim2.new(1, -200, 1, -90)
+    })
+    fadeTween:Play()
+    fadeTween.Completed:Wait()
+    notifyGui:Destroy()
+end
+-- ========== 弹窗函数结束 ==========
+
 -- 创建最小化UI
 local screenGui = Instance.new("ScreenGui")
 screenGui.Name = "ExpertGUI"
@@ -27,10 +80,10 @@ local mainFrame = Instance.new("Frame")
 mainFrame.Name = "MainFrame"
 mainFrame.Size = UDim2.new(0, 120, 0, 295)
 mainFrame.Position = UDim2.new(0.02, 0, 0.3, 0)
-mainFrame.BackgroundColor3 = Color3.fromRGB(25, 25, 30)  -- 改为深灰色
+mainFrame.BackgroundColor3 = Color3.fromRGB(25, 25, 30)  -- 深灰色
 mainFrame.BackgroundTransparency = 0.1
 mainFrame.BorderSizePixel = 1
-mainFrame.BorderColor3 = Color3.fromRGB(60, 60, 70)  -- 改为深灰色边框
+mainFrame.BorderColor3 = Color3.fromRGB(60, 60, 70)  -- 深灰色边框
 mainFrame.Active = true
 mainFrame.Draggable = true
 mainFrame.ClipsDescendants = true
@@ -45,7 +98,7 @@ uiCorner.Parent = mainFrame
 local titleBar = Instance.new("Frame")
 titleBar.Name = "TitleBar"
 titleBar.Size = UDim2.new(1, 0, 0, 25)
-titleBar.BackgroundColor3 = Color3.fromRGB(20, 20, 25)  -- 改为深灰色
+titleBar.BackgroundColor3 = Color3.fromRGB(20, 20, 25)  -- 深灰色
 titleBar.BorderSizePixel = 0
 titleBar.Parent = mainFrame
 
@@ -59,7 +112,7 @@ title.Text = "Expert"
 title.Size = UDim2.new(1, -80, 1, 0)
 title.Position = UDim2.new(0, 5, 0, 0)
 title.BackgroundTransparency = 1
-title.TextColor3 = Color3.fromRGB(220, 220, 220)  -- 改为浅灰色
+title.TextColor3 = Color3.fromRGB(220, 220, 220)  -- 浅灰色
 title.TextXAlignment = Enum.TextXAlignment.Left
 title.Font = Enum.Font.SourceSansSemibold
 title.TextSize = 14
@@ -79,8 +132,8 @@ zoomBtn.Name = "ZoomButton"
 zoomBtn.Size = UDim2.new(0, 25, 0, 25)
 zoomBtn.Position = UDim2.new(0, 0, 0, 0)
 zoomBtn.Text = "⏺️"
-zoomBtn.BackgroundColor3 = Color3.fromRGB(40, 40, 45)  -- 改为深灰色
-zoomBtn.TextColor3 = Color3.fromRGB(220, 220, 220)  -- 改为浅灰色
+zoomBtn.BackgroundColor3 = Color3.fromRGB(40, 40, 45)  -- 深灰色
+zoomBtn.TextColor3 = Color3.fromRGB(220, 220, 220)  -- 浅灰色
 zoomBtn.Font = Enum.Font.SourceSansBold
 zoomBtn.TextSize = 14
 zoomBtn.AutoButtonColor = false
@@ -96,8 +149,8 @@ minimizeBtn.Name = "MinimizeButton"
 minimizeBtn.Size = UDim2.new(0, 25, 0, 25)
 minimizeBtn.Position = UDim2.new(0, 25, 0, 0)
 minimizeBtn.Text = "_"
-minimizeBtn.BackgroundColor3 = Color3.fromRGB(40, 40, 45)  -- 改为深灰色
-minimizeBtn.TextColor3 = Color3.fromRGB(220, 220, 220)  -- 改为浅灰色
+minimizeBtn.BackgroundColor3 = Color3.fromRGB(40, 40, 45)  -- 深灰色
+minimizeBtn.TextColor3 = Color3.fromRGB(220, 220, 220)  -- 浅灰色
 minimizeBtn.Font = Enum.Font.SourceSansBold
 minimizeBtn.TextSize = 16
 minimizeBtn.AutoButtonColor = false
@@ -112,8 +165,8 @@ local closeBtn = Instance.new("TextButton")
 closeBtn.Size = UDim2.new(0, 25, 0, 25)
 closeBtn.Position = UDim2.new(0, 50, 0, 0)
 closeBtn.Text = "×"
-closeBtn.BackgroundColor3 = Color3.fromRGB(45, 35, 35)  -- 改为深灰色偏红
-closeBtn.TextColor3 = Color3.fromRGB(220, 220, 220)  -- 改为浅灰色
+closeBtn.BackgroundColor3 = Color3.fromRGB(45, 35, 35)  -- 深灰色偏红
+closeBtn.TextColor3 = Color3.fromRGB(220, 220, 220)  -- 浅灰色
 closeBtn.Font = Enum.Font.SourceSansBold
 closeBtn.TextSize = 16
 closeBtn.AutoButtonColor = false
@@ -129,8 +182,8 @@ backroomTeleportButton.Name = "BackroomTeleportButton"
 backroomTeleportButton.Size = UDim2.new(1, -10, 0, 40)
 backroomTeleportButton.Position = UDim2.new(0, 5, 0, 30)
 backroomTeleportButton.Text = "传送等候厅"
-backroomTeleportButton.BackgroundColor3 = Color3.fromRGB(35, 35, 40)  -- 改为深灰色
-backroomTeleportButton.TextColor3 = Color3.fromRGB(220, 220, 220)  -- 改为浅灰色
+backroomTeleportButton.BackgroundColor3 = Color3.fromRGB(35, 35, 40)  -- 深灰色
+backroomTeleportButton.TextColor3 = Color3.fromRGB(220, 220, 220)  -- 浅灰色
 backroomTeleportButton.Font = Enum.Font.SourceSansSemibold
 backroomTeleportButton.TextSize = 14
 backroomTeleportButton.TextWrapped = true
@@ -147,8 +200,8 @@ theaterFactoryButton.Name = "TheaterFactoryButton"
 theaterFactoryButton.Size = UDim2.new(1, -10, 0, 40)
 theaterFactoryButton.Position = UDim2.new(0, 5, 0, 75)
 theaterFactoryButton.Text = "万能传送"
-theaterFactoryButton.BackgroundColor3 = Color3.fromRGB(35, 35, 40)  -- 改为深灰色
-theaterFactoryButton.TextColor3 = Color3.fromRGB(220, 220, 220)  -- 改为浅灰色
+theaterFactoryButton.BackgroundColor3 = Color3.fromRGB(35, 35, 40)  -- 深灰色
+theaterFactoryButton.TextColor3 = Color3.fromRGB(220, 220, 220)  -- 浅灰色
 theaterFactoryButton.Font = Enum.Font.SourceSansSemibold
 theaterFactoryButton.TextSize = 14
 theaterFactoryButton.TextWrapped = true
@@ -165,8 +218,8 @@ sewerTeleportButton.Name = "SewerTeleportButton"
 sewerTeleportButton.Size = UDim2.new(1, -10, 0, 40)
 sewerTeleportButton.Position = UDim2.new(0, 5, 0, 120)
 sewerTeleportButton.Text = "传送下水道"
-sewerTeleportButton.BackgroundColor3 = Color3.fromRGB(35, 35, 40)  -- 改为深灰色
-sewerTeleportButton.TextColor3 = Color3.fromRGB(220, 220, 220)  -- 改为浅灰色
+sewerTeleportButton.BackgroundColor3 = Color3.fromRGB(35, 35, 40)  -- 深灰色
+sewerTeleportButton.TextColor3 = Color3.fromRGB(220, 220, 220)  -- 浅灰色
 sewerTeleportButton.Font = Enum.Font.SourceSansSemibold
 sewerTeleportButton.TextSize = 14
 sewerTeleportButton.TextWrapped = true
@@ -183,8 +236,8 @@ selfRescueButton.Name = "SelfRescueButton"
 selfRescueButton.Size = UDim2.new(1, -10, 0, 40)
 selfRescueButton.Position = UDim2.new(0, 5, 0, 165)
 selfRescueButton.Text = "固定位置 [关]"
-selfRescueButton.BackgroundColor3 = Color3.fromRGB(35, 35, 40)  -- 改为深灰色
-selfRescueButton.TextColor3 = Color3.fromRGB(220, 220, 220)  -- 改为浅灰色
+selfRescueButton.BackgroundColor3 = Color3.fromRGB(35, 35, 40)  -- 深灰色
+selfRescueButton.TextColor3 = Color3.fromRGB(220, 220, 220)  -- 浅灰色
 selfRescueButton.Font = Enum.Font.SourceSansSemibold
 selfRescueButton.TextSize = 14
 selfRescueButton.TextWrapped = true
@@ -201,8 +254,8 @@ ninjaModeButton.Name = "NinjaModeButton"
 ninjaModeButton.Size = UDim2.new(1, -10, 0, 40)
 ninjaModeButton.Position = UDim2.new(0, 5, 0, 210)
 ninjaModeButton.Text = "仙人模式 [关]"
-ninjaModeButton.BackgroundColor3 = Color3.fromRGB(35, 35, 40)  -- 改为深灰色
-ninjaModeButton.TextColor3 = Color3.fromRGB(220, 220, 220)  -- 改为浅灰色
+ninjaModeButton.BackgroundColor3 = Color3.fromRGB(35, 35, 40)  -- 深灰色
+ninjaModeButton.TextColor3 = Color3.fromRGB(220, 220, 220)  -- 浅灰色
 ninjaModeButton.Font = Enum.Font.SourceSansSemibold
 ninjaModeButton.TextSize = 14
 ninjaModeButton.TextWrapped = true
@@ -220,7 +273,7 @@ statusLabel.Size = UDim2.new(1, -10, 1, -10)
 statusLabel.Position = UDim2.new(0, 5, 0, 5)
 statusLabel.BackgroundTransparency = 1
 statusLabel.Text = "Expert\n点击展开"
-statusLabel.TextColor3 = Color3.fromRGB(180, 180, 180)  -- 改为灰色
+statusLabel.TextColor3 = Color3.fromRGB(180, 180, 180)  -- 灰色
 statusLabel.TextSize = 12
 statusLabel.TextWrapped = true
 statusLabel.Visible = false
@@ -282,18 +335,25 @@ setupButtonHover(closeBtn)
 
 -- 自救功能
 local function startSelfRescue()
-    if isSelfRescueActive then return end
-    
+    if isSelfRescueActive then return false end
+
     local character = player.Character
-    if not character then return false end
+    if not character then 
+        createNotification("角色未加载", Color3.fromRGB(200, 50, 50))
+        return false 
+    end
 
     local humanoidRootPart = character:FindFirstChild("HumanoidRootPart")
-    if not humanoidRootPart then return false end
+    if not humanoidRootPart then 
+        createNotification("根部件不存在", Color3.fromRGB(200, 50, 50))
+        return false 
+    end
 
     savedPosition = humanoidRootPart.Position
     savedCFrame = humanoidRootPart.CFrame
     isSelfRescueActive = true
     selfRescueButton.Text = "固定位置 [开]"
+    createNotification("固定位置已开启", Color3.fromRGB(50, 200, 50))
 
     local bodyPosition = Instance.new("BodyPosition")
     bodyPosition.Name = "ExpertSelfRescuePosition"
@@ -330,7 +390,7 @@ local function startSelfRescue()
             newBodyPosition.Parent = currentRootPart
         end
     end)
-    
+
     if isMinimized then statusLabel.Text = "🔒 已固定位置" end
     return true
 end
@@ -342,7 +402,7 @@ local function stopSelfRescue()
         selfRescueConnection:Disconnect()
         selfRescueConnection = nil
     end
-    
+
     local character = player.Character
     if character then
         local humanoidRootPart = character:FindFirstChild("HumanoidRootPart")
@@ -356,73 +416,80 @@ local function stopSelfRescue()
             humanoid.JumpPower = 50
         end
     end
-    
+
     selfRescueButton.Text = "固定位置 [关]"
+    createNotification("固定位置已关闭", Color3.fromRGB(200, 50, 50))
     if isMinimized then statusLabel.Text = "Expert\n点击展开" end
     savedPosition = nil
     savedCFrame = nil
 end
 
--- 通用传送函数
-local function performTeleport(location, button, locationName)
+-- 通用传送函数（移除文字修改 + 冷却锁）
+local function performTeleport(location, locationName)
     if isSelfRescueActive then stopSelfRescue() end
-    
+
     local character = player.Character
-    if not character then return false end
+    if not character then 
+        createNotification("角色未加载", Color3.fromRGB(200, 50, 50))
+        return false 
+    end
 
     local humanoidRootPart = character:FindFirstChild("HumanoidRootPart")
-    if not humanoidRootPart then return false end
+    if not humanoidRootPart then 
+        createNotification("根部件不存在", Color3.fromRGB(200, 50, 50))
+        return false 
+    end
 
     local teleportPos = Vector3.new(location.X, location.Y, location.Z)
     humanoidRootPart.CFrame = CFrame.new(teleportPos)
-
-    if not isMinimized and button then
-        local originalText = button.Text
-        button.Text = "✅ 已传送"
-        task.wait(2)
-        button.Text = originalText
-    end
+    createNotification("已传送到"..locationName, Color3.fromRGB(50, 200, 50))
 
     if isMinimized then
         statusLabel.Text = "✅ 已传送" .. locationName
         task.wait(2)
         statusLabel.Text = "Expert\n点击展开"
     end
-
     return true
 end
 
 -- 执行等候厅传送
 local function performBackroomTeleport()
-    return performTeleport(backroomLocation, backroomTeleportButton, "等候厅传送")
+    return performTeleport(backroomLocation, "等候厅")
 end
 
 -- 执行剧院|工厂传送（Y-297）
 local function performTheaterFactoryTeleport()
-    return performTeleport(theaterFactoryLocation, theaterFactoryButton, "万能传送")
+    return performTeleport(theaterFactoryLocation, "剧院/工厂")
 end
 
 -- 执行下水道传送
 local function performSewerTeleport()
-    return performTeleport(sewerLocation, sewerTeleportButton, "下水道")
+    return performTeleport(sewerLocation, "下水道")
 end
 
 -- 仙人模式功能
 local function startNinjaMode()
-    if isNinjaModeActive then return end
-    
+    if isNinjaModeActive then return false end
+
     local character = player.Character
-    if not character then return false end
+    if not character then 
+        createNotification("角色未加载", Color3.fromRGB(200, 50, 50))
+        return false 
+    end
 
     local humanoid = character:FindFirstChild("Humanoid")
-    if not humanoid then return false end
+    if not humanoid then 
+        createNotification("人形对象不存在", Color3.fromRGB(200, 50, 50))
+        return false 
+    end
 
     originalWalkSpeed = humanoid.WalkSpeed
     originalJumpPower = humanoid.JumpPower
     isNinjaModeActive = true
     infiniteJumpEnabled = true
     ninjaModeButton.Text = "仙人模式 [开]"
-    
+    createNotification("仙人模式已开启", Color3.fromRGB(50, 200, 50))
+
     humanoid.WalkSpeed = originalWalkSpeed * ninjaModeMultiplier
     humanoid.JumpPower = originalJumpPower * 3
 
@@ -431,7 +498,7 @@ local function startNinjaMode()
             character.Humanoid:ChangeState(Enum.HumanoidStateType.Jumping)
         end
     end)
-    
+
     if isMinimized then statusLabel.Text = "⚡ 仙人模式" end
     return true
 end
@@ -440,12 +507,12 @@ local function stopNinjaMode()
     if not isNinjaModeActive then return end
     isNinjaModeActive = false
     infiniteJumpEnabled = false
-    
+
     if ninjaModeConnection then
         ninjaModeConnection:Disconnect()
         ninjaModeConnection = nil
     end
-    
+
     local character = player.Character
     if character then
         local humanoid = character:FindFirstChild("Humanoid")
@@ -454,8 +521,9 @@ local function stopNinjaMode()
             humanoid.JumpPower = originalJumpPower
         end
     end
-    
+
     ninjaModeButton.Text = "仙人模式 [关]"
+    createNotification("仙人模式已关闭", Color3.fromRGB(200, 50, 50))
     if isMinimized then statusLabel.Text = "Expert\n点击展开" end
 end
 
@@ -470,7 +538,7 @@ ninjaModeButton.MouseButton1Click:Connect(function()
     if isNinjaModeActive then stopNinjaMode() else startNinjaMode() end
 end)
 
--- 缩放功能
+-- 缩放功能（无弹窗 + 无冷却）
 zoomBtn.MouseButton1Click:Connect(function()
     isZoomed = not isZoomed
     if isZoomed then
@@ -490,7 +558,7 @@ zoomBtn.MouseButton1Click:Connect(function()
     end
 end)
 
--- 缩小功能
+-- 缩小功能（无弹窗 + 无冷却）
 minimizeBtn.MouseButton1Click:Connect(function()
     isMinimized = not isMinimized
     if isMinimized then
@@ -545,6 +613,7 @@ closeBtn.MouseButton1Click:Connect(function()
     tween.Completed:Wait()
     screenGui:Destroy()
     isRunning = false
+    createNotification("面板已关闭", Color3.fromRGB(200, 50, 50))
 end)
 
 -- 快捷键
@@ -590,3 +659,5 @@ local fadeInTween = TweenService:Create(mainFrame, TweenInfo.new(0.5), {
     BackgroundTransparency = 0.1, Position = originalPosition
 })
 fadeInTween:Play()
+-- 初始弹窗保留（提示面板加载完成）
+createNotification("Expert面板已加载", Color3.fromRGB(50, 200, 50))
