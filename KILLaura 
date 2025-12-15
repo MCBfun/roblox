@@ -1,15 +1,5 @@
 -- killaura
 local SoundService = game:GetService("SoundService")
-
--- 创建音频实例
-local sound = Instance.new("Sound")
-sound.SoundId = "rbxassetid://7390036132"  -- 替换为你的音频ID
-sound.Parent = SoundService
-
--- 播放音频
-sound:Play()
-
--- 极简自瞄+传送+攻击脚本
 local Players = game:GetService("Players")
 local UserInputService = game:GetService("UserInputService")
 local RunService = game:GetService("RunService")
@@ -17,522 +7,357 @@ local VirtualInputManager = game:GetService("VirtualInputManager")
 local Workspace = game:GetService("Workspace")
 local TweenService = game:GetService("TweenService")
 
+-- 音频初始化
+local sound = Instance.new("Sound")
+sound.SoundId = "rbxassetid://7390036132"
+sound.Parent = SoundService
+sound:Play()
+
 local player = Players.LocalPlayer
 local isRunning = true
 local camera = Workspace.CurrentCamera
+local comboNotifyFlag = false
 
--- 创建UI
+-- UI创建（精简冗余代码）
 local screenGui = Instance.new("ScreenGui")
 screenGui.Name = "SimpleAimbotGUI"
 screenGui.ResetOnSpawn = false
 screenGui.Parent = player:WaitForChild("PlayerGui")
 
-local mainFrame = Instance.new("Frame")
+-- 提示框函数（保持防抖）
+local function createNotification(text, color)
+    local existingNotify = player.PlayerGui:FindFirstChild("KillauraNotify")
+    if existingNotify then existingNotify:Destroy() end
+    local notifyGui = Instance.new("ScreenGui", player.PlayerGui)
+    notifyGui.Name = "KillauraNotify"
+    notifyGui.IgnoreGuiInset = true
+    
+    local notifyFrame = Instance.new("Frame", notifyGui)
+    notifyFrame.Size = UDim2.new(0,220,0,60)
+    notifyFrame.Position = UDim2.new(1,-230,1,-90)
+    notifyFrame.BackgroundColor3 = Color3.fromRGB(25,25,30)
+    notifyFrame.BackgroundTransparency = 0.1
+    Instance.new("UICorner", notifyFrame).CornerRadius = UDim.new(0,8)
+    Instance.new("UIStroke", notifyFrame).Color = color or Color3.fromRGB(60,60,70)
+    
+    local notifyLabel = Instance.new("TextLabel", notifyFrame)
+    notifyLabel.Size = UDim2.new(1,-10,1,-10)
+    notifyLabel.Position = UDim2.new(0,5,0,5)
+    notifyLabel.BackgroundTransparency = 1
+    notifyLabel.Text = text
+    notifyLabel.TextColor3 = Color3.fromRGB(240,240,240)
+    notifyLabel.TextSize = 14
+    notifyLabel.TextWrapped = true
+    notifyLabel.Font = Enum.Font.SourceSansSemibold
+
+    -- 淡入动画
+    notifyFrame.BackgroundTransparency = 1
+    notifyFrame.Position = UDim2.new(1,-200,1,-90)
+    TweenService:Create(notifyFrame, TweenInfo.new(0.1), {
+        BackgroundTransparency = 0.1,
+        Position = UDim2.new(1,-230,1,-90)
+    }):Play()
+
+    task.delay(3, function()
+        TweenService:Create(notifyFrame, TweenInfo.new(0.3), {
+            BackgroundTransparency = 1,
+            Position = UDim2.new(1,-200,1,-90)
+        }):Play()
+        task.wait(0.3)
+        notifyGui:Destroy()
+    end)
+end
+
+-- 主面板
+local mainFrame = Instance.new("Frame", screenGui)
 mainFrame.Name = "MainFrame"
-mainFrame.Size = UDim2.new(0, 120, 0, 210)
-mainFrame.Position = UDim2.new(0.02, 0, 0.3, 0)
-mainFrame.BackgroundColor3 = Color3.fromRGB(25, 25, 30)
+mainFrame.Size = UDim2.new(0,120,0,210)
+mainFrame.Position = UDim2.new(0.02,0,0.3,0)
+mainFrame.BackgroundColor3 = Color3.fromRGB(25,25,30)
 mainFrame.BackgroundTransparency = 0.1
 mainFrame.BorderSizePixel = 1
-mainFrame.BorderColor3 = Color3.fromRGB(60, 60, 70)
+mainFrame.BorderColor3 = Color3.fromRGB(60,60,70)
 mainFrame.Active = true
 mainFrame.Draggable = true
-mainFrame.ClipsDescendants = true
-mainFrame.Parent = screenGui
-
--- 圆角效果
-local uiCorner = Instance.new("UICorner")
-uiCorner.CornerRadius = UDim.new(0, 6)
-uiCorner.Parent = mainFrame
+Instance.new("UICorner", mainFrame).CornerRadius = UDim.new(0,6)
 
 -- 标题栏
-local titleBar = Instance.new("Frame")
-titleBar.Name = "TitleBar"
-titleBar.Size = UDim2.new(1, 0, 0, 25)
-titleBar.BackgroundColor3 = Color3.fromRGB(20, 20, 25)
-titleBar.BorderSizePixel = 0
-titleBar.Parent = mainFrame
+local titleBar = Instance.new("Frame", mainFrame)
+titleBar.Size = UDim2.new(1,0,0,25)
+titleBar.BackgroundColor3 = Color3.fromRGB(20,20,25)
+Instance.new("UICorner", titleBar).CornerRadius = UDim.new(0,6)
 
--- 标题栏圆角
-local titleCorner = Instance.new("UICorner")
-titleCorner.CornerRadius = UDim.new(0, 6)
-titleCorner.Parent = titleBar
-
-local title = Instance.new("TextLabel")
+local title = Instance.new("TextLabel", titleBar)
 title.Text = "killaura"
-title.Size = UDim2.new(1, -80, 1, 0)
-title.Position = UDim2.new(0, 5, 0, 0)
+title.Size = UDim2.new(1,-80,1,0)
+title.Position = UDim2.new(0,5,0,0)
 title.BackgroundTransparency = 1
-title.TextColor3 = Color3.fromRGB(220, 220, 220)
+title.TextColor3 = Color3.fromRGB(220,220,220)
 title.TextXAlignment = Enum.TextXAlignment.Left
 title.Font = Enum.Font.SourceSansSemibold
 title.TextSize = 14
-title.Parent = titleBar
 
--- 控制按钮容器
-local controlButtons = Instance.new("Frame")
-controlButtons.Name = "ControlButtons"
-controlButtons.Size = UDim2.new(0, 75, 1, 0)
-controlButtons.Position = UDim2.new(1, -75, 0, 0)
+-- 控制按钮（缩放/最小化/关闭）
+local controlButtons = Instance.new("Frame", titleBar)
+controlButtons.Size = UDim2.new(0,75,1,0)
+controlButtons.Position = UDim2.new(1,-75,0,0)
 controlButtons.BackgroundTransparency = 1
-controlButtons.Parent = titleBar
 
--- 缩放按钮
-local zoomBtn = Instance.new("TextButton")
-zoomBtn.Name = "ZoomButton"
-zoomBtn.Size = UDim2.new(0, 25, 0, 25)
-zoomBtn.Position = UDim2.new(0, 0, 0, 0)
-zoomBtn.Text = "⏺️"
-zoomBtn.BackgroundColor3 = Color3.fromRGB(40, 40, 45)
-zoomBtn.TextColor3 = Color3.fromRGB(220, 220, 220)
-zoomBtn.Font = Enum.Font.SourceSansBold
-zoomBtn.TextSize = 14
-zoomBtn.AutoButtonColor = false
-zoomBtn.Parent = controlButtons
+local function createCtrlBtn(parent, pos, text, color)
+    local btn = Instance.new("TextButton", parent)
+    btn.Size = UDim2.new(0,25,0,25)
+    btn.Position = pos
+    btn.Text = text
+    btn.BackgroundColor3 = color
+    btn.TextColor3 = Color3.fromRGB(220,220,220)
+    btn.Font = Enum.Font.SourceSansBold
+    btn.TextSize = 14
+    btn.AutoButtonColor = false
+    Instance.new("UICorner", btn).CornerRadius = UDim.new(0,4)
+    return btn
+end
 
-local zoomCorner = Instance.new("UICorner")
-zoomCorner.CornerRadius = UDim.new(0, 4)
-zoomCorner.Parent = zoomBtn
+local zoomBtn = createCtrlBtn(controlButtons, UDim2.new(0,0,0,0), "⏺️", Color3.fromRGB(40,40,45))
+local minimizeBtn = createCtrlBtn(controlButtons, UDim2.new(0,25,0,0), "_", Color3.fromRGB(40,40,45))
+local closeBtn = createCtrlBtn(controlButtons, UDim2.new(0,50,0,0), "×", Color3.fromRGB(45,35,35))
 
--- 缩小按钮
-local minimizeBtn = Instance.new("TextButton")
-minimizeBtn.Name = "MinimizeButton"
-minimizeBtn.Size = UDim2.new(0, 25, 0, 25)
-minimizeBtn.Position = UDim2.new(0, 25, 0, 0)
-minimizeBtn.Text = "_"
-minimizeBtn.BackgroundColor3 = Color3.fromRGB(40, 40, 45)
-minimizeBtn.TextColor3 = Color3.fromRGB(220, 220, 220)
-minimizeBtn.Font = Enum.Font.SourceSansBold
-minimizeBtn.TextSize = 16
-minimizeBtn.AutoButtonColor = false
-minimizeBtn.Parent = controlButtons
+-- 功能按钮
+local function createFuncBtn(parent, pos, text)
+    local btn = Instance.new("TextButton", parent)
+    btn.Size = UDim2.new(1,-10,0,40)
+    btn.Position = pos
+    btn.Text = text
+    btn.BackgroundColor3 = Color3.fromRGB(35,35,40)
+    btn.TextColor3 = Color3.fromRGB(220,220,220)
+    btn.Font = Enum.Font.SourceSansSemibold
+    btn.TextSize = 14
+    btn.AutoButtonColor = false
+    Instance.new("UICorner", btn).CornerRadius = UDim.new(0,5)
+    -- 悬停效果
+    btn.MouseEnter:Connect(function() btn.BackgroundColor3 = Color3.fromRGB(50,50,55) end)
+    btn.MouseLeave:Connect(function() btn.BackgroundColor3 = Color3.fromRGB(35,35,40) end)
+    return btn
+end
 
-local minimizeCorner = Instance.new("UICorner")
-minimizeCorner.CornerRadius = UDim.new(0, 4)
-minimizeCorner.Parent = minimizeBtn
+local comboButton = createFuncBtn(mainFrame, UDim2.new(0,5,0,30), "杀戮光环")
+local cycleTeleportButton = createFuncBtn(mainFrame, UDim2.new(0,5,0,75), "轮流传送")
+local autoPipeButton = createFuncBtn(mainFrame, UDim2.new(0,5,0,120), "自动管道")
 
--- 关闭按钮
-local closeBtn = Instance.new("TextButton")
-closeBtn.Size = UDim2.new(0, 25, 0, 25)
-closeBtn.Position = UDim2.new(0, 50, 0, 0)
-closeBtn.Text = "×"
-closeBtn.BackgroundColor3 = Color3.fromRGB(45, 35, 35)
-closeBtn.TextColor3 = Color3.fromRGB(220, 220, 220)
-closeBtn.Font = Enum.Font.SourceSansBold
-closeBtn.TextSize = 16
-closeBtn.AutoButtonColor = false
-closeBtn.Parent = controlButtons
-
-local closeCorner = Instance.new("UICorner")
-closeCorner.CornerRadius = UDim.new(0, 4)
-closeCorner.Parent = closeBtn
-
--- 杀戮光环按钮
-local comboButton = Instance.new("TextButton")
-comboButton.Name = "ComboButton"
-comboButton.Size = UDim2.new(1, -10, 0, 40)
-comboButton.Position = UDim2.new(0, 5, 0, 30)
-comboButton.Text = "杀戮光环"
-comboButton.BackgroundColor3 = Color3.fromRGB(35, 35, 40)
-comboButton.TextColor3 = Color3.fromRGB(220, 220, 220)
-comboButton.Font = Enum.Font.SourceSansSemibold
-comboButton.TextSize = 14
-comboButton.TextWrapped = true
-comboButton.AutoButtonColor = false
-comboButton.Parent = mainFrame
-
-local comboCorner = Instance.new("UICorner")
-comboCorner.CornerRadius = UDim.new(0, 5)
-comboCorner.Parent = comboButton
-
--- 轮流传送按钮
-local cycleTeleportButton = Instance.new("TextButton")
-cycleTeleportButton.Name = "CycleTeleportButton"
-cycleTeleportButton.Size = UDim2.new(1, -10, 0, 40)
-cycleTeleportButton.Position = UDim2.new(0, 5, 0, 75)
-cycleTeleportButton.Text = "轮流传送"
-cycleTeleportButton.BackgroundColor3 = Color3.fromRGB(35, 35, 40)
-cycleTeleportButton.TextColor3 = Color3.fromRGB(220, 220, 220)
-cycleTeleportButton.Font = Enum.Font.SourceSansSemibold
-cycleTeleportButton.TextSize = 14
-cycleTeleportButton.TextWrapped = true
-cycleTeleportButton.AutoButtonColor = false
-cycleTeleportButton.Parent = mainFrame
-
-local teleportCorner = Instance.new("UICorner")
-teleportCorner.CornerRadius = UDim.new(0, 5)
-teleportCorner.Parent = cycleTeleportButton
-
--- 自动管道按钮（合二为一）
-local autoPipeButton = Instance.new("TextButton")
-autoPipeButton.Name = "AutoPipeButton"
-autoPipeButton.Size = UDim2.new(1, -10, 0, 40)
-autoPipeButton.Position = UDim2.new(0, 5, 0, 120)
-autoPipeButton.Text = "自动管道"
-autoPipeButton.BackgroundColor3 = Color3.fromRGB(35, 35, 40)
-autoPipeButton.TextColor3 = Color3.fromRGB(220, 220, 220)
-autoPipeButton.Font = Enum.Font.SourceSansSemibold
-autoPipeButton.TextSize = 14
-autoPipeButton.TextWrapped = true
-autoPipeButton.AutoButtonColor = false
-autoPipeButton.Parent = mainFrame
-
-local pipeCorner = Instance.new("UICorner")
-pipeCorner.CornerRadius = UDim.new(0, 5)
-pipeCorner.Parent = autoPipeButton
-
--- 状态显示
-local statusLabel = Instance.new("TextLabel")
-statusLabel.Name = "StatusLabel"
-statusLabel.Size = UDim2.new(1, -10, 1, -10)
-statusLabel.Position = UDim2.new(0, 5, 0, 5)
-statusLabel.BackgroundTransparency = 1
-statusLabel.Text = "killaura\n点击展开"
-statusLabel.TextColor3 = Color3.fromRGB(180, 180, 180)
-statusLabel.TextSize = 12
-statusLabel.TextWrapped = true
-statusLabel.Visible = false
-statusLabel.Parent = mainFrame
-
--- 变量
+-- 状态变量
 local isComboActive = false
-local maxDistance = 200
-local teleportHeight = 0
-local currentTarget = nil
-local lastAttackTime = 0
-local attackRate = 4
 local isMinimized = false
 local isZoomed = false
 local originalSize = mainFrame.Size
-local originalPosition = mainFrame.Position
-local minimizedSize = UDim2.new(0, 80, 0, 40)
-local zoomedSize = UDim2.new(0, 140, 0, 165)
-local ignoreHealthThreshold = 5
+local minimizedSize = UDim2.new(0,80,0,40)
+local zoomedSize = UDim2.new(0,140,0,165)
+local maxDistance = 200
+local teleportHeight = 0
+local lastAttackTime = 0
+local attackRate = 4
 local cycleTeleportIndex = 1
-local originalPositionCFrame = nil -- 移除首次判断的依赖
-local isAutoPipeRunning = false
 
--- 所有管道位置（12个点）
+-- 管道坐标（Vector3 原生格式，无解析成本）
 local allPipeLocations = {
-    {X = 43.06, Y = 68.98, Z = -254.75},
-    {X = -0.53, Y = 71.14, Z = -329.87},
-    {X = 12.90, Y = 94.29, Z = -531.77},
-    {X = -13.55, Y = 87.70, Z = -455.12},
-    {X = -38.72, Y = 87.45, Z = -269.56},
-    {X = -60.21, Y = 105.48, Z = -156.82},
-    {X = -44.85, Y = 112.19, Z = -398.75},
-    {X = 73.64, Y = 105.44, Z = -404.03},
-    {X = 327.87, Y = 37.94, Z = 246.22},
-    {X = 386.97, Y = 7.47, Z = 331.48},
-    {X = 408.68, Y = 34.45, Z = 169.92},
-    {X = 335.75, Y = 18.12, Z = 205.47},
-    {X = 406.35, Y = 33.01, Z = 375.60},
-    {X = 359.39, Y = 18.07, Z = 437.61},
-    {X = 184.68, Y = 18.11, Z = 245.28},
-    {X = 312.79, Y = 10.66, Z = 351.58},
-    {X = 358.95, Y = 18, Z = 436.84},
-    {X = 358.95, Y = 18, Z = 436.84}
+    Vector3.new(43.06, 68.98, -254.75),
+    Vector3.new(-0.53, 71.14, -329.87),
+    Vector3.new(12.90, 94.29, -531.77),
+    Vector3.new(-13.55, 87.70, -455.12),
+    Vector3.new(-38.72, 87.45, -269.56),
+    Vector3.new(-60.21, 105.48, -156.82),
+    Vector3.new(-44.85, 112.19, -398.75),
+    Vector3.new(73.64, 105.44, -404.03),
+    Vector3.new(327.87, 37.94, 246.22),
+    Vector3.new(386.97, 7.47, 331.48),
+    Vector3.new(408.68, 34.45, 169.92),
+    Vector3.new(335.75, 18.12, 205.47),
+    Vector3.new(406.35, 33.01, 375.60),
+    Vector3.new(359.39, 18.07, 437.61),
+    Vector3.new(184.68, 18.11, 245.28),
+    Vector3.new(312.79, 10.66, 351.58),
+    Vector3.new(358.95, 18, 436.84),
+    Vector3.new(358.95, 18, 436.84)
 }
 
--- 按钮悬停效果函数
-local function setupButtonHover(button)
-    local originalColor = button.BackgroundColor3
-    local originalTextColor = button.TextColor3
-    button.MouseEnter:Connect(function()
-        button.BackgroundColor3 = Color3.fromRGB(
-            math.min(originalColor.R * 255 + 15, 55),
-            math.min(originalColor.G * 255 + 15, 55),
-            math.min(originalColor.B * 255 + 15, 55)
-        ) / 255
-        button.TextColor3 = Color3.fromRGB(240, 240, 240)
-    end)
-    button.MouseLeave:Connect(function()
-        button.BackgroundColor3 = originalColor
-        button.TextColor3 = originalTextColor
-    end)
-end
-
--- 应用悬停效果
-setupButtonHover(comboButton)
-setupButtonHover(cycleTeleportButton)
-setupButtonHover(autoPipeButton)
-setupButtonHover(zoomBtn)
-setupButtonHover(minimizeBtn)
-setupButtonHover(closeBtn)
-
--- 缩放功能
-zoomBtn.MouseButton1Click:Connect(function()
-    isZoomed = not isZoomed
-    if isZoomed then
-        mainFrame:TweenSize(zoomedSize, Enum.EasingDirection.Out, Enum.EasingStyle.Quad, 0.3, true)
-        zoomBtn.Text = "⏺"
-    else
-        mainFrame:TweenSize(originalSize, Enum.EasingDirection.Out, Enum.EasingStyle.Quad, 0.3, true)
-        zoomBtn.Text = "⏺️"
+-- 核心修复：自动管道函数（前置检测 + 无延迟执行）
+local function performAutoPipeTeleport()
+    -- 1. 前置检测角色和根部件，失败直接提示，不阻塞
+    local character = player.Character
+    if not character then
+        createNotification("角色未加载", Color3.fromRGB(200,50,50))
+        return
     end
-end)
-
--- 缩小功能
-minimizeBtn.MouseButton1Click:Connect(function()
-    isMinimized = not isMinimized
-    if isMinimized then
-        comboButton.Visible = false
-        cycleTeleportButton.Visible = false
-        autoPipeButton.Visible = false
-        statusLabel.Visible = true
-        mainFrame:TweenSize(minimizedSize, Enum.EasingDirection.Out, Enum.EasingStyle.Quad, 0.3, true)
-        minimizeBtn.Text = "+"
-    else
-        comboButton.Visible = true
-        cycleTeleportButton.Visible = true
-        autoPipeButton.Visible = true
-        statusLabel.Visible = false
-        mainFrame:TweenSize(isZoomed and zoomedSize or originalSize, Enum.EasingDirection.Out, Enum.EasingStyle.Quad, 0.3, true)
-        minimizeBtn.Text = "_"
+    local rootPart = character:FindFirstChild("HumanoidRootPart")
+    if not rootPart then
+        createNotification("根部件不存在", Color3.fromRGB(200,50,50))
+        return
     end
-end)
 
--- 关闭功能
-closeBtn.MouseButton1Click:Connect(function()
-    local tween = TweenService:Create(mainFrame, TweenInfo.new(0.3), {
-        BackgroundTransparency = 0.8,
-        Position = mainFrame.Position + UDim2.new(0, 0, 0, -20)
-    })
-    tween:Play()
-    tween.Completed:Wait()
-    screenGui:Destroy()
-    isRunning = false
-end)
+    -- 2. 立即更新按钮文本，无延迟
+    autoPipeButton.Text = "传送中..."
+    createNotification("开始自动管道传送", Color3.fromRGB(50,200,50))
 
--- 杀戮光环开关
-comboButton.MouseButton1Click:Connect(function()
-    isComboActive = not isComboActive
-    if isComboActive then
-        comboButton.Text = "杀戮光环 [开]"
-    else
-        comboButton.Text = "杀戮光环 [关]"
-    end
-end)
+    -- 3. 临时关闭杀戮光环
+    local wasComboActive = isComboActive
+    isComboActive = false
+    comboButton.Text = "杀戮光环 [关]"
 
--- 获取玩家当前血量
-local function getPlayerHealth(targetCharacter)
-    local humanoid = targetCharacter:FindFirstChild("Humanoid")
-    if humanoid then
-        return humanoid.Health
-    end
-    return 100
-end
+    -- 4. 记录原点
+    local originalCFrame = rootPart.CFrame
 
--- 获取所有有效玩家列表
-local function getValidPlayers()
-    local validPlayers = {}
-    for _, otherPlayer in pairs(Players:GetPlayers()) do
-        if otherPlayer ~= player and otherPlayer.Character then
-            local humanoid = otherPlayer.Character:FindFirstChild("Humanoid")
-            if humanoid and humanoid.Health > ignoreHealthThreshold then
-                table.insert(validPlayers, otherPlayer)
-            end
+    -- 5. 高速遍历传送：使用 Heartbeat 确保每步都被引擎识别，无等待
+    task.spawn(function()
+        for i, pos in ipairs(allPipeLocations) do
+            rootPart.CFrame = CFrame.new(pos)
+            autoPipeButton.Text = string.format("进度: %d/18", i)
+            RunService.Heartbeat:Wait() -- 最小延迟，确保移动生效
         end
-    end
-    return validPlayers
+        -- 传送回原点
+        rootPart.CFrame = originalCFrame
+        -- 恢复状态
+        if wasComboActive then
+            isComboActive = true
+            comboButton.Text = "杀戮光环 [开]"
+        end
+        autoPipeButton.Text = "自动管道"
+        createNotification("自动管道传送完成", Color3.fromRGB(50,200,50))
+    end)
 end
 
--- 获取最近玩家
+-- 杀戮光环函数（保持防抖）
 local function getNearestPlayer()
     local character = player.Character
     if not character then return nil end
-    
-    local validPlayers = getValidPlayers()
-    local nearestPlayer = nil
-    local nearestDistance = math.huge
     local rootPart = character:FindFirstChild("HumanoidRootPart")
-    
     if not rootPart then return nil end
-    
-    for _, otherPlayer in pairs(validPlayers) do
-        local otherCharacter = otherPlayer.Character
-        if otherCharacter then
-            local otherRoot = otherCharacter:FindFirstChild("HumanoidRootPart")
-            if otherRoot then
-                local distance = (rootPart.Position - otherRoot.Position).Magnitude
-                if distance < maxDistance and distance < nearestDistance then
-                    nearestDistance = distance
-                    nearestPlayer = otherPlayer
+
+    local nearestPlayer, nearestDist = nil, math.huge
+    for _, p in pairs(Players:GetPlayers()) do
+        if p ~= player and p.Character then
+            local targetRoot = p.Character:FindFirstChild("HumanoidRootPart")
+            local humanoid = p.Character:FindFirstChild("Humanoid")
+            if targetRoot and humanoid and humanoid.Health > 5 then
+                local dist = (rootPart.Position - targetRoot.Position).Magnitude
+                if dist < maxDistance and dist < nearestDist then
+                    nearestDist = dist
+                    nearestPlayer = p
                 end
             end
         end
     end
-    
     return nearestPlayer
 end
 
--- 执行轮流传送
+local function performKillaura()
+    if not isComboActive then
+        comboNotifyFlag = false
+        return
+    end
+    local nearest = getNearestPlayer()
+    if not nearest then
+        comboNotifyFlag = false
+        comboButton.Text = "杀戮光环 [开]"
+        return
+    end
+
+    local character = player.Character
+    local rootPart = character:FindFirstChild("HumanoidRootPart")
+    local targetRoot = nearest.Character:FindFirstChild("HumanoidRootPart")
+    if not rootPart or not targetRoot then return end
+
+    -- 传送+自瞄
+    rootPart.CFrame = CFrame.new(targetRoot.Position.X, targetRoot.Position.Y + teleportHeight, targetRoot.Position.Z)
+    camera.CFrame = CFrame.lookAt(camera.CFrame.Position, targetRoot.Position)
+
+    -- 攻击
+    local currentTime = tick()
+    if currentTime - lastAttackTime >= 1/attackRate then
+        VirtualInputManager:SendMouseButtonEvent(0,0,0,true,game,0)
+        task.wait(0.05)
+        VirtualInputManager:SendMouseButtonEvent(0,0,0,false,game,0)
+        lastAttackTime = currentTime
+        if not comboNotifyFlag then
+            createNotification("已锁定: "..nearest.Name, Color3.fromRGB(50,200,50))
+            comboNotifyFlag = true
+        end
+    end
+    comboButton.Text = "锁定: "..string.sub(nearest.Name,1,6)
+end
+
+-- 轮流传送函数
 local function performCycleTeleport()
     local character = player.Character
     if not character then return end
-    
     local rootPart = character:FindFirstChild("HumanoidRootPart")
     if not rootPart then return end
-    
-    local validPlayers = getValidPlayers()
-    if #validPlayers == 0 then
-        cycleTeleportButton.Text = "无有效玩家"
-        task.wait(1)
-        cycleTeleportButton.Text = "轮流传送"
-        return
-    end
-    
-    local targetPlayer = validPlayers[cycleTeleportIndex]
-    if targetPlayer and targetPlayer.Character then
-        local targetRoot = targetPlayer.Character:FindFirstChild("HumanoidRootPart")
-        if targetRoot then
-            rootPart.CFrame = CFrame.new(
-                targetRoot.Position.X,
-                targetRoot.Position.Y + teleportHeight,
-                targetRoot.Position.Z
-            )
-            
-            cycleTeleportButton.Text = "传送: " .. string.sub(targetPlayer.Name, 1, 8)
-            task.wait(1)
-            cycleTeleportButton.Text = "轮流传送"
+
+    local validPlayers = {}
+    for _, p in pairs(Players:GetPlayers()) do
+        if p ~= player and p.Character and p.Character:FindFirstChild("HumanoidRootPart") then
+            table.insert(validPlayers, p)
         end
     end
-    
-    cycleTeleportIndex = cycleTeleportIndex + 1
-    if cycleTeleportIndex > #validPlayers then
-        cycleTeleportIndex = 1
+    if #validPlayers == 0 then
+        createNotification("无有效玩家", Color3.fromRGB(200,50,50))
+        return
     end
+    cycleTeleportIndex = cycleTeleportIndex % #validPlayers + 1
+    local target = validPlayers[cycleTeleportIndex]
+    local targetRoot = target.Character:FindFirstChild("HumanoidRootPart")
+    rootPart.CFrame = CFrame.new(targetRoot.Position.X, targetRoot.Position.Y + teleportHeight, targetRoot.Position.Z)
+    createNotification("传送到: "..target.Name, Color3.fromRGB(50,200,50))
 end
 
--- 执行自动管道传送（12个点）
-local function performAutoPipeTeleport()
-    if isAutoPipeRunning then return end
-    
-    local character = player.Character
-    if not character then return end
-    
-    local rootPart = character:FindFirstChild("HumanoidRootPart")
-    if not rootPart then return end
-    
-    -- 每次执行都重新记录当前原点（核心修复点）
-    originalPositionCFrame = rootPart.CFrame
-    
-    -- 临时关闭杀戮光环
-    local wasComboActive = isComboActive
-    if wasComboActive then
-        isComboActive = false
-        comboButton.Text = "杀戮光环 [关]"
-    end
-    
-    isAutoPipeRunning = true
-    autoPipeButton.Text = "传送中..."
-    
-    -- 依次传送所有12个管道位置，缩短停留时间到0.05秒（提速核心）
-    for i = 1, #allPipeLocations do
-        local location = allPipeLocations[i]
-        rootPart.CFrame = CFrame.new(location.X, location.Y, location.Z)
-        autoPipeButton.Text = string.format("进度: %d | 18", i)
-        task.wait(0.05)  -- 从0.2秒改为0.05秒，大幅提升速度
-    end
-    
-    -- 传送回本次执行的原点
-    if originalPositionCFrame then
-        rootPart.CFrame = originalPositionCFrame
-    end
-    
-    -- 恢复杀戮光环状态
-    if wasComboActive then
-        isComboActive = true
-        comboButton.Text = "杀戮光环 [开]"
-    end
-    
-    autoPipeButton.Text = "完成 ✓"
-    task.wait(1)
-    autoPipeButton.Text = "自动管道"
-    isAutoPipeRunning = false
-end
-
--- 执行杀戮光环功能
-local function performKillaura()
-    if not isComboActive then return false end
-    
-    local character = player.Character
-    if not character then return false end
-    
-    local rootPart = character:FindFirstChild("HumanoidRootPart")
-    if not rootPart then return false end
-    
-    local nearestPlayer = getNearestPlayer()
-    if not nearestPlayer then return false end
-    
-    local targetCharacter = nearestPlayer.Character
-    if not targetCharacter then return false end
-    
-    local targetRoot = targetCharacter:FindFirstChild("HumanoidRootPart")
-    if not targetRoot then return false end
-    
-    -- 1. 传送
-    rootPart.CFrame = CFrame.new(
-        targetRoot.Position.X,
-        targetRoot.Position.Y + teleportHeight,
-        targetRoot.Position.Z
-    )
-    
-    -- 2. 自瞄
-    camera.CFrame = CFrame.lookAt(camera.CFrame.Position, targetRoot.Position)
-    
-    -- 3. 攻击
-    local currentTime = tick()
-    if currentTime - lastAttackTime >= (1 / attackRate) then
-        VirtualInputManager:SendMouseButtonEvent(0, 0, 0, true, game, 0)
-        task.wait(0.05)
-        VirtualInputManager:SendMouseButtonEvent(0, 0, 0, false, game, 0)
-        lastAttackTime = currentTime
-    end
-    
-    currentTarget = nearestPlayer
-    comboButton.Text = "杀戮光环: " .. string.sub(nearestPlayer.Name, 1, 8)
-    
-    return true
-end
-
--- 按钮点击事件
-cycleTeleportButton.MouseButton1Click:Connect(function()
-    performCycleTeleport()
+-- 按钮事件绑定
+zoomBtn.MouseButton1Click:Connect(function()
+    isZoomed = not isZoomed
+    mainFrame:TweenSize(isZoomed and zoomedSize or originalSize, Enum.EasingDirection.Out, Enum.EasingStyle.Quad, 0.3, true)
+    zoomBtn.Text = isZoomed and "⏺" or "⏺️"
 end)
 
-autoPipeButton.MouseButton1Click:Connect(function()
-    performAutoPipeTeleport()
+minimizeBtn.MouseButton1Click:Connect(function()
+    isMinimized = not isMinimized
+    comboButton.Visible = not isMinimized
+    cycleTeleportButton.Visible = not isMinimized
+    autoPipeButton.Visible = not isMinimized
+    mainFrame:TweenSize(isMinimized and minimizedSize or (isZoomed and zoomedSize or originalSize), Enum.EasingDirection.Out, Enum.EasingStyle.Quad, 0.3, true)
+    minimizeBtn.Text = isMinimized and "+" or "_"
+end)
+
+closeBtn.MouseButton1Click:Connect(function()
+    TweenService:Create(mainFrame, TweenInfo.new(0.3), {BackgroundTransparency = 0.8, Position = mainFrame.Position + UDim2.new(0,0,0,-20)}):Play()
+    task.wait(0.3)
+    screenGui:Destroy()
+    isRunning = false
+end)
+
+comboButton.MouseButton1Click:Connect(function()
+    isComboActive = not isComboActive
+    comboButton.Text = isComboActive and "杀戮光环 [开]" or "杀戮光环 [关]"
+    createNotification(isComboActive and "杀戮光环已开启" or "杀戮光环已关闭", isComboActive and Color3.fromRGB(50,200,50) or Color3.fromRGB(200,50,50))
+end)
+
+cycleTeleportButton.MouseButton1Click:Connect(performCycleTeleport)
+autoPipeButton.MouseButton1Click:Connect(performAutoPipeTeleport)
+
+-- 快捷键
+UserInputService.InputBegan:Connect(function(input, gameProcessed)
+    if not gameProcessed and input.KeyCode == Enum.KeyCode.RightControl then
+        isComboActive = not isComboActive
+        comboButton.Text = isComboActive and "杀戮光环 [开]" or "杀戮光环 [关]"
+        createNotification(isComboActive and "杀戮光环已开启" or "杀戮光环已关闭", isComboActive and Color3.fromRGB(50,200,50) or Color3.fromRGB(200,50,50))
+    end
 end)
 
 -- 主循环
 RunService.Heartbeat:Connect(function()
-    if not isRunning then return end
-    performKillaura()
+    if isRunning then performKillaura() end
 end)
 
--- 快捷键
-UserInputService.InputBegan:Connect(function(input, gameProcessed)
-    if gameProcessed then return end
-    
-    if input.KeyCode == Enum.KeyCode.RightControl then
-        isComboActive = not isComboActive
-        if isComboActive then
-            comboButton.Text = "杀戮光环 [开]"
-        else
-            comboButton.Text = "杀戮光环 [关]"
-        end
-    end
-end)
-
--- 初始淡入动画
+-- 初始淡入
 mainFrame.BackgroundTransparency = 1
-mainFrame.Position = originalPosition + UDim2.new(0, 0, 0, -30)
-
-task.wait(0.1)
-
-local fadeInTween = TweenService:Create(mainFrame, TweenInfo.new(0.5), {
+mainFrame.Position = UDim2.new(0.02,0,0.3,-30)
+TweenService:Create(mainFrame, TweenInfo.new(0.5), {
     BackgroundTransparency = 0.1,
-    Position = originalPosition
-})
-fadeInTween:Play()
+    Position = UDim2.new(0.02,0,0.3,0)
+}):Play()
+createNotification("Killaura面板已加载", Color3.fromRGB(50,200,50))
