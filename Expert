@@ -78,7 +78,7 @@ screenGui.Parent = player:WaitForChild("PlayerGui")
 
 local mainFrame = Instance.new("Frame")
 mainFrame.Name = "MainFrame"
-mainFrame.Size = UDim2.new(0, 120, 0, 295)
+mainFrame.Size = UDim2.new(0, 120, 0, 215)  -- 高度缩短（移除固定位置按钮）
 mainFrame.Position = UDim2.new(0.02, 0, 0.3, 0)
 mainFrame.BackgroundColor3 = Color3.fromRGB(25, 25, 30)  -- 深灰色
 mainFrame.BackgroundTransparency = 0.1
@@ -230,29 +230,11 @@ local sewerCorner = Instance.new("UICorner")
 sewerCorner.CornerRadius = UDim.new(0, 5)
 sewerCorner.Parent = sewerTeleportButton
 
--- 自救功能按钮
-local selfRescueButton = Instance.new("TextButton")
-selfRescueButton.Name = "SelfRescueButton"
-selfRescueButton.Size = UDim2.new(1, -10, 0, 40)
-selfRescueButton.Position = UDim2.new(0, 5, 0, 165)
-selfRescueButton.Text = "固定位置 [关]"
-selfRescueButton.BackgroundColor3 = Color3.fromRGB(35, 35, 40)  -- 深灰色
-selfRescueButton.TextColor3 = Color3.fromRGB(220, 220, 220)  -- 浅灰色
-selfRescueButton.Font = Enum.Font.SourceSansSemibold
-selfRescueButton.TextSize = 14
-selfRescueButton.TextWrapped = true
-selfRescueButton.AutoButtonColor = false
-selfRescueButton.Parent = mainFrame
-
-local selfRescueCorner = Instance.new("UICorner")
-selfRescueCorner.CornerRadius = UDim.new(0, 5)
-selfRescueCorner.Parent = selfRescueButton
-
 -- 仙人模式按钮
 local ninjaModeButton = Instance.new("TextButton")
 ninjaModeButton.Name = "NinjaModeButton"
 ninjaModeButton.Size = UDim2.new(1, -10, 0, 40)
-ninjaModeButton.Position = UDim2.new(0, 5, 0, 210)
+ninjaModeButton.Position = UDim2.new(0, 5, 0, 165)
 ninjaModeButton.Text = "仙人模式 [关]"
 ninjaModeButton.BackgroundColor3 = Color3.fromRGB(35, 35, 40)  -- 深灰色
 ninjaModeButton.TextColor3 = Color3.fromRGB(220, 220, 220)  -- 浅灰色
@@ -285,13 +267,7 @@ local isZoomed = false
 local originalSize = mainFrame.Size
 local originalPosition = mainFrame.Position
 local minimizedSize = UDim2.new(0, 80, 0, 40)
-local zoomedSize = UDim2.new(0, 140, 0, 305)
-
--- 自救功能相关变量
-local isSelfRescueActive = false
-local selfRescueConnection = nil
-local savedPosition = nil
-local savedCFrame = nil
+local zoomedSize = UDim2.new(0, 140, 0, 225)  -- 放大后高度匹配
 
 -- 仙人模式相关变量
 local isNinjaModeActive = false
@@ -327,107 +303,13 @@ end
 setupButtonHover(backroomTeleportButton)
 setupButtonHover(theaterFactoryButton)
 setupButtonHover(sewerTeleportButton)
-setupButtonHover(selfRescueButton)
 setupButtonHover(ninjaModeButton)
 setupButtonHover(zoomBtn)
 setupButtonHover(minimizeBtn)
 setupButtonHover(closeBtn)
 
--- 自救功能
-local function startSelfRescue()
-    if isSelfRescueActive then return false end
-
-    local character = player.Character
-    if not character then 
-        createNotification("角色未加载", Color3.fromRGB(200, 50, 50))
-        return false 
-    end
-
-    local humanoidRootPart = character:FindFirstChild("HumanoidRootPart")
-    if not humanoidRootPart then 
-        createNotification("根部件不存在", Color3.fromRGB(200, 50, 50))
-        return false 
-    end
-
-    savedPosition = humanoidRootPart.Position
-    savedCFrame = humanoidRootPart.CFrame
-    isSelfRescueActive = true
-    selfRescueButton.Text = "固定位置 [开]"
-    createNotification("固定位置已开启", Color3.fromRGB(50, 200, 50))
-
-    local bodyPosition = Instance.new("BodyPosition")
-    bodyPosition.Name = "ExpertSelfRescuePosition"
-    bodyPosition.P = 100000
-    bodyPosition.D = 1000
-    bodyPosition.MaxForce = Vector3.new(math.huge, math.huge, math.huge)
-    bodyPosition.Position = savedPosition
-    bodyPosition.Parent = humanoidRootPart
-
-    local humanoid = character:FindFirstChild("Humanoid")
-    if humanoid then
-        humanoid.WalkSpeed = 0
-        humanoid.JumpPower = 0
-    end
-
-    selfRescueConnection = RunService.Heartbeat:Connect(function()
-        if not isSelfRescueActive or not character or character.Parent == nil then
-            stopSelfRescue()
-            return
-        end
-        local currentRootPart = character:FindFirstChild("HumanoidRootPart")
-        if not currentRootPart then return end
-        currentRootPart.CFrame = savedCFrame
-        local existingBodyPosition = currentRootPart:FindFirstChild("ExpertSelfRescuePosition")
-        if existingBodyPosition then
-            existingBodyPosition.Position = savedPosition
-        else
-            local newBodyPosition = Instance.new("BodyPosition")
-            newBodyPosition.Name = "ExpertSelfRescuePosition"
-            newBodyPosition.P = 100000
-            newBodyPosition.D = 1000
-            newBodyPosition.MaxForce = Vector3.new(math.huge, math.huge, math.huge)
-            newBodyPosition.Position = savedPosition
-            newBodyPosition.Parent = currentRootPart
-        end
-    end)
-
-    if isMinimized then statusLabel.Text = "🔒 已固定位置" end
-    return true
-end
-
-local function stopSelfRescue()
-    if not isSelfRescueActive then return end
-    isSelfRescueActive = false
-    if selfRescueConnection then
-        selfRescueConnection:Disconnect()
-        selfRescueConnection = nil
-    end
-
-    local character = player.Character
-    if character then
-        local humanoidRootPart = character:FindFirstChild("HumanoidRootPart")
-        if humanoidRootPart then
-            local bodyPosition = humanoidRootPart:FindFirstChild("ExpertSelfRescuePosition")
-            if bodyPosition then bodyPosition:Destroy() end
-        end
-        local humanoid = character:FindFirstChild("Humanoid")
-        if humanoid then
-            humanoid.WalkSpeed = 16
-            humanoid.JumpPower = 50
-        end
-    end
-
-    selfRescueButton.Text = "固定位置 [关]"
-    createNotification("固定位置已关闭", Color3.fromRGB(200, 50, 50))
-    if isMinimized then statusLabel.Text = "Expert\n点击展开" end
-    savedPosition = nil
-    savedCFrame = nil
-end
-
--- 通用传送函数（移除文字修改 + 冷却锁）
+-- 通用传送函数
 local function performTeleport(location, locationName)
-    if isSelfRescueActive then stopSelfRescue() end
-
     local character = player.Character
     if not character then 
         createNotification("角色未加载", Color3.fromRGB(200, 50, 50))
@@ -531,9 +413,6 @@ end
 backroomTeleportButton.MouseButton1Click:Connect(performBackroomTeleport)
 theaterFactoryButton.MouseButton1Click:Connect(performTheaterFactoryTeleport)
 sewerTeleportButton.MouseButton1Click:Connect(performSewerTeleport)
-selfRescueButton.MouseButton1Click:Connect(function()
-    if isSelfRescueActive then stopSelfRescue() else startSelfRescue() end
-end)
 ninjaModeButton.MouseButton1Click:Connect(function()
     if isNinjaModeActive then stopNinjaMode() else startNinjaMode() end
 end)
@@ -571,14 +450,11 @@ minimizeBtn.MouseButton1Click:Connect(function()
         backroomTeleportButton.Visible = false
         theaterFactoryButton.Visible = false
         sewerTeleportButton.Visible = false
-        selfRescueButton.Visible = false
         ninjaModeButton.Visible = false
         statusLabel.Visible = true
         minimizeBtn.Text = "+"
         title.Text = "⚔"
-        if isSelfRescueActive then
-            statusLabel.Text = "🔒 固定位置"
-        elseif isNinjaModeActive then
+        if isNinjaModeActive then
             statusLabel.Text = "⚡ 仙人模式"
         else
             statusLabel.Text = "Expert\n点击展开"
@@ -587,7 +463,6 @@ minimizeBtn.MouseButton1Click:Connect(function()
         backroomTeleportButton.Visible = true
         theaterFactoryButton.Visible = true
         sewerTeleportButton.Visible = true
-        selfRescueButton.Visible = true
         ninjaModeButton.Visible = true
         statusLabel.Visible = false
         minimizeBtn.Text = "_"
@@ -603,7 +478,6 @@ end)
 
 -- 关闭功能
 closeBtn.MouseButton1Click:Connect(function()
-    if isSelfRescueActive then stopSelfRescue() end
     if isNinjaModeActive then stopNinjaMode() end
     local tween = TweenService:Create(mainFrame, TweenInfo.new(0.3), {
         BackgroundTransparency = 0.8,
@@ -622,8 +496,6 @@ UserInputService.InputBegan:Connect(function(input, gameProcessed)
     if input.KeyCode == Enum.KeyCode.B then performBackroomTeleport()
     elseif input.KeyCode == Enum.KeyCode.T then performTheaterFactoryTeleport()
     elseif input.KeyCode == Enum.KeyCode.S then performSewerTeleport()
-    elseif input.KeyCode == Enum.KeyCode.R then
-        if isSelfRescueActive then stopSelfRescue() else startSelfRescue() end
     elseif input.KeyCode == Enum.KeyCode.N then
         if isNinjaModeActive then stopNinjaMode() else startNinjaMode() end
     end
@@ -631,7 +503,6 @@ end)
 
 -- 角色重生处理
 player.CharacterAdded:Connect(function(character)
-    if isSelfRescueActive then stopSelfRescue() end
     if isNinjaModeActive then
         task.wait(0.5)
         if isNinjaModeActive then
