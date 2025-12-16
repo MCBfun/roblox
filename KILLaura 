@@ -317,7 +317,7 @@ local function performKillaura()
         if not comboNotifyFlag then
             createNotification("已锁定: "..nearest.Name, Color3.fromRGB(50,200,50))
             comboNotifyFlag = true
-            if isMinimized then statusLabel.Text = "🔫 锁定: "..string.sub(nearest.Name,1,6) end
+            if isMinimized then statusLabel.Text = " 锁定: "..string.sub(nearest.Name,1,6) end
         end
     end
     comboButton.Text = "锁定: "..string.sub(nearest.Name,1,6)
@@ -372,7 +372,7 @@ minimizeBtn.MouseButton1Click:Connect(function()
         titleImage.Size = UDim2.new(0, 20, 0, 20)
         titleImage.Position = UDim2.new(0.5, -10, 0, 2)
         if isComboActive then
-            statusLabel.Text = "🔫 杀戮光环开启"
+            statusLabel.Text = " 杀戮光环开启"
         else
             statusLabel.Text = " Monster\n点击展开"
         end
@@ -408,7 +408,7 @@ comboButton.MouseButton1Click:Connect(function()
     isComboActive = not isComboActive
     comboButton.Text = isComboActive and "杀戮光环 [开]" or "杀戮光环 [关]"
     createNotification(isComboActive and "杀戮光环已开启" or "杀戮光环已关闭", isComboActive and Color3.fromRGB(50,200,50) or Color3.fromRGB(200,50,50))
-    if isMinimized then statusLabel.Text = isComboActive and "🔫 杀戮光环开启" or " Monster\n点击展开" end
+    if isMinimized then statusLabel.Text = isComboActive and " 杀戮光环开启" or " Monster\n点击展开" end
 end)
 cycleTeleportButton.MouseButton1Click:Connect(performCycleTeleport)
 autoPipeButton.MouseButton1Click:Connect(performAutoPipeTeleport)
@@ -419,7 +419,7 @@ UserInputService.InputBegan:Connect(function(input, gameProcessed)
         isComboActive = not isComboActive
         comboButton.Text = isComboActive and "杀戮光环 [开]" or "杀戮光环 [关]"
         createNotification(isComboActive and "杀戮光环已开启" or "杀戮光环已关闭", isComboActive and Color3.fromRGB(50,200,50) or Color3.fromRGB(200,50,50))
-        if isMinimized then statusLabel.Text = isComboActive and "🔫 杀戮光环开启" or " Monster\n点击展开" end
+        if isMinimized then statusLabel.Text = isComboActive and " 杀戮光环开启" or " Monster\n点击展开" end
     end
 end)
 
