@@ -187,7 +187,7 @@ end
 
 local comboButton = createFuncBtn(mainFrame, UDim2.new(0,5,0,30), "杀戮光环 [关]")
 local cycleTeleportButton = createFuncBtn(mainFrame, UDim2.new(0,5,0,75), "轮流传送")
-local autoPipeButton = createFuncBtn(mainFrame, UDim2.new(0,5,0,120), "自动管道")
+local autoPipeButton = createFuncBtn(mainFrame, UDim2.new(0,5,0,120), "致命管道")
 
 -- 缩小状态提示标签
 local statusLabel = Instance.new("TextLabel")
@@ -237,7 +237,7 @@ local allPipeLocations = {
     Vector3.new(358.95, 18, 436.84)
 }
 
--- ========== 核心：自动管道 点击立即执行，原生分步传送 ==========
+-- ========== 核心：致命管道 点击立即执行，原生分步传送 ==========
 local function performAutoPipeTeleport()
     -- 实时刷新根部件，防止角色重置失效
     rootPart = character:FindFirstChild("HumanoidRootPart") or character:FindFirstChild("Torso")
@@ -248,7 +248,7 @@ local function performAutoPipeTeleport()
 
     -- 点击后 0延迟 更新状态
     autoPipeButton.Text = "传送中..."
-    createNotification("开始自动管道传送", Color3.fromRGB(50,200,50))
+    createNotification("开始致命管道传送", Color3.fromRGB(50,200,50))
     local originalCFrame = rootPart.CFrame
 
     -- 原生分步传送，帧间隔执行，可感知过程
@@ -259,8 +259,8 @@ local function performAutoPipeTeleport()
             RunService.Heartbeat:Wait()
         end
         rootPart.CFrame = originalCFrame
-        autoPipeButton.Text = "自动管道"
-        createNotification("自动管道传送完成", Color3.fromRGB(50,200,50))
+        autoPipeButton.Text = "致命管道"
+        createNotification("致命管道传送完成", Color3.fromRGB(50,200,50))
         if isMinimized then statusLabel.Text = "✅ 管道传送完成" end
     end)
 end
