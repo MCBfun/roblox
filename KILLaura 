@@ -1,30 +1,42 @@
-local SoundService = game:GetService("SoundService")
+-- 强制等待游戏核心服务加载
 local Players = game:GetService("Players")
 local UserInputService = game:GetService("UserInputService")
 local RunService = game:GetService("RunService")
 local VirtualInputManager = game:GetService("VirtualInputManager")
 local Workspace = game:GetService("Workspace")
 local TweenService = game:GetService("TweenService")
+local SoundService = game:GetService("SoundService")
 
--- 音频初始化
-local sound = Instance.new("Sound")
-sound.SoundId = "rbxassetid://7390036132"
-sound.Parent = SoundService
-sound:Play()
-
+-- 关键：强制等待玩家和PlayerGui加载完成，超时10秒
 local player = Players.LocalPlayer
+local playerGui = player:WaitForChild("PlayerGui", 10)
+if not playerGui then
+    warn("[ERROR] PlayerGui加载超时")
+    return
+end
+
+-- 关键：等待角色加载完成，确保根部件存在
+local character = player.Character or player.CharacterAdded:Wait()
+local rootPart = character:WaitForChild("HumanoidRootPart", 10) or character:WaitForChild("Torso", 10)
+if not rootPart then
+    warn("[ERROR] 角色根部件加载失败")
+    return
+end
+
 local isRunning = true
 local camera = Workspace.CurrentCamera
 local comboNotifyFlag = false
 
--- ========== 弹窗提示函数（复用 Monster版） ==========
+-- ========== 弹窗提示函数 ==========
 local function createNotification(text, color)
-    local existingNotify = player.PlayerGui:FindFirstChild("KillauraNotify")
+    local existingNotify = playerGui:FindFirstChild("KillauraNotify")
     if existingNotify then existingNotify:Destroy() end
     local notifyGui = Instance.new("ScreenGui")
     notifyGui.Name = "KillauraNotify"
     notifyGui.IgnoreGuiInset = true
-    notifyGui.Parent = player.PlayerGui
+    notifyGui.Parent = playerGui
+    -- 强制置顶，确保显示
+    notifyGui.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
 
     local notifyFrame = Instance.new("Frame")
     notifyFrame.Size = UDim2.new(0,220,0,60)
@@ -32,9 +44,10 @@ local function createNotification(text, color)
     notifyFrame.BackgroundColor3 = Color3.fromRGB(25,25,30)
     notifyFrame.BackgroundTransparency = 0.1
     notifyFrame.Parent = notifyGui
+    notifyFrame.ZIndex = 100
     Instance.new("UICorner", notifyFrame).CornerRadius = UDim.new(0,8)
     Instance.new("UIStroke", notifyFrame).Color = color or Color3.fromRGB(60,60,70)
-    
+
     local notifyLabel = Instance.new("TextLabel")
     notifyLabel.Size = UDim2.new(1,-10,1,-10)
     notifyLabel.Position = UDim2.new(0,5,0,5)
@@ -45,33 +58,32 @@ local function createNotification(text, color)
     notifyLabel.TextWrapped = true
     notifyLabel.Font = Enum.Font.SourceSansSemibold
     notifyLabel.Parent = notifyFrame
+    notifyLabel.ZIndex = 101
 
-    -- 淡入动画
-    notifyFrame.BackgroundTransparency = 1
-    notifyFrame.Position = UDim2.new(1,-200,1,-90)
-    TweenService:Create(notifyFrame, TweenInfo.new(0.3), {
+    TweenService:Create(notifyFrame, TweenInfo.new(0.1), {
         BackgroundTransparency = 0.1,
         Position = UDim2.new(1,-230,1,-90)
     }):Play()
 
-    -- 3秒后淡出销毁
-    task.wait(3)
-    local fadeTween = TweenService:Create(notifyFrame, TweenInfo.new(0.3), {
-        BackgroundTransparency = 1,
-        Position = UDim2.new(1,-200,1,-90)
-    })
-    fadeTween:Play()
-    fadeTween.Completed:Wait()
-    notifyGui:Destroy()
+    task.delay(3, function()
+        TweenService:Create(notifyFrame, TweenInfo.new(0.3), {
+            BackgroundTransparency = 1,
+            Position = UDim2.new(1,-200,1,-90)
+        }):Play()
+        task.wait(0.3)
+        notifyGui:Destroy()
+    end)
 end
 
--- ========== 创建 Monster样式UI（替换为鸭子logo 98446998103932） ==========
+-- ========== 强制创建UI，确保渲染 ==========
 local screenGui = Instance.new("ScreenGui")
 screenGui.Name = "MonsterKillauraGUI"
 screenGui.ResetOnSpawn = false
-screenGui.Parent = player:WaitForChild("PlayerGui")
+screenGui.Parent = playerGui
+-- 强制置顶UI，防止被其他界面遮挡
+screenGui.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
 
--- 主面板（与 Monster尺寸/样式一致）
+-- 主面板
 local mainFrame = Instance.new("Frame")
 mainFrame.Name = "MainFrame"
 mainFrame.Size = UDim2.new(0, 120, 0, 215)
@@ -84,20 +96,20 @@ mainFrame.Active = true
 mainFrame.Draggable = true
 mainFrame.ClipsDescendants = true
 mainFrame.Parent = screenGui
-
--- 主面板圆角
+mainFrame.ZIndex = 10
 Instance.new("UICorner", mainFrame).CornerRadius = UDim.new(0, 6)
 
--- 标题栏（ Monster同款）
+-- 标题栏
 local titleBar = Instance.new("Frame")
 titleBar.Name = "TitleBar"
 titleBar.Size = UDim2.new(1, 0, 0, 25)
 titleBar.BackgroundColor3 = Color3.fromRGB(20, 20, 25)
 titleBar.BorderSizePixel = 0
 titleBar.Parent = mainFrame
+titleBar.ZIndex = 11
 Instance.new("UICorner", titleBar).CornerRadius = UDim.new(0, 6)
 
--- 替换为鸭子logo（ID: 98446998103932）
+-- 鸭子logo
 local titleImage = Instance.new("ImageLabel")
 titleImage.Name = "TitleDuckImage"
 titleImage.Size = UDim2.new(0, 20, 0, 20)
@@ -106,8 +118,9 @@ titleImage.BackgroundTransparency = 1
 titleImage.Image = "rbxassetid://98446998103932"
 titleImage.ScaleType = Enum.ScaleType.Fit
 titleImage.Parent = titleBar
+titleImage.ZIndex = 12
 
--- 标题文字（Monster）放在图片右侧
+-- 标题文字
 local titleText = Instance.new("TextLabel")
 titleText.Text = " Monster"
 titleText.Size = UDim2.new(1, -30, 1, 0)
@@ -118,6 +131,7 @@ titleText.TextXAlignment = Enum.TextXAlignment.Left
 titleText.Font = Enum.Font.SourceSansSemibold
 titleText.TextSize = 14
 titleText.Parent = titleBar
+titleText.ZIndex = 12
 
 -- 控制按钮容器
 local controlButtons = Instance.new("Frame")
@@ -125,8 +139,9 @@ controlButtons.Size = UDim2.new(0, 75, 1, 0)
 controlButtons.Position = UDim2.new(1, -75, 0, 0)
 controlButtons.BackgroundTransparency = 1
 controlButtons.Parent = titleBar
+controlButtons.ZIndex = 11
 
--- 控制按钮创建函数（复用 Monster样式）
+-- 控制按钮创建函数
 local function createCtrlBtn(parent, pos, text, color)
     local btn = Instance.new("TextButton")
     btn.Size = UDim2.new(0,25,0,25)
@@ -138,20 +153,19 @@ local function createCtrlBtn(parent, pos, text, color)
     btn.TextSize = 14
     btn.AutoButtonColor = false
     btn.Parent = parent
+    btn.ZIndex = 12
     Instance.new("UICorner", btn).CornerRadius = UDim.new(0,4)
-    -- 悬停效果
     local origColor = btn.BackgroundColor3
     btn.MouseEnter:Connect(function() btn.BackgroundColor3 = Color3.fromRGB(origColor.R*255+15, origColor.G*255+15, origColor.B*255+15)/255 end)
     btn.MouseLeave:Connect(function() btn.BackgroundColor3 = origColor end)
     return btn
 end
 
--- 创建控制按钮（与 Monster一致）
 local zoomBtn = createCtrlBtn(controlButtons, UDim2.new(0,0,0,0), "⏺️", Color3.fromRGB(40,40,45))
 local minimizeBtn = createCtrlBtn(controlButtons, UDim2.new(0,25,0,0), "_", Color3.fromRGB(40,40,45))
 local closeBtn = createCtrlBtn(controlButtons, UDim2.new(0,50,0,0), "×", Color3.fromRGB(45,35,35))
 
--- 功能按钮创建函数（ Monster同款样式）
+-- 功能按钮创建函数
 local function createFuncBtn(parent, pos, text)
     local btn = Instance.new("TextButton")
     btn.Size = UDim2.new(1,-10,0,40)
@@ -163,20 +177,19 @@ local function createFuncBtn(parent, pos, text)
     btn.TextSize = 14
     btn.AutoButtonColor = false
     btn.Parent = parent
+    btn.ZIndex = 12
     Instance.new("UICorner", btn).CornerRadius = UDim.new(0,5)
-    -- 悬停效果
     local origColor = btn.BackgroundColor3
     btn.MouseEnter:Connect(function() btn.BackgroundColor3 = Color3.fromRGB(50,50,55) end)
     btn.MouseLeave:Connect(function() btn.BackgroundColor3 = origColor end)
     return btn
 end
 
--- 创建原Killaura功能按钮（位置与 Monster一致）
 local comboButton = createFuncBtn(mainFrame, UDim2.new(0,5,0,30), "杀戮光环 [关]")
 local cycleTeleportButton = createFuncBtn(mainFrame, UDim2.new(0,5,0,75), "轮流传送")
 local autoPipeButton = createFuncBtn(mainFrame, UDim2.new(0,5,0,120), "自动管道")
 
--- 缩小状态提示标签（替换剑emoji为鸭子logo文字提示）
+-- 缩小状态提示标签
 local statusLabel = Instance.new("TextLabel")
 statusLabel.Size = UDim2.new(1,-10,1,-10)
 statusLabel.Position = UDim2.new(0,5,0,5)
@@ -187,8 +200,9 @@ statusLabel.TextSize = 12
 statusLabel.TextWrapped = true
 statusLabel.Visible = false
 statusLabel.Parent = mainFrame
+statusLabel.ZIndex = 12
 
--- ========== 状态变量（复用原逻辑+ Monster UI状态） ==========
+-- ========== 状态变量 ==========
 local isComboActive = false
 local isMinimized = false
 local isZoomed = false
@@ -201,7 +215,7 @@ local lastAttackTime = 0
 local attackRate = 4
 local cycleTeleportIndex = 1
 
--- 管道坐标（保留原数据）
+-- 管道坐标
 local allPipeLocations = {
     Vector3.new(43.06, 68.98, -254.75),
     Vector3.new(-0.53, 71.14, -329.87),
@@ -223,29 +237,21 @@ local allPipeLocations = {
     Vector3.new(358.95, 18, 436.84)
 }
 
--- ========== 核心功能逻辑（保留原Killaura） ==========
--- 自动管道函数
+-- ========== 核心：自动管道 点击立即执行，原生分步传送 ==========
 local function performAutoPipeTeleport()
-    local character = player.Character
-    if not character then
-        createNotification("角色未加载", Color3.fromRGB(200,50,50))
-        return
-    end
-    local rootPart = character:FindFirstChild("HumanoidRootPart")
+    -- 实时刷新根部件，防止角色重置失效
+    rootPart = character:FindFirstChild("HumanoidRootPart") or character:FindFirstChild("Torso")
     if not rootPart then
-        createNotification("根部件不存在", Color3.fromRGB(200,50,50))
+        createNotification("根部件丢失", Color3.fromRGB(200,50,50))
         return
     end
 
+    -- 点击后 0延迟 更新状态
     autoPipeButton.Text = "传送中..."
     createNotification("开始自动管道传送", Color3.fromRGB(50,200,50))
-
-    local wasComboActive = isComboActive
-    isComboActive = false
-    comboButton.Text = "杀戮光环 [关]"
-
     local originalCFrame = rootPart.CFrame
 
+    -- 原生分步传送，帧间隔执行，可感知过程
     task.spawn(function()
         for i, pos in ipairs(allPipeLocations) do
             rootPart.CFrame = CFrame.new(pos)
@@ -253,22 +259,16 @@ local function performAutoPipeTeleport()
             RunService.Heartbeat:Wait()
         end
         rootPart.CFrame = originalCFrame
-        if wasComboActive then
-            isComboActive = true
-            comboButton.Text = "杀戮光环 [开]"
-        end
         autoPipeButton.Text = "自动管道"
         createNotification("自动管道传送完成", Color3.fromRGB(50,200,50))
         if isMinimized then statusLabel.Text = "✅ 管道传送完成" end
     end)
 end
 
--- 杀戮光环函数
+-- ========== 杀戮光环函数 ==========
 local function getNearestPlayer()
-    local character = player.Character
-    if not character then return nil end
-    local rootPart = character:FindFirstChild("HumanoidRootPart")
-    if not rootPart then return nil end
+    rootPart = character:FindFirstChild("HumanoidRootPart") or character:FindFirstChild("Torso")
+    if not character or not rootPart then return nil end
 
     local nearestPlayer, nearestDist = nil, math.huge
     for _, p in pairs(Players:GetPlayers()) do
@@ -300,8 +300,7 @@ local function performKillaura()
         return
     end
 
-    local character = player.Character
-    local rootPart = character:FindFirstChild("HumanoidRootPart")
+    rootPart = character:FindFirstChild("HumanoidRootPart") or character:FindFirstChild("Torso")
     local targetRoot = nearest.Character:FindFirstChild("HumanoidRootPart")
     if not rootPart or not targetRoot then return end
 
@@ -323,12 +322,10 @@ local function performKillaura()
     comboButton.Text = "锁定: "..string.sub(nearest.Name,1,6)
 end
 
--- 轮流传送函数
+-- ========== 轮流传送函数 ==========
 local function performCycleTeleport()
-    local character = player.Character
-    if not character then return end
-    local rootPart = character:FindFirstChild("HumanoidRootPart")
-    if not rootPart then return end
+    rootPart = character:FindFirstChild("HumanoidRootPart") or character:FindFirstChild("Torso")
+    if not character or not rootPart then return end
 
     local validPlayers = {}
     for _, p in pairs(Players:GetPlayers()) do
@@ -348,8 +345,7 @@ local function performCycleTeleport()
     if isMinimized then statusLabel.Text = "➡ 传送到: "..string.sub(target.Name,1,6) end
 end
 
--- ========== UI交互逻辑（与 Monster完全一致） ==========
--- 缩放按钮
+-- ========== UI交互逻辑 ==========
 zoomBtn.MouseButton1Click:Connect(function()
     isZoomed = not isZoomed
     local targetSize = isZoomed and zoomedSize or originalSize
@@ -357,7 +353,6 @@ zoomBtn.MouseButton1Click:Connect(function()
     zoomBtn.Text = isZoomed and "⏺" or "⏺️"
 end)
 
--- 最小化按钮
 minimizeBtn.MouseButton1Click:Connect(function()
     isMinimized = not isMinimized
     if isMinimized then
@@ -367,7 +362,6 @@ minimizeBtn.MouseButton1Click:Connect(function()
         autoPipeButton.Visible = false
         statusLabel.Visible = true
         minimizeBtn.Text = "+"
-        -- 最小化后标题显示鸭子图片
         titleText.Visible = false
         titleImage.Size = UDim2.new(0, 20, 0, 20)
         titleImage.Position = UDim2.new(0.5, -10, 0, 2)
@@ -382,7 +376,6 @@ minimizeBtn.MouseButton1Click:Connect(function()
         autoPipeButton.Visible = true
         statusLabel.Visible = false
         minimizeBtn.Text = "_"
-        -- 恢复标题文字和图片位置
         titleText.Visible = true
         titleImage.Size = UDim2.new(0, 20, 0, 20)
         titleImage.Position = UDim2.new(0, 5, 0, 2)
@@ -391,7 +384,6 @@ minimizeBtn.MouseButton1Click:Connect(function()
     end
 end)
 
--- 关闭按钮
 closeBtn.MouseButton1Click:Connect(function()
     TweenService:Create(mainFrame, TweenInfo.new(0.3), {
         BackgroundTransparency = 0.8,
@@ -403,13 +395,15 @@ closeBtn.MouseButton1Click:Connect(function()
     createNotification("Killaura面板已关闭", Color3.fromRGB(200,50,50))
 end)
 
--- 功能按钮点击
 comboButton.MouseButton1Click:Connect(function()
     isComboActive = not isComboActive
     comboButton.Text = isComboActive and "杀戮光环 [开]" or "杀戮光环 [关]"
-    createNotification(isComboActive and "杀戮光环已开启" or "杀戮光环已关闭", isComboActive and Color3.fromRGB(50,200,50) or Color3.fromRGB(200,50,50))
+    mainFrame.Draggable = not isComboActive
+    createNotification(isComboActive and "杀戮光环已开启(UI固定)" or "杀戮光环已关闭(UI可拖动)", isComboActive and Color3.fromRGB(50,200,50) or Color3.fromRGB(200,50,50))
     if isMinimized then statusLabel.Text = isComboActive and " 杀戮光环开启" or " Monster\n点击展开" end
 end)
+
+-- 绑定点击事件，0延迟触发
 cycleTeleportButton.MouseButton1Click:Connect(performCycleTeleport)
 autoPipeButton.MouseButton1Click:Connect(performAutoPipeTeleport)
 
@@ -418,7 +412,8 @@ UserInputService.InputBegan:Connect(function(input, gameProcessed)
     if not gameProcessed and input.KeyCode == Enum.KeyCode.RightControl then
         isComboActive = not isComboActive
         comboButton.Text = isComboActive and "杀戮光环 [开]" or "杀戮光环 [关]"
-        createNotification(isComboActive and "杀戮光环已开启" or "杀戮光环已关闭", isComboActive and Color3.fromRGB(50,200,50) or Color3.fromRGB(200,50,50))
+        mainFrame.Draggable = not isComboActive
+        createNotification(isComboActive and "杀戮光环已开启(UI固定)" or "杀戮光环已关闭(UI可拖动)", isComboActive and Color3.fromRGB(50,200,50) or Color3.fromRGB(200,50,50))
         if isMinimized then statusLabel.Text = isComboActive and " 杀戮光环开启" or " Monster\n点击展开" end
     end
 end)
@@ -428,11 +423,17 @@ RunService.Heartbeat:Connect(function()
     if isRunning then performKillaura() end
 end)
 
--- 初始淡入动画（ Monster同款）
+-- 强制触发UI显示动画
 mainFrame.BackgroundTransparency = 1
 mainFrame.Position = UDim2.new(0.02,0,0.3,-30)
-TweenService:Create(mainFrame, TweenInfo.new(0.5), {
+TweenService:Create(mainFrame, TweenInfo.new(0.2), {
     BackgroundTransparency = 0.1,
     Position = UDim2.new(0.02,0,0.3,0)
 }):Play()
 createNotification(" Monster Killaura面板已加载", Color3.fromRGB(50,200,50))
+
+-- 音频初始化（最后加载，避免阻塞UI）
+local sound = Instance.new("Sound")
+sound.SoundId = "rbxassetid://7390036132"
+sound.Parent = SoundService
+sound:Play()
