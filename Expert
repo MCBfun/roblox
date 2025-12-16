@@ -107,10 +107,20 @@ local titleCorner = Instance.new("UICorner")
 titleCorner.CornerRadius = UDim.new(0, 6)
 titleCorner.Parent = titleBar
 
+-- 替换标题文字左侧为鸭子图片
+local titleImage = Instance.new("ImageLabel")
+titleImage.Name = "TitleDuckImage"
+titleImage.Size = UDim2.new(0, 20, 0, 20)
+titleImage.Position = UDim2.new(0, 5, 0, 2)
+titleImage.BackgroundTransparency = 1
+titleImage.Image = "rbxassetid://98446998103932"
+titleImage.ScaleType = Enum.ScaleType.Fit
+titleImage.Parent = titleBar
+
 local title = Instance.new("TextLabel")
 title.Text = "Expert"
-title.Size = UDim2.new(1, -80, 1, 0)
-title.Position = UDim2.new(0, 5, 0, 0)
+title.Size = UDim2.new(1, -30, 1, 0)
+title.Position = UDim2.new(0, 25, 0, 0)
 title.BackgroundTransparency = 1
 title.TextColor3 = Color3.fromRGB(220, 220, 220)  -- 浅灰色
 title.TextXAlignment = Enum.TextXAlignment.Left
@@ -453,7 +463,10 @@ minimizeBtn.MouseButton1Click:Connect(function()
         ninjaModeButton.Visible = false
         statusLabel.Visible = true
         minimizeBtn.Text = "+"
-        title.Text = "⚔"
+        -- 隐藏标题文字，显示鸭子图片居中
+        title.Visible = false
+        titleImage.Size = UDim2.new(0, 20, 0, 20)
+        titleImage.Position = UDim2.new(0.5, -10, 0, 2)
         if isNinjaModeActive then
             statusLabel.Text = "⚡ 仙人模式"
         else
@@ -466,7 +479,10 @@ minimizeBtn.MouseButton1Click:Connect(function()
         ninjaModeButton.Visible = true
         statusLabel.Visible = false
         minimizeBtn.Text = "_"
-        title.Text = "Expert"
+        -- 恢复标题文字和鸭子图片位置
+        title.Visible = true
+        titleImage.Size = UDim2.new(0, 20, 0, 20)
+        titleImage.Position = UDim2.new(0, 5, 0, 2)
         local currentPos = mainFrame.Position
         local targetSize = isZoomed and zoomedSize or originalSize
         local tween = TweenService:Create(mainFrame, TweenInfo.new(0.3), {
