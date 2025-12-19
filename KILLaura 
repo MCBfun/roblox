@@ -1,3 +1,20 @@
+-- killaura
+local SoundService = game:GetService("SoundService")
+
+-- 创建音频实例
+local sound = Instance.new("Sound")
+sound.SoundId = "rbxassetid://7390036132"  -- 替换为你的音频ID
+sound.Parent = SoundService
+
+-- 播放音频
+sound:Play()
+local Players = game:GetService("Players")
+local UserInputService = game:GetService("UserInputService")
+local RunService = game:GetService("RunService")
+local TweenService = game:GetService("TweenService")
+
+local player = Players.LocalPlayer
+local isRunning = true
 -- 强制等待游戏核心服务加载
 local Players = game:GetService("Players")
 local UserInputService = game:GetService("UserInputService")
