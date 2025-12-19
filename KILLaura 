@@ -109,7 +109,7 @@ titleBar.Parent = mainFrame
 titleBar.ZIndex = 11
 Instance.new("UICorner", titleBar).CornerRadius = UDim.new(0, 6)
 
--- 鸭子logo
+-- 鸭子logo 【核心修改：调整ZIndex为3，低于按钮层级】
 local titleImage = Instance.new("ImageLabel")
 titleImage.Name = "TitleDuckImage"
 titleImage.Size = UDim2.new(0, 20, 0, 20)
@@ -118,7 +118,7 @@ titleImage.BackgroundTransparency = 1
 titleImage.Image = "rbxassetid://98446998103932"
 titleImage.ScaleType = Enum.ScaleType.Fit
 titleImage.Parent = titleBar
-titleImage.ZIndex = 12
+titleImage.ZIndex = 3 -- 原12 → 改为3，低于按钮的12
 
 -- 标题文字
 local titleText = Instance.new("TextLabel")
@@ -237,7 +237,7 @@ local allPipeLocations = {
     Vector3.new(358.95, 18, 436.84)
 }
 
--- ========== 核心：致命管道 点击立即执行，原生分步传送 ==========
+-- ========== 核心：致命管道 原逻辑保留 ==========
 local function performAutoPipeTeleport()
     -- 实时刷新根部件，防止角色重置失效
     rootPart = character:FindFirstChild("HumanoidRootPart") or character:FindFirstChild("Torso")
@@ -434,6 +434,6 @@ createNotification(" Monster Killaura面板已加载", Color3.fromRGB(50,200,50)
 
 -- 音频初始化（最后加载，避免阻塞UI）
 local sound = Instance.new("Sound")
-sound.SoundId = "rbxassetid://7390036132"
+sound.SoundId = "rbxassetid://98446998103932"
 sound.Parent = SoundService
 sound:Play()
