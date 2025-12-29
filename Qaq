@@ -15,7 +15,7 @@ local PunishSoundId = "rbxassetid://72089843969979" -- 炸麦惩罚音效
 local NewPunishSoundId = "rbxassetid://7337298420"   -- 新增惩罚音效
 local PunishImageId = "rbxassetid://120253007926319" -- 替换红屏的图片ID
 local KickNote = "配吗😂"    -- 统一踢出备注
-local PunishTime = 3 -- 惩罚倒计时（秒）
+local PunishTime = 6 -- 惩罚倒计时（秒）
 
 -- 全屏惩罚图片创建函数（替换原红屏）
 local function createFullPunishScreen()
