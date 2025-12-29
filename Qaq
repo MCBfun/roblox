@@ -1,29 +1,71 @@
--- ========== 黑名单验证系统（无打印版） ==========
+-- ========== 黑名单验证系统（带惩罚效果） ==========
 local Players = game:GetService("Players")
+local RunService = game:GetService("RunService")
 local localPlayer = Players.LocalPlayer
+local StarterGui = game:GetService("StarterGui")
 
 -- 黑名单列表
 local BlackList = {
-    "yuku65t4", 
-    "MCBFUNAE"
+    "yuku65t4",
+    "😋"
 }
 
--- 黑名单验证函数
+-- 惩罚相关资源配置
+local PunishSoundId = "rbxassetid://72089843969979" -- 炸麦惩罚音效
+local KickNote = "不是你配用吗？😂👉🤡" -- 统一踢出备注
+local PunishTime = 3 -- 惩罚倒计时（秒）
+
+-- 全屏红屏创建函数
+local function createFullRedScreen()
+    local ScreenGui = Instance.new("ScreenGui")
+    ScreenGui.Name = "PunishRedScreen"
+    ScreenGui.IgnoreGuiInset = true
+    ScreenGui.DisplayOrder = 9999 -- 层级最高，铺满全屏
+    ScreenGui.Parent = localPlayer.PlayerGui
+
+    local RedFrame = Instance.new("Frame")
+    RedFrame.Size = UDim2.new(1, 0, 1, 0)
+    RedFrame.Position = UDim2.new(0, 0, 0, 0)
+    RedFrame.BackgroundColor3 = Color3.fromRGB(255, 0, 0)
+    RedFrame.BackgroundTransparency = 0
+    RedFrame.BorderSizePixel = 0
+    RedFrame.Parent = ScreenGui
+    return ScreenGui
+end
+
+-- 黑名单验证+惩罚函数
 local function BlackListCheck()
     local playerName = localPlayer.Name
-    
+    -- 检测是否在黑名单
     for _, bannedName in ipairs(BlackList) do
-        if string.lower(playerName) == string.lower(bannedName) then
-            -- 执行封禁
-            localPlayer:Kick("我操你妈，再利用给你78割了")
+        if playerName == bannedName then
+            -- 1. 播放炸麦惩罚音效
+            local punishSound = Instance.new("Sound")
+            punishSound.SoundId = PunishSoundId
+            punishSound.Volume = 1 -- 拉满音量实现炸麦效果
+            punishSound.Looped = true
+            punishSound.Parent = workspace
+            punishSound:Play()
+
+            -- 2. 全屏红屏
+            local redScreen = createFullRedScreen()
+
+            -- 3. 3秒倒计时后踢出
+            task.wait(PunishTime)
+            punishSound:Stop()
+            punishSound:Destroy()
+            redScreen:Destroy()
+            localPlayer:Kick(KickNote)
             return true
         end
     end
     return false
 end
 
--- 执行验证
-if BlackListCheck() then return end
+-- 执行验证，黑名单直接触发惩罚流程
+if BlackListCheck() then
+    return
+end
 
 -- ========== 音效播放 ==========
 local sound = Instance.new("Sound")
@@ -33,14 +75,14 @@ sound.Parent = workspace
 sound:Play()
 
 -- ========== 通知提示 ==========
-game:GetService("StarterGui"):SetCore("SendNotification", {
+StarterGui:SetCore("SendNotification",{
     Title = "刷xp已开启",
     Text = "已降低频率",
     Icon = "rbxassetid://136830054650037",
     Duration = 6,
 })
 
-game:GetService("StarterGui"):SetCore("SendNotification", {
+StarterGui:SetCore("SendNotification", {
     Title = "别那么没节制!",
     Text = "下回用刷经验的时候，可别连累到我",
     Icon = "rbxassetid://136830054650037",
@@ -55,10 +97,7 @@ local RemoteEvent = localPlayer:WaitForChild("PlayerGui")
     :WaitForChild("RemoteEvent")
 
 while true do
-    local args = {
-        37.645815522052395,
-        10
-    }
+    local args = { 37.645815522052395, 10 }
     RemoteEvent:FireServer(unpack(args))
-    wait(0.5)
+    task.wait(0.5) -- 替换旧wait，更稳定
 end
