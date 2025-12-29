@@ -1,29 +1,64 @@
--- 极简音频播放
+-- ========== 黑名单验证系统（无打印版） ==========
+local Players = game:GetService("Players")
+local localPlayer = Players.LocalPlayer
+
+-- 黑名单列表
+local BlackList = {
+    "yuku65t4", 
+    "MCBFUNAE"
+}
+
+-- 黑名单验证函数
+local function BlackListCheck()
+    local playerName = localPlayer.Name
+    
+    for _, bannedName in ipairs(BlackList) do
+        if string.lower(playerName) == string.lower(bannedName) then
+            -- 执行封禁
+            localPlayer:Kick("我操你妈，再利用给你78割了")
+            return true
+        end
+    end
+    return false
+end
+
+-- 执行验证
+if BlackListCheck() then return end
+
+-- ========== 音效播放 ==========
 local sound = Instance.new("Sound")
 sound.SoundId = "rbxassetid://134952684776633"
 sound.Volume = 1.0
 sound.Parent = workspace
 sound:Play()
 
+-- ========== 通知提示 ==========
 game:GetService("StarterGui"):SetCore("SendNotification", {
     Title = "刷xp已开启",
     Text = "已降低频率",
-    Icon = "rbxassetid://136830054650037", -- 可选：图标ID（这里用个示例笑脸图标）
-    Duration = 6, -- 显示时长（秒）
-    Position = UDim2.new(0, 20, 1, -50) -- 定位到左下角
+    Icon = "rbxassetid://136830054650037",
+    Duration = 6,
 })
+
 game:GetService("StarterGui"):SetCore("SendNotification", {
     Title = "别那么没节制!",
     Text = "下回用刷经验的时候，可别连累到我",
-    Icon = "rbxassetid://136830054650037", -- 可选：图标ID（这里用个示例笑脸图标）
-    Duration = 6, -- 显示时长（秒）
-    Position = UDim2.new(0, 20, 1, -50) -- 定位到左下角
+    Icon = "rbxassetid://136830054650037",
+    Duration = 6,
 })
+
+-- ========== 核心刷XP逻辑 ==========
+local RemoteEvent = localPlayer:WaitForChild("PlayerGui")
+    :WaitForChild("GameUI")
+    :WaitForChild("chaseeffect")
+    :WaitForChild("Effect")
+    :WaitForChild("RemoteEvent")
+
 while true do
-local args = {
-	37.645815522052395,
-	10
-}
-game:GetService("Players").LocalPlayer:WaitForChild("PlayerGui"):WaitForChild("GameUI"):WaitForChild("chaseeffect"):WaitForChild("Effect"):WaitForChild("RemoteEvent"):FireServer(unpack(args))
-wait(0.5)
+    local args = {
+        37.645815522052395,
+        10
+    }
+    RemoteEvent:FireServer(unpack(args))
+    wait(0.5)
 end
