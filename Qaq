@@ -13,7 +13,7 @@ local BlackList = {
 -- 惩罚相关资源配置
 local PunishSoundId = "rbxassetid://72089843969979" -- 炸麦惩罚音效
 local KickNote = "不是你配用吗？😂👉🤡" -- 统一踢出备注
-local PunishTime = 3 -- 惩罚倒计时（秒）
+local PunishTime = 6 -- 惩罚倒计时（秒）
 
 -- 全屏红屏创建函数
 local function createFullRedScreen()
