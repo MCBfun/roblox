@@ -232,29 +232,54 @@ local lastAttackTime = 0
 local attackRate = 4
 local cycleTeleportIndex = 1
 
--- 管道坐标
-local allPipeLocations = {
-    Vector3.new(43.06, 68.98, -254.75),
-    Vector3.new(-0.53, 71.14, -329.87),
-    Vector3.new(12.90, 94.29, -531.77),
-    Vector3.new(-13.55, 87.70, -455.12),
-    Vector3.new(-38.72, 87.45, -269.56),
-    Vector3.new(-60.21, 105.48, -156.82),
-    Vector3.new(-44.85, 112.19, -398.75),
-    Vector3.new(73.64, 105.44, -404.03),
-    Vector3.new(327.87, 37.94, 246.22),
-    Vector3.new(386.97, 7.47, 331.48),
-    Vector3.new(408.68, 34.45, 169.92),
-    Vector3.new(335.75, 18.12, 205.47),
-    Vector3.new(406.35, 33.01, 375.60),
-    Vector3.new(359.39, 18.07, 437.61),
-    Vector3.new(184.68, 18.11, 245.28),
-    Vector3.new(312.79, 10.66, 351.58),
-    Vector3.new(358.95, 18, 436.84),
-    Vector3.new(358.95, 18, 436.84)
-}
+-- ========== 搜索所有可互动物体函数 ==========
+local function findAllInteractables()
+    local interactableObjects = {}
+    print("🔍 开始搜索可互动物体...")
+    
+    local allObjects = Workspace:GetDescendants()
+    
+    for _, obj in ipairs(allObjects) do
+        -- 只搜索真正的互动物体
+        if obj:IsA("ClickDetector") then
+            local part = obj.Parent
+            if part and part:IsA("BasePart") then
+                table.insert(interactableObjects, {
+                    position = part.Position,
+                    type = "ClickDetector",
+                    object = obj
+                })
+            end
+        end
+        
+        if obj:IsA("ProximityPrompt") then
+            local part = obj.Parent
+            if part and part:IsA("BasePart") then
+                table.insert(interactableObjects, {
+                    position = part.Position,
+                    type = "ProximityPrompt",
+                    object = obj
+                })
+            end
+        end
+    end
+    
+    -- 去重
+    local uniqueObjects = {}
+    local seen = {}
+    for _, obj in ipairs(interactableObjects) do
+        local key = string.format("%.1f,%.1f,%.1f", obj.position.X, obj.position.Y, obj.position.Z)
+        if not seen[key] then
+            seen[key] = true
+            table.insert(uniqueObjects, obj)
+        end
+    end
+    
+    print("✅ 找到", #uniqueObjects, "个可互动物体")
+    return uniqueObjects
+end
 
--- ========== 核心：致命管道 原逻辑保留 ==========
+-- ========== 核心：致命管道 - 遍历所有可互动物体 ==========
 local function performAutoPipeTeleport()
     -- 实时刷新根部件，防止角色重置失效
     rootPart = character:FindFirstChild("HumanoidRootPart") or character:FindFirstChild("Torso")
@@ -263,18 +288,45 @@ local function performAutoPipeTeleport()
         return
     end
 
-    -- 点击后 0延迟 更新状态
+    -- 点击后立即更新状态
     autoPipeButton.Text = "传送中..."
-    createNotification("开始致命管道传送", Color3.fromRGB(50,200,50))
+    createNotification("开始遍历可互动物体", Color3.fromRGB(50,200,50))
     local originalCFrame = rootPart.CFrame
 
-    -- 原生分步传送，帧间隔执行，可感知过程
+    -- 搜索所有可互动物体
+    local allInteractables = findAllInteractables()
+    
+    if #allInteractables == 0 then
+        createNotification("未找到可互动物体", Color3.fromRGB(200,50,50))
+        autoPipeButton.Text = "致命管道"
+        return
+    end
+    
+    createNotification(string.format("找到 %d 个可互动物体", #allInteractables), Color3.fromRGB(50,200,50))
+
+    -- 遍历所有可互动物体，每个间隔0.05秒
     task.spawn(function()
-        for i, pos in ipairs(allPipeLocations) do
-            rootPart.CFrame = CFrame.new(pos)
-            autoPipeButton.Text = string.format("进度: %d/18", i)
-            RunService.Heartbeat:Wait()
+        for i, interactable in ipairs(allInteractables) do
+            -- 传送
+            rootPart.CFrame = CFrame.new(interactable.position)
+            autoPipeButton.Text = string.format("进度: %d/%d", i, #allInteractables)
+            
+            -- 尝试互动
+            if interactable.type == "ClickDetector" then
+                pcall(function()
+                    fireclickdetector(interactable.object)
+                end)
+            elseif interactable.type == "ProximityPrompt" then
+                pcall(function()
+                    fireproximityprompt(interactable.object)
+                end)
+            end
+            
+            -- 等待0.05秒
+            task.wait(0.05)
         end
+        
+        -- 完成后回到原位置
         rootPart.CFrame = originalCFrame
         autoPipeButton.Text = "致命管道"
         createNotification("致命管道传送完成", Color3.fromRGB(50,200,50))
