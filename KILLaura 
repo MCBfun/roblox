@@ -34,7 +34,7 @@ end
 
 -- 关键：等待角色加载完成，确保根部件存在
 local character = player.Character or player.CharacterAdded:Wait()
-local rootPart = character:WaitForChild("HumanoidRootPart", 10) or character:WaitForChild("Torso", 10)
+local rootPart = character:FindFirstChild("HumanoidRootPart", 10) or character:FindFirstChild("Torso", 10)
 if not rootPart then
     warn("[ERROR] 角色根部件加载失败")
     return
@@ -173,7 +173,7 @@ local function createCtrlBtn(parent, pos, text, color)
     btn.ZIndex = 12
     Instance.new("UICorner", btn).CornerRadius = UDim.new(0,4)
     local origColor = btn.BackgroundColor3
-    btn.MouseEnter:Connect(function() btn.BackgroundColor3 = Color3.fromRGB(origColor.R*255+15, origColor.G*255+15, origColor.B*255+15)/255 end)
+    btn.MouseEnter:Connect(function() btn.BackgroundColor3 = Color3.fromRGB(math.clamp(origColor.R*255+15,0,255), math.clamp(origColor.G*255+15,0,255), math.clamp(origColor.B*255+15,0,255))/255 end)
     btn.MouseLeave:Connect(function() btn.BackgroundColor3 = origColor end)
     return btn
 end
@@ -227,10 +227,11 @@ local originalSize = mainFrame.Size
 local minimizedSize = UDim2.new(0,80,0,40)
 local zoomedSize = UDim2.new(0,140,0,225)
 local maxDistance = 200
-local teleportHeight = 0
+local teleportHeight = 3 -- 修复：抬高传送高度，避免卡入地面
 local lastAttackTime = 0
-local attackRate = 4
+local attackRate = 10 -- 修复：提高攻击频率（每秒10次）
 local cycleTeleportIndex = 1
+local targetHumanoid = nil -- 新增：存储目标Humanoid，用于攻击判定
 
 -- ========== 搜索所有可互动物体函数 ==========
 local function findAllInteractables()
@@ -334,65 +335,123 @@ local function performAutoPipeTeleport()
     end)
 end
 
--- ========== 杀戮光环函数 ==========
+-- ========== 修复：杀戮光环核心函数（重写检测+攻击逻辑） ==========
 local function getNearestPlayer()
+    -- 实时刷新角色和根部件
+    character = player.Character or player.CharacterAdded:Wait()
     rootPart = character:FindFirstChild("HumanoidRootPart") or character:FindFirstChild("Torso")
     if not character or not rootPart then return nil end
 
     local nearestPlayer, nearestDist = nil, math.huge
+    local humanoid = character:FindFirstChild("Humanoid")
+    if not humanoid or humanoid.Health <= 0 then return nil end -- 检测自身存活
+
     for _, p in pairs(Players:GetPlayers()) do
-        if p ~= player and p.Character then
+        if p ~= player and p.Character and p.Character:FindFirstChild("Humanoid") then
+            local targetHumanoid = p.Character:FindFirstChild("Humanoid")
             local targetRoot = p.Character:FindFirstChild("HumanoidRootPart")
-            local humanoid = p.Character:FindFirstChild("Humanoid")
-            if targetRoot and humanoid and humanoid.Health > 5 then
+            -- 修复：目标存活判定（Health>0而非>5），扩大检测范围
+            if targetRoot and targetHumanoid and targetHumanoid.Health > 0 then
                 local dist = (rootPart.Position - targetRoot.Position).Magnitude
                 if dist < maxDistance and dist < nearestDist then
                     nearestDist = dist
                     nearestPlayer = p
+                    targetHumanoid = targetHumanoid -- 保存目标Humanoid
                 end
             end
         end
     end
-    return nearestPlayer
+    return nearestPlayer, targetHumanoid
+end
+
+-- 新增：模拟攻击函数（多种攻击方式兼容）
+local function simulateAttack(target)
+    if not target or not target.Character then return end
+    
+    local targetRoot = target.Character:FindFirstChild("HumanoidRootPart")
+    if not targetRoot then return end
+
+    -- 方式1：模拟鼠标点击（原逻辑）
+    pcall(function()
+        VirtualInputManager:SendMouseButtonEvent(camera.ViewportSize.X/2, camera.ViewportSize.Y/2, 0, true, game, 0)
+        task.wait(0.02)
+        VirtualInputManager:SendMouseButtonEvent(camera.ViewportSize.X/2, camera.ViewportSize.Y/2, 0, false, game, 0)
+    end)
+
+    -- 方式2：模拟键盘攻击（兼容FPS游戏）
+    pcall(function()
+        VirtualInputManager:SendKeyEvent(true, Enum.KeyCode.F, false, game)
+        task.wait(0.01)
+        VirtualInputManager:SendKeyEvent(false, Enum.KeyCode.F, false, game)
+    end)
+
+    -- 方式3：射线检测+远程事件触发（通用攻击逻辑）
+    pcall(function()
+        local ray = Ray.new(camera.CFrame.Position, camera.CFrame.LookVector * 100)
+        local hit, pos, normal, material, part = Workspace:FindPartOnRayWithIgnoreList(ray, {character})
+        if hit and hit:IsDescendantOf(target.Character) then
+            -- 尝试触发常见攻击远程事件
+            local remoteEvents = Workspace:GetDescendants()
+            for _, remote in ipairs(remoteEvents) do
+                if remote:IsA("RemoteEvent") and (remote.Name:find("Attack") or remote.Name:find("Hit") or remote.Name:find("Damage")) then
+                    remote:FireServer(target, pos)
+                    break
+                end
+            end
+        end
+    end)
 end
 
 local function performKillaura()
     if not isComboActive then
         comboNotifyFlag = false
+        comboButton.Text = "杀戮光环 [关]"
         return
     end
-    local nearest = getNearestPlayer()
-    if not nearest then
+
+    -- 获取最近玩家和目标Humanoid
+    local nearestPlayer, targetHumo = getNearestPlayer()
+    if not nearestPlayer then
         comboNotifyFlag = false
         comboButton.Text = "杀戮光环 [开]"
         if isMinimized then statusLabel.Text = " Monster\n未锁定目标" end
         return
     end
 
+    -- 实时刷新角色和根部件
+    character = player.Character or player.CharacterAdded:Wait()
     rootPart = character:FindFirstChild("HumanoidRootPart") or character:FindFirstChild("Torso")
-    local targetRoot = nearest.Character:FindFirstChild("HumanoidRootPart")
+    local targetRoot = nearestPlayer.Character:FindFirstChild("HumanoidRootPart")
     if not rootPart or not targetRoot then return end
 
-    rootPart.CFrame = CFrame.new(targetRoot.Position.X, targetRoot.Position.Y + teleportHeight, targetRoot.Position.Z)
-    camera.CFrame = CFrame.lookAt(camera.CFrame.Position, targetRoot.Position)
+    -- 修复：传送位置（向后偏移3单位，避免卡模型）
+    local teleportPos = targetRoot.Position + (targetRoot.CFrame.LookVector * -3) + Vector3.new(0, teleportHeight, 0)
+    rootPart.CFrame = CFrame.new(teleportPos)
+    
+    -- 修复：相机朝向（瞄准目标头部）
+    local targetHead = nearestPlayer.Character:FindFirstChild("Head") or targetRoot
+    camera.CFrame = CFrame.lookAt(camera.CFrame.Position, targetHead.Position)
 
+    -- 修复：攻击频率判定（按attackRate正确计算）
     local currentTime = tick()
     if currentTime - lastAttackTime >= 1/attackRate then
-        VirtualInputManager:SendMouseButtonEvent(0,0,0,true,game,0)
-        task.wait(0.05)
-        VirtualInputManager:SendMouseButtonEvent(0,0,0,false,game,0)
+        -- 执行攻击
+        simulateAttack(nearestPlayer)
         lastAttackTime = currentTime
+        
+        -- 提示更新
         if not comboNotifyFlag then
-            createNotification("已锁定: "..nearest.Name, Color3.fromRGB(50,200,50))
+            createNotification("已锁定: "..nearestPlayer.Name, Color3.fromRGB(50,200,50))
             comboNotifyFlag = true
-            if isMinimized then statusLabel.Text = " 锁定: "..string.sub(nearest.Name,1,6) end
+            if isMinimized then statusLabel.Text = " 锁定: "..string.sub(nearestPlayer.Name,1,6) end
         end
     end
-    comboButton.Text = "锁定: "..string.sub(nearest.Name,1,6)
+    comboButton.Text = "锁定: "..string.sub(nearestPlayer.Name,1,6)
 end
 
 -- ========== 轮流传送函数 ==========
 local function performCycleTeleport()
+    character = player.Character or player.CharacterAdded:Wait()
     rootPart = character:FindFirstChild("HumanoidRootPart") or character:FindFirstChild("Torso")
     if not character or not rootPart then return end
 
@@ -409,7 +468,9 @@ local function performCycleTeleport()
     cycleTeleportIndex = cycleTeleportIndex % #validPlayers + 1
     local target = validPlayers[cycleTeleportIndex]
     local targetRoot = target.Character:FindFirstChild("HumanoidRootPart")
-    rootPart.CFrame = CFrame.new(targetRoot.Position.X, targetRoot.Position.Y + teleportHeight, targetRoot.Position.Z)
+    -- 修复：传送位置（向后偏移，避免卡模型）
+    local teleportPos = targetRoot.Position + (targetRoot.CFrame.LookVector * -2) + Vector3.new(0, teleportHeight, 0)
+    rootPart.CFrame = CFrame.new(teleportPos)
     createNotification("传送到: "..target.Name, Color3.fromRGB(50,200,50))
     if isMinimized then statusLabel.Text = "➡ 传送到: "..string.sub(target.Name,1,6) end
 end
@@ -487,8 +548,8 @@ UserInputService.InputBegan:Connect(function(input, gameProcessed)
     end
 end)
 
--- 主循环
-RunService.Heartbeat:Connect(function()
+-- 修复：主循环（改用RenderStepped，攻击更及时）
+RunService.RenderStepped:Connect(function()
     if isRunning then performKillaura() end
 end)
 
@@ -502,7 +563,7 @@ TweenService:Create(mainFrame, TweenInfo.new(0.2), {
 createNotification(" Monster Killaura面板已加载", Color3.fromRGB(50,200,50))
 
 -- 音频初始化（最后加载，避免阻塞UI）
-local sound = Instance.new("Sound")
-sound.SoundId = "rbxassetid://98446998103932"
-sound.Parent = SoundService
-sound:Play()
+local sound2 = Instance.new("Sound")
+sound2.SoundId = "rbxassetid://98446998103932"
+sound2.Parent = SoundService
+sound2:Play()
