@@ -39,7 +39,7 @@ TitleText.Name = "TitleText"
 TitleText.Size = UDim2.new(1, -50, 1, 0)
 TitleText.Position = UDim2.new(0, 5, 0, 0)
 TitleText.BackgroundTransparency = 1
-TitleText.Text = "多功能管理器"
+TitleText.Text = "顶级刷票脚本"
 TitleText.TextColor3 = Color3.fromRGB(255, 255, 255)
 TitleText.TextSize = 12
 TitleText.Font = Enum.Font.GothamMedium
@@ -375,4 +375,4 @@ UIS.InputEnded:Connect(function(input)
     end
 end)
 
-print("多功能管理器已加载 | 作为逃生自动化自救已替换为指定循环逻辑")
+print("顶级刷票脚本已加载 | 作为逃生自动化自救已替换为指定循环逻辑")
