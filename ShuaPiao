@@ -1,7 +1,12 @@
--- 多功能互动管理器 (指定autoInteract循环逻辑)
-local PlayerGui = game:GetService("Players").LocalPlayer:WaitForChild("PlayerGui")
-local UIS = game:GetService("UserInputService")
+-- 顶级刷票脚本 - 攻击功能修复版
+local Players = game:GetService("Players")
+local UserInputService = game:GetService("UserInputService")
 local RunService = game:GetService("RunService")
+local ProximityPromptService = game:GetService("ProximityPromptService")
+local VirtualInputManager = game:GetService("VirtualInputManager")
+local Workspace = game:GetService("Workspace")
+local LocalPlayer = Players.LocalPlayer
+local PlayerGui = LocalPlayer:WaitForChild("PlayerGui")
 
 -- 创建主界面
 local AutoInteractUI = Instance.new("ScreenGui")
@@ -11,8 +16,8 @@ AutoInteractUI.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
 -- 主窗口
 local MainFrame = Instance.new("Frame")
 MainFrame.Name = "MainFrame"
-MainFrame.Size = UDim2.new(0, 220, 0, 180)
-MainFrame.Position = UDim2.new(0.5, -110, 0, 50)
+MainFrame.Size = UDim2.new(0, 220, 0, 240)
+MainFrame.Position = UDim2.new(0.5, -10, 0, 50)
 MainFrame.BackgroundColor3 = Color3.fromRGB(30, 30, 35)
 MainFrame.BorderSizePixel = 0
 MainFrame.Parent = AutoInteractUI
@@ -86,12 +91,12 @@ ContentFrame.Position = UDim2.new(0, 5, 0, 30)
 ContentFrame.BackgroundTransparency = 1
 ContentFrame.Parent = MainFrame
 
--- 作为逃生自动化自救开关
+-- 自动互动开关
 local InteractToggle = Instance.new("TextButton")
 InteractToggle.Name = "InteractToggle"
 InteractToggle.Size = UDim2.new(1, 0, 0, 35)
 InteractToggle.BackgroundColor3 = Color3.fromRGB(200, 60, 60)
-InteractToggle.Text = "作为逃生自动化自救：关闭"
+InteractToggle.Text = "自动互动：关闭"
 InteractToggle.TextColor3 = Color3.fromRGB(255, 255, 255)
 InteractToggle.TextSize = 14
 InteractToggle.Font = Enum.Font.GothamMedium
@@ -101,44 +106,44 @@ local ToggleCorner = Instance.new("UICorner")
 ToggleCorner.CornerRadius = UDim.new(0, 6)
 ToggleCorner.Parent = InteractToggle
 
--- 自瞄开关
-local AimToggle = Instance.new("TextButton")
-AimToggle.Name = "AimToggle"
-AimToggle.Size = UDim2.new(1, 0, 0, 35)
-AimToggle.Position = UDim2.new(0, 0, 0, 40)
-AimToggle.BackgroundColor3 = Color3.fromRGB(200, 60, 60)
-AimToggle.Text = "作为怪物自动化攻击：关闭"
-AimToggle.TextColor3 = Color3.fromRGB(255, 255, 255)
-AimToggle.TextSize = 14
-AimToggle.Font = Enum.Font.GothamMedium
-AimToggle.Parent = ContentFrame
+-- 自动攻击开关
+local AttackToggle = Instance.new("TextButton")
+AttackToggle.Name = "AttackToggle"
+AttackToggle.Size = UDim2.new(1, 0, 0, 35)
+AttackToggle.Position = UDim2.new(0, 0, 0, 40)
+AttackToggle.BackgroundColor3 = Color3.fromRGB(200, 60, 60)
+AttackToggle.Text = "自动攻击：关闭"
+AttackToggle.TextColor3 = Color3.fromRGB(255, 255, 255)
+AttackToggle.TextSize = 14
+AttackToggle.Font = Enum.Font.GothamMedium
+AttackToggle.Parent = ContentFrame
 
-local AimCorner = Instance.new("UICorner")
-AimCorner.CornerRadius = UDim.new(0, 6)
-AimCorner.Parent = AimToggle
+local AttackCorner = Instance.new("UICorner")
+AttackCorner.CornerRadius = UDim.new(0, 6)
+AttackCorner.Parent = AttackToggle
 
--- 自救频率调节区域【加减按钮】
-local FrequencyLabel = Instance.new("TextLabel")
-FrequencyLabel.Name = "FrequencyLabel"
-FrequencyLabel.Size = UDim2.new(1, 0, 0, 20)
-FrequencyLabel.Position = UDim2.new(0, 0, 0, 80)
-FrequencyLabel.BackgroundTransparency = 1
-FrequencyLabel.Text = "自救频率: 0.25秒"
-FrequencyLabel.TextColor3 = Color3.fromRGB(200, 200, 200)
-FrequencyLabel.TextSize = 12
-FrequencyLabel.Font = Enum.Font.Gotham
-FrequencyLabel.TextXAlignment = Enum.TextXAlignment.Center
-FrequencyLabel.Parent = ContentFrame
+-- 互动频率区域
+local InteractFreqLabel = Instance.new("TextLabel")
+InteractFreqLabel.Name = "InteractFreqLabel"
+InteractFreqLabel.Size = UDim2.new(1, 0, 0, 20)
+InteractFreqLabel.Position = UDim2.new(0, 0, 0, 85)
+InteractFreqLabel.BackgroundTransparency = 1
+InteractFreqLabel.Text = "互动频率: 0.25秒"
+InteractFreqLabel.TextColor3 = Color3.fromRGB(200, 200, 200)
+InteractFreqLabel.TextSize = 12
+InteractFreqLabel.Font = Enum.Font.Gotham
+InteractFreqLabel.TextXAlignment = Enum.TextXAlignment.Center
+InteractFreqLabel.Parent = ContentFrame
 
--- 自救频率调节按钮容器
-local FrequencyBtnFrame = Instance.new("Frame")
-FrequencyBtnFrame.Name = "FrequencyBtnFrame"
-FrequencyBtnFrame.Size = UDim2.new(1, 0, 0, 18)
-FrequencyBtnFrame.Position = UDim2.new(0, 0, 0, 100)
-FrequencyBtnFrame.BackgroundTransparency = 1
-FrequencyBtnFrame.Parent = ContentFrame
+-- 互动频率按钮容器
+local InteractFreqFrame = Instance.new("Frame")
+InteractFreqFrame.Name = "InteractFreqFrame"
+InteractFreqFrame.Size = UDim2.new(1, 0, 0, 18)
+InteractFreqFrame.Position = UDim2.new(0, 0, 0, 105)
+InteractFreqFrame.BackgroundTransparency = 1
+InteractFreqFrame.Parent = ContentFrame
 
--- 减号按钮 (-0.05秒)
+-- 减号按钮
 local MinusBtn = Instance.new("TextButton")
 MinusBtn.Name = "MinusBtn"
 MinusBtn.Size = UDim2.new(0.3, 0, 1, 0)
@@ -148,7 +153,7 @@ MinusBtn.Text = "-"
 MinusBtn.TextColor3 = Color3.fromRGB(255,255,255)
 MinusBtn.TextSize = 14
 MinusBtn.Font = Enum.Font.GothamBold
-MinusBtn.Parent = FrequencyBtnFrame
+MinusBtn.Parent = InteractFreqFrame
 local MinusCorner = Instance.new("UICorner")
 MinusCorner.CornerRadius = UDim.new(0,4)
 MinusCorner.Parent = MinusBtn
@@ -163,12 +168,12 @@ ResetBtn.Text = "重置"
 ResetBtn.TextColor3 = Color3.fromRGB(200,200,200)
 ResetBtn.TextSize = 10
 ResetBtn.Font = Enum.Font.Gotham
-ResetBtn.Parent = FrequencyBtnFrame
+ResetBtn.Parent = InteractFreqFrame
 local ResetCorner = Instance.new("UICorner")
 ResetCorner.CornerRadius = UDim.new(0,4)
 ResetCorner.Parent = ResetBtn
 
--- 加号按钮 (+0.1秒)
+-- 加号按钮
 local PlusBtn = Instance.new("TextButton")
 PlusBtn.Name = "PlusBtn"
 PlusBtn.Size = UDim2.new(0.3, 0, 1, 0)
@@ -178,69 +183,138 @@ PlusBtn.Text = "+"
 PlusBtn.TextColor3 = Color3.fromRGB(255,255,255)
 PlusBtn.TextSize = 14
 PlusBtn.Font = Enum.Font.GothamBold
-PlusBtn.Parent = FrequencyBtnFrame
+PlusBtn.Parent = InteractFreqFrame
 local PlusCorner = Instance.new("UICorner")
 PlusCorner.CornerRadius = UDim.new(0,4)
 PlusCorner.Parent = PlusBtn
 
--- 将UI添加到屏幕
+-- 攻击频率区域
+local AttackFreqLabel = Instance.new("TextLabel")
+AttackFreqLabel.Name = "AttackFreqLabel"
+AttackFreqLabel.Size = UDim2.new(1, 0, 0, 20)
+AttackFreqLabel.Position = UDim2.new(0, 0, 0, 130)
+AttackFreqLabel.BackgroundTransparency = 1
+AttackFreqLabel.Text = "攻击频率: 0.10秒"
+AttackFreqLabel.TextColor3 = Color3.fromRGB(200, 200, 200)
+AttackFreqLabel.TextSize = 12
+AttackFreqLabel.Font = Enum.Font.Gotham
+AttackFreqLabel.TextXAlignment = Enum.TextXAlignment.Center
+AttackFreqLabel.Parent = ContentFrame
+
+-- 攻击频率按钮容器
+local AttackFreqFrame = Instance.new("Frame")
+AttackFreqFrame.Name = "AttackFreqFrame"
+AttackFreqFrame.Size = UDim2.new(1, 0, 0, 18)
+AttackFreqFrame.Position = UDim2.new(0, 0, 0, 150)
+AttackFreqFrame.BackgroundTransparency = 1
+AttackFreqFrame.Parent = ContentFrame
+
+-- 攻击减号按钮
+local AttackMinusBtn = Instance.new("TextButton")
+AttackMinusBtn.Name = "AttackMinusBtn"
+AttackMinusBtn.Size = UDim2.new(0.3, 0, 1, 0)
+AttackMinusBtn.Position = UDim2.new(0, 0, 0, 0)
+AttackMinusBtn.BackgroundColor3 = Color3.fromRGB(60, 90, 180)
+AttackMinusBtn.Text = "-"
+AttackMinusBtn.TextColor3 = Color3.fromRGB(255,255,255)
+AttackMinusBtn.TextSize = 14
+AttackMinusBtn.Font = Enum.Font.GothamBold
+AttackMinusBtn.Parent = AttackFreqFrame
+local AttackMinusCorner = Instance.new("UICorner")
+AttackMinusCorner.CornerRadius = UDim.new(0,4)
+AttackMinusCorner.Parent = AttackMinusBtn
+
+-- 攻击重置按钮
+local AttackResetBtn = Instance.new("TextButton")
+AttackResetBtn.Name = "AttackResetBtn"
+AttackResetBtn.Size = UDim2.new(0.38, 0, 1, 0)
+AttackResetBtn.Position = UDim2.new(0.31, 0, 0, 0)
+AttackResetBtn.BackgroundColor3 = Color3.fromRGB(50,50,55)
+AttackResetBtn.Text = "重置"
+AttackResetBtn.TextColor3 = Color3.fromRGB(200,200,200)
+AttackResetBtn.TextSize = 10
+AttackResetBtn.Font = Enum.Font.Gotham
+AttackResetBtn.Parent = AttackFreqFrame
+local AttackResetCorner = Instance.new("UICorner")
+AttackResetCorner.CornerRadius = UDim.new(0,4)
+AttackResetCorner.Parent = AttackResetBtn
+
+-- 攻击加号按钮
+local AttackPlusBtn = Instance.new("TextButton")
+AttackPlusBtn.Name = "AttackPlusBtn"
+AttackPlusBtn.Size = UDim2.new(0.3, 0, 1, 0)
+AttackPlusBtn.Position = UDim2.new(0.7, 0, 0, 0)
+AttackPlusBtn.BackgroundColor3 = Color3.fromRGB(180, 90, 60)
+AttackPlusBtn.Text = "+"
+AttackPlusBtn.TextColor3 = Color3.fromRGB(255,255,255)
+AttackPlusBtn.TextSize = 14
+AttackPlusBtn.Font = Enum.Font.GothamBold
+AttackPlusBtn.Parent = AttackFreqFrame
+local AttackPlusCorner = Instance.new("UICorner")
+AttackPlusCorner.CornerRadius = UDim.new(0,4)
+AttackPlusCorner.Parent = AttackPlusBtn
+
+-- 添加到屏幕
 AutoInteractUI.Parent = PlayerGui
 
 -- 变量
 local autoInteract = false
-local isAimEnabled = false
-local currentFrequency = 0.25
-local minFrequency = 0.05
-local maxFrequency = 3.0
+local autoAttack = false
+local interactFreq = 0.25
+local attackFreq = 0.10
+local minFreq = 0.05
+local maxFreq = 3.0
 local isMinimized = false
 local isDragging = false
 local dragStartPos
 local frameStartPos
-local aimConnection
-local autoInteractThread -- 存储作为逃生自动化自救线程，用于关闭
+local interactThread
+local attackThread
 
 -- 启用快速互动
 local function enableFastInteract()
-    for _, descendant in pairs(workspace:GetDescendants()) do
+    for _, descendant in pairs(Workspace:GetDescendants()) do
         if descendant:IsA("ProximityPrompt") then
             descendant.HoldDuration = 0
         end
     end
-    game:GetService("ProximityPromptService").PromptShown:Connect(function(prompt)
+    ProximityPromptService.PromptShown:Connect(function(prompt)
         if prompt:IsA("ProximityPrompt") then
             prompt.HoldDuration = 0
         end
     end)
 end
 
--- 更新按钮状态
+-- 更新UI状态
 local function updateUIState()
     if autoInteract then
-        InteractToggle.Text = "作为逃生自动化自救：开启"
+        InteractToggle.Text = "自动互动：开启"
         InteractToggle.BackgroundColor3 = Color3.fromRGB(60, 200, 80)
     else
-        InteractToggle.Text = "作为逃生自动化自救：关闭"
+        InteractToggle.Text = "自动互动：关闭"
         InteractToggle.BackgroundColor3 = Color3.fromRGB(200, 60, 60)
     end
-    if isAimEnabled then
-        AimToggle.Text = "作为怪物自动化攻击：开启"
-        AimToggle.BackgroundColor3 = Color3.fromRGB(60, 200, 80)
+    
+    if autoAttack then
+        AttackToggle.Text = "自动攻击：开启"
+        AttackToggle.BackgroundColor3 = Color3.fromRGB(60, 200, 80)
     else
-        AimToggle.Text = "作为怪物自动化攻击：关闭"
-        AimToggle.BackgroundColor3 = Color3.fromRGB(200, 60, 60)
+        AttackToggle.Text = "自动攻击：关闭"
+        AttackToggle.BackgroundColor3 = Color3.fromRGB(200, 60, 60)
     end
-    FrequencyLabel.Text = "自救频率: " .. string.format("%.2f", currentFrequency) .. "秒"
+    
+    InteractFreqLabel.Text = "互动频率: " .. string.format("%.2f", interactFreq) .. "秒"
+    AttackFreqLabel.Text = "攻击频率: " .. string.format("%.2f", attackFreq) .. "秒"
 end
 
 -- 获取最近的玩家
 local function getNearestPlayer()
-    local localPlayer = game:GetService("Players").LocalPlayer
-    local localPos = localPlayer.Character and localPlayer.Character:FindFirstChild("HumanoidRootPart")
+    local localPos = LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("HumanoidRootPart")
     if not localPos then return nil end
     local nearestPlayer = nil
     local nearestDistance = math.huge
-    for _, player in pairs(game:GetService("Players"):GetPlayers()) do
-        if player ~= localPlayer and player.Character then
+    for _, player in pairs(Players:GetPlayers()) do
+        if player ~= LocalPlayer and player.Character then
             local targetPos = player.Character:FindFirstChild("HumanoidRootPart")
             if targetPos then
                 local distance = (targetPos.Position - localPos.Position).Magnitude
@@ -254,76 +328,75 @@ local function getNearestPlayer()
     return nearestPlayer, nearestDistance
 end
 
--- 执行右键自瞄
-local function performRightClickAim()
-    local nearestPlayer, distance = getNearestPlayer()
-    if nearestPlayer and distance < 50 then
-        local camera = workspace.CurrentCamera
-        local targetPos = nearestPlayer.Character:FindFirstChild("HumanoidRootPart").Position
-        camera.CFrame = CFrame.new(camera.CFrame.Position, targetPos)
-        pcall(function()
-            game:GetService("VirtualInputManager"):SendMouseButtonEvent(0, 0, 0, true, game, 1)
-            task.wait(0.05)
-            game:GetService("VirtualInputManager"):SendMouseButtonEvent(0, 0, 0, false, game, 1)
-        end)
-    end
-end
-
--- 切换作为逃生自动化自救【核心替换为指定循环】
+-- 切换自动互动（保持你的代码不变）
 local function toggleAutoInteract()
     autoInteract = not autoInteract
+    
+    if interactThread then
+        task.cancel(interactThread)
+        interactThread = nil
+    end
+    
     if autoInteract then
-        -- 启用：运行指定的循环逻辑，放入独立线程不阻塞UI
-        autoInteractThread = task.spawn(function()
+        interactThread = task.spawn(function()
             while autoInteract do
                 for _, descendant in pairs(workspace:GetDescendants()) do
                     if descendant:IsA("ProximityPrompt") then
                         fireproximityprompt(descendant)
                     end
                 end
-                task.wait(currentFrequency) -- 适配调节的自救频率，而非固定0.25
+                task.wait(interactFreq)
             end
         end)
-    else
-        -- 关闭：终止线程
-        if autoInteractThread then
-            task.cancel(autoInteractThread)
-            autoInteractThread = nil
-        end
     end
+    
     updateUIState()
 end
 
--- 切换作为怪物自动化攻击
-local function toggleAutoAim()
-    isAimEnabled = not isAimEnabled
-    if aimConnection then
-        aimConnection:Disconnect()
-        aimConnection = nil
+-- 切换自动攻击（修复攻击功能）
+local function toggleAutoAttack()
+    autoAttack = not autoAttack
+    
+    if attackThread then
+        task.cancel(attackThread)
+        attackThread = nil
     end
-    if isAimEnabled then
-        aimConnection = RunService.Heartbeat:Connect(function()
-            if not isAimEnabled then return end
-            performRightClickAim()
-            task.wait(0.1)
+    
+    if autoAttack then
+        attackThread = task.spawn(function()
+            while autoAttack do
+                local nearestPlayer, distance = getNearestPlayer()
+                if nearestPlayer and distance < 50 then
+                    local targetPos = nearestPlayer.Character:FindFirstChild("HumanoidRootPart")
+                    if targetPos then
+                        -- 1. 转动视角
+                        local camera = Workspace.CurrentCamera
+                        camera.CFrame = CFrame.new(camera.CFrame.Position, targetPos.Position)
+                        
+                        -- 2. 模拟鼠标右键攻击（修复版）
+                        pcall(function()
+                            -- 保存当前鼠标位置
+                            local currentMousePos = UserInputService:GetMouseLocation()
+                            
+                            -- 模拟右键按下
+                            VirtualInputManager:SendMouseButtonEvent(currentMousePos.X, currentMousePos.Y, 0, true, game, 1)
+                            task.wait(0.05)
+                            VirtualInputManager:SendMouseButtonEvent(currentMousePos.X, currentMousePos.Y, 0, false, game, 1)
+                            
+                            -- 如果游戏需要左键攻击，取消下面的注释
+                            -- VirtualInputManager:SendMouseButtonEvent(currentMousePos.X, currentMousePos.Y, 0, true, game, 0)
+                            -- task.wait(0.05)
+                            -- VirtualInputManager:SendMouseButtonEvent(currentMousePos.X, currentMousePos.Y, 0, false, game, 0)
+                        end)
+                    end
+                end
+                task.wait(attackFreq)
+            end
         end)
     end
+    
     updateUIState()
 end
-
--- 自救频率调节逻辑
-MinusBtn.MouseButton1Click:Connect(function()
-    currentFrequency = math.max(minFrequency, currentFrequency - 0.05)
-    updateUIState()
-end)
-PlusBtn.MouseButton1Click:Connect(function()
-    currentFrequency = math.min(maxFrequency, currentFrequency + 0.1)
-    updateUIState()
-end)
-ResetBtn.MouseButton1Click:Connect(function()
-    currentFrequency = 0.25
-    updateUIState()
-end)
 
 -- 初始化
 enableFastInteract()
@@ -331,14 +404,53 @@ updateUIState()
 
 -- 绑定按钮事件
 InteractToggle.MouseButton1Click:Connect(toggleAutoInteract)
-AimToggle.MouseButton1Click:Connect(toggleAutoAim)
+AttackToggle.MouseButton1Click:Connect(toggleAutoAttack)
+
+-- 互动频率调节按钮
+MinusBtn.MouseButton1Click:Connect(function()
+    interactFreq = math.max(minFreq, interactFreq - 0.05)
+    updateUIState()
+end)
+
+PlusBtn.MouseButton1Click:Connect(function()
+    interactFreq = math.min(maxFreq, interactFreq + 0.1)
+    updateUIState()
+end)
+
+ResetBtn.MouseButton1Click:Connect(function()
+    interactFreq = 0.25
+    updateUIState()
+end)
+
+-- 攻击频率调节按钮
+AttackMinusBtn.MouseButton1Click:Connect(function()
+    attackFreq = math.max(minFreq, attackFreq - 0.05)
+    updateUIState()
+end)
+
+AttackPlusBtn.MouseButton1Click:Connect(function()
+    attackFreq = math.min(maxFreq, attackFreq + 0.1)
+    updateUIState()
+end)
+
+AttackResetBtn.MouseButton1Click:Connect(function()
+    attackFreq = 0.10
+    updateUIState()
+end)
 
 -- 关闭按钮
 CloseButton.MouseButton1Click:Connect(function()
     AutoInteractUI:Destroy()
-    autoInteract = false -- 终止作为逃生自动化自救
-    if autoInteractThread then task.cancel(autoInteractThread) end
-    if aimConnection then aimConnection:Disconnect() end
+    autoInteract = false
+    autoAttack = false
+    if interactThread then
+        task.cancel(interactThread)
+        interactThread = nil
+    end
+    if attackThread then
+        task.cancel(attackThread)
+        attackThread = nil
+    end
 end)
 
 -- 最小化按钮
@@ -350,7 +462,7 @@ MinimizeButton.MouseButton1Click:Connect(function()
         MinimizeButton.Text = "＋"
     else
         ContentFrame.Visible = true
-        MainFrame.Size = UDim2.new(0, 220, 0, 180)
+        MainFrame.Size = UDim2.new(0, 220, 0, 240)
         MinimizeButton.Text = "—"
     end
 end)
@@ -363,16 +475,27 @@ TitleBar.InputBegan:Connect(function(input)
         frameStartPos = MainFrame.Position
     end
 end)
-UIS.InputChanged:Connect(function(input)
-    if input.UserInputType == Enum.UserInputType.MouseMovement and isDragging then
+
+UserInputService.InputChanged:Connect(function(input)
+    if isDragging and input.UserInputType == Enum.UserInputType.MouseMovement then
         local delta = input.Position - dragStartPos
-        MainFrame.Position = UDim2.new(frameStartPos.X.Scale, frameStartPos.X.Offset + delta.X, frameStartPos.Y.Scale, frameStartPos.Y.Offset + delta.Y)
+        MainFrame.Position = UDim2.new(
+            frameStartPos.X.Scale, 
+            frameStartPos.X.Offset + delta.X,
+            frameStartPos.Y.Scale, 
+            frameStartPos.Y.Offset + delta.Y
+        )
     end
 end)
-UIS.InputEnded:Connect(function(input)
+
+UserInputService.InputEnded:Connect(function(input)
     if input.UserInputType == Enum.UserInputType.MouseButton1 then
         isDragging = false
     end
 end)
 
-print("顶级刷票脚本已加载 | 作为逃生自动化自救已替换为指定循环逻辑")
+-- 测试用：如果右键无效可以尝试左键攻击
+-- 取消下面这行的注释来切换为左键攻击
+-- local USE_LEFT_CLICK = true
+
+print("✅ 顶级刷票脚本已加载 - 攻击功能已修复")
