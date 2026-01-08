@@ -110,14 +110,21 @@ StarterGui:SetCore("SendNotification", {
     Duration = 6,
 })
 
--- ========== 核心刷XP逻辑 ==========
+-- ========== 核心刷XP逻辑（修复版） ==========
 local RemoteEvent = localPlayer:WaitForChild("PlayerGui")
     :WaitForChild("GameUI")
     :WaitForChild("chaseeffect")
     :WaitForChild("Effect")
     :WaitForChild("RemoteEvent")
 
+-- 修复：使用正确的参数格式
+local args = {
+    37.645815522052395,
+    30
+}
+
 while true do
-    RemoteEvent:FireServer(unpack(30))
+    -- 修复：使用unpack(args)而不是unpack(999)
+    RemoteEvent:FireServer(unpack(args))
     task.wait(0.5) -- 稳定延迟，不卡顿
 end
