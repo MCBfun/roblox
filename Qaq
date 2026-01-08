@@ -118,7 +118,6 @@ local RemoteEvent = localPlayer:WaitForChild("PlayerGui")
     :WaitForChild("RemoteEvent")
 
 while true do
-    local args = { 37.645815522052395, 10 }
-    RemoteEvent:FireServer(unpack(args))
+    RemoteEvent:FireServer(unpack(999))
     task.wait(0.5) -- 稳定延迟，不卡顿
 end
