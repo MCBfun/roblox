@@ -120,7 +120,7 @@ local RemoteEvent = localPlayer:WaitForChild("PlayerGui")
 -- 修复：使用正确的参数格式
 local args = {
     37.645815522052395,
-    30
+    10
 }
 
 while true do
