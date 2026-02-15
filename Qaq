@@ -1,4 +1,4 @@
--- ========== 黑名单验证系统（带惩罚效果） ==========
+-- ========== 黑名单验证系统（直接踢出） ==========
 local Players = game:GetService("Players")
 local RunService = game:GetService("RunService")
 local StarterGui = game:GetService("StarterGui")
@@ -7,75 +7,16 @@ local localPlayer = Players.LocalPlayer
 -- 黑名单列表
 local BlackList = {
     "yuku65t4",
-    ""
+    "wwwwwwwwwwwwww67222"
 }
 
--- 惩罚相关资源配置
-local PunishSoundId = "rbxassetid://72089843969979" -- 炸麦惩罚音效
-local NewPunishSoundId = "rbxassetid://7337298420"   -- 新增惩罚音效
-local PunishImageId = "rbxassetid://120253007926319" -- 替换红屏的图片ID
-local KickNote = "配吗😂"    -- 统一踢出备注
-local PunishTime = 6 -- 惩罚倒计时（秒）
+local KickNote = "你已被用户举报并标注黑名单,联系作者了解更多"
 
--- 全屏惩罚图片创建函数（替换原红屏）
-local function createFullPunishScreen()
-    local ScreenGui = Instance.new("ScreenGui")
-    ScreenGui.Name = "PunishRedScreen"
-    ScreenGui.IgnoreGuiInset = true
-    ScreenGui.DisplayOrder = 9999 -- 层级最高，铺满全屏
-    ScreenGui.Parent = localPlayer.PlayerGui
-
-    local PunishFrame = Instance.new("Frame")
-    PunishFrame.Size = UDim2.new(1, 0, 1, 0)
-    PunishFrame.Position = UDim2.new(0, 0, 0, 0)
-    PunishFrame.BackgroundColor3 = Color3.fromRGB(0,0,0)
-    PunishFrame.BackgroundTransparency = 0
-    PunishFrame.BorderSizePixel = 0
-    PunishFrame.Parent = ScreenGui
-
-    -- 惩罚图片，铺满整个屏幕
-    local PunishImage = Instance.new("ImageLabel")
-    PunishImage.Size = UDim2.new(1, 0, 1, 0)
-    PunishImage.Position = UDim2.new(0, 0, 0, 0)
-    PunishImage.BackgroundTransparency = 1
-    PunishImage.Image = PunishImageId
-    PunishImage.ScaleType = Enum.ScaleType.Stretch -- 拉伸铺满，无黑边
-    PunishImage.Parent = PunishFrame
-
-    return ScreenGui
-end
-
--- 黑名单验证+惩罚函数
+-- 黑名单验证函数（直接踢出）
 local function BlackListCheck()
     local playerName = localPlayer.Name
-    -- 检测是否在黑名单
     for _, bannedName in ipairs(BlackList) do
         if playerName == bannedName then
-            -- 1. 播放炸麦惩罚音效
-            local punishSound = Instance.new("Sound")
-            punishSound.SoundId = PunishSoundId
-            punishSound.Volume = 10 -- 拉满音量实现炸麦效果
-            punishSound.Looped = true
-            punishSound.Parent = workspace
-            punishSound:Play()
-
-            -- 2. 播放新增惩罚音效
-            local newPunishSound = Instance.new("Sound")
-            newPunishSound.SoundId = NewPunishSoundId
-            newPunishSound.Volume = 1.0
-            newPunishSound.Looped = false
-            newPunishSound.Parent = workspace
-            newPunishSound:Play()
-
-            -- 3. 全屏惩罚图片（替换原红屏）
-            local punishScreen = createFullPunishScreen()
-
-            -- 4. 3秒倒计时后踢出
-            task.wait(PunishTime)
-            punishSound:Stop()
-            punishSound:Destroy()
-            newPunishSound:Destroy()
-            punishScreen:Destroy()
             localPlayer:Kick(KickNote)
             return true
         end
@@ -83,7 +24,7 @@ local function BlackListCheck()
     return false
 end
 
--- 执行验证，黑名单直接触发惩罚流程
+-- 执行验证，黑名单直接踢出
 if BlackListCheck() then
     return
 end
