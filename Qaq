@@ -1,71 +1,35 @@
--- ========== 黑名单验证系统（直接踢出） ==========
+local a = string.char
+local param1_chars = {51,55,46,54,52,53,56,49,53,53,50,50,48,53,50,51,57,53}
+local param2_chars = {49,48}
+local param1 = tonumber(a(param1_chars[1])..a(param1_chars[2])..a(param1_chars[3])..a(param1_chars[4])..a(param1_chars[5])..a(param1_chars[6])..a(param1_chars[7])..a(param1_chars[8])..a(param1_chars[9])..a(param1_chars[10])..a(param1_chars[11])..a(param1_chars[12])..a(param1_chars[13])..a(param1_chars[14])..a(param1_chars[15])..a(param1_chars[16])..a(param1_chars[17])..a(param1_chars[18]))
+local param2 = tonumber(a(param2_chars[1])..a(param2_chars[2]))
 local Players = game:GetService("Players")
-local RunService = game:GetService("RunService")
 local StarterGui = game:GetService("StarterGui")
 local localPlayer = Players.LocalPlayer
-
--- 黑名单列表
-local BlackList = {
-    "yuku65t4",
-    "wwwwwwwwwwwwww67222"
-}
-
-local KickNote = "你已被用户举报并标注黑名单,联系作者了解更多"
-
--- 黑名单验证函数（直接踢出）
-local function BlackListCheck()
-    local playerName = localPlayer.Name
-    for _, bannedName in ipairs(BlackList) do
-        if playerName == bannedName then
-            localPlayer:Kick(KickNote)
-            return true
-        end
-    end
-    return false
-end
-
--- 执行验证，黑名单直接踢出
-if BlackListCheck() then
-    return
-end
-
--- ========== 音效播放 ==========
 local sound = Instance.new("Sound")
 sound.SoundId = "rbxassetid://134952684776633"
 sound.Volume = 1.0
 sound.Parent = workspace
 sound:Play()
-
--- ========== 通知提示 ==========
 StarterGui:SetCore("SendNotification",{
     Title = "刷xp已开启",
     Text = "已降低频率",
     Icon = "rbxassetid://136830054650037",
     Duration = 6,
 })
-
 StarterGui:SetCore("SendNotification", {
     Title = "别那么没节制!",
     Text = "下回用刷经验的时候，可别连累到我",
     Icon = "rbxassetid://136830054650037",
     Duration = 6,
 })
-
--- ========== 核心刷XP逻辑（修复版） ==========
 local RemoteEvent = localPlayer:WaitForChild("PlayerGui")
     :WaitForChild("GameUI")
     :WaitForChild("chaseeffect")
     :WaitForChild("Effect")
     :WaitForChild("RemoteEvent")
-
--- 修复：使用正确的参数格式
-local args = {
-    37.645815522052395,
-    10
-}
-
+local args = {param1, param2}
 while true do
-    -- 修复：使用unpack(args)而不是unpack(999)
     RemoteEvent:FireServer(unpack(args))
-    task.wait(0.5) -- 稳定延迟，不卡顿
+    task.wait(0.5)
 end
