@@ -1,0 +1,228 @@
+-- 通知系统（只运行一次）
+if not _G.NotificationSystem then
+    _G.NotificationSystem = true
+    
+    local function ShowNotification(text, duration)
+        duration = duration or 5
+        local Players = game:GetService("Players")
+        local player = Players.LocalPlayer
+        local playerGui = player:WaitForChild("PlayerGui", 5)
+        if not playerGui then return end
+        
+        local TweenService = game:GetService("TweenService")
+        
+        -- 颜色定义
+        local BLACK = Color3.fromRGB(23, 23, 23)
+        local GOLD = Color3.fromRGB(209, 173, 102)
+        
+        -- 创建容器
+        local container = playerGui:FindFirstChild("NotificationSystem")
+        if not container then
+            container = Instance.new("ScreenGui")
+            container.Name = "NotificationSystem"
+            container.Parent = playerGui
+            container.ResetOnSpawn = false
+        end
+        
+        -- 创建通知列表容器（左下角）
+        local list = container:FindFirstChild("NotificationList")
+        if not list then
+            list = Instance.new("Frame")
+            list.Name = "NotificationList"
+            list.BackgroundTransparency = 1
+            list.Position = UDim2.new(0, 15, 1, -15)
+            list.Size = UDim2.new(0, 200, 1, -30)
+            list.AnchorPoint = Vector2.new(0, 1)
+            list.Parent = container
+        end
+        
+        -- 通知UI
+        local notification = Instance.new("Frame")
+        notification.Name = "Notification"
+        notification.Size = UDim2.new(1, 0, 0, 40)
+        notification.BackgroundColor3 = BLACK
+        notification.BackgroundTransparency = 0
+        notification.Position = UDim2.new(-0.3, 0, 0, 0)
+        notification.AnchorPoint = Vector2.new(0, 0)
+        notification.Parent = list
+        
+        -- 圆角
+        local corner = Instance.new("UICorner")
+        corner.CornerRadius = UDim.new(0, 6)
+        corner.Parent = notification
+        
+        -- 金色小圆点
+        local dot = Instance.new("Frame")
+        dot.Name = "Dot"
+        dot.Size = UDim2.new(0, 6, 0, 6)
+        dot.Position = UDim2.new(0, 8, 0.5, -3)
+        dot.AnchorPoint = Vector2.new(0.5, 0.5)
+        dot.BackgroundColor3 = GOLD
+        dot.BackgroundTransparency = 0
+        dot.Parent = notification
+        
+        local dotCorner = Instance.new("UICorner")
+        dotCorner.CornerRadius = UDim.new(1, 0)
+        dotCorner.Parent = dot
+        
+        -- 文字
+        local textLabel = Instance.new("TextLabel")
+        textLabel.Name = "Text"
+        textLabel.Size = UDim2.new(1, -25, 1, 0)
+        textLabel.Position = UDim2.new(0, 20, 0, 0)
+        textLabel.Text = text
+        textLabel.TextColor3 = Color3.new(1, 1, 1)
+        textLabel.TextTransparency = 0
+        textLabel.TextSize = 11
+        textLabel.TextXAlignment = Enum.TextXAlignment.Left
+        textLabel.TextYAlignment = Enum.TextYAlignment.Center
+        textLabel.BackgroundTransparency = 1
+        textLabel.TextWrapped = true
+        textLabel.Parent = notification
+        
+        -- 进度条背景
+        local progressBg = Instance.new("Frame")
+        progressBg.Name = "ProgressBg"
+        progressBg.Size = UDim2.new(1, -10, 0, 2)
+        progressBg.Position = UDim2.new(0, 5, 1, -5)
+        progressBg.BackgroundColor3 = Color3.fromRGB(35, 35, 38)
+        progressBg.BackgroundTransparency = 0
+        progressBg.Parent = notification
+        
+        local progressCorner = Instance.new("UICorner")
+        progressCorner.CornerRadius = UDim.new(1, 0)
+        progressCorner.Parent = progressBg
+        
+        -- 进度条
+        local progress = Instance.new("Frame")
+        progress.Name = "Progress"
+        progress.Size = UDim2.new(0, 0, 1, 0)
+        progress.BackgroundColor3 = GOLD
+        progress.BackgroundTransparency = 0
+        progress.Parent = progressBg
+        
+        -- 渐变效果
+        local gradient = Instance.new("UIGradient")
+        gradient.Color = ColorSequence.new({
+            ColorSequenceKeypoint.new(0, GOLD),
+            ColorSequenceKeypoint.new(0.3, Color3.new(1, 1, 1)),
+            ColorSequenceKeypoint.new(0.5, GOLD),
+            ColorSequenceKeypoint.new(0.7, Color3.new(1, 1, 1)),
+            ColorSequenceKeypoint.new(1, GOLD)
+        })
+        gradient.Offset = Vector2.new(-0.3, 0)
+        gradient.Parent = progress
+        
+        local progressBarCorner = Instance.new("UICorner")
+        progressBarCorner.CornerRadius = UDim.new(1, 0)
+        progressBarCorner.Parent = progress
+        
+        -- 反光动画
+        spawn(function()
+            while progress.Parent do
+                local tween = TweenService:Create(
+                    gradient,
+                    TweenInfo.new(0.8, Enum.EasingStyle.Linear),
+                    {Offset = Vector2.new(0.3, 0)}
+                )
+                tween:Play()
+                tween.Completed:Wait()
+                if not progress.Parent then break end
+                gradient.Offset = Vector2.new(-0.3, 0)
+            end
+        end)
+        
+        -- 更新所有通知位置
+        local function UpdateAllPositions()
+            local notifications = {}
+            for _, child in pairs(list:GetChildren()) do
+                if child:IsA("Frame") and child.Name == "Notification" and child:GetAttribute("Exiting") ~= true then
+                    table.insert(notifications, child)
+                end
+            end
+            
+            table.sort(notifications, function(a, b)
+                local timeA = a:GetAttribute("CreatedTime") or 0
+                local timeB = b:GetAttribute("CreatedTime") or 0
+                return timeA < timeB
+            end)
+            
+            for i, notif in ipairs(notifications) do
+                local targetY = (i - 1) * 50
+                if notif.Position.Y.Offset ~= targetY then
+                    notif:TweenPosition(
+                        UDim2.new(0, 0, 0, targetY),
+                        Enum.EasingDirection.Out,
+                        Enum.EasingStyle.Quart,
+                        0.3,
+                        true
+                    )
+                end
+            end
+        end
+        
+        -- 设置创建时间
+        notification:SetAttribute("CreatedTime", os.clock())
+        notification:SetAttribute("Exiting", false)
+        
+        -- 入场动画（流畅）
+        notification:TweenPosition(
+            UDim2.new(0, 0, 0, 0),
+            Enum.EasingDirection.Out,
+            Enum.EasingStyle.Quart,
+            0.3,
+            true
+        )
+        
+        -- 延迟更新其他通知位置
+        task.delay(0.05, UpdateAllPositions)
+        
+        -- 进度条动画
+        local progressTween = TweenService:Create(
+            progress,
+            TweenInfo.new(duration, Enum.EasingStyle.Linear),
+            {Size = UDim2.new(1, 0, 1, 0)}
+        )
+        progressTween:Play()
+        
+        -- 等待结束
+        task.wait(duration)
+        
+        -- 标记为正在退出
+        notification:SetAttribute("Exiting", true)
+        
+        -- 边滑动边消失（整体向左滑动 + 透明度渐变）
+        local exitTween = TweenService:Create(
+            notification,
+            TweenInfo.new(0.4, Enum.EasingStyle.Quart, Enum.EasingDirection.In),
+            {
+                Position = UDim2.new(-0.3, 0, 0, notification.Position.Y.Offset),
+                BackgroundTransparency = 1
+            }
+        )
+        exitTween:Play()
+        
+        -- 所有元素一起淡出
+        TweenService:Create(dot, TweenInfo.new(0.4, Enum.EasingStyle.Quart), {BackgroundTransparency = 1}):Play()
+        TweenService:Create(textLabel, TweenInfo.new(0.4, Enum.EasingStyle.Quart), {TextTransparency = 1}):Play()
+        TweenService:Create(progressBg, TweenInfo.new(0.4, Enum.EasingStyle.Quart), {BackgroundTransparency = 1}):Play()
+        TweenService:Create(progress, TweenInfo.new(0.4, Enum.EasingStyle.Quart), {BackgroundTransparency = 1}):Play()
+        
+        -- 等待动画完成
+        exitTween.Completed:Wait()
+        
+        -- 销毁
+        if notification and notification.Parent then
+            notification:Destroy()
+        end
+        
+        -- 更新剩余通知位置
+        task.delay(0.05, UpdateAllPositions)
+    end
+    
+    -- 保存到全局
+    _G.ShowNotification = ShowNotification
+end
+
+
+_G.ShowNotification("测试消息", 5)
